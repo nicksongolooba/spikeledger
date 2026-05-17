@@ -1,7 +1,14 @@
 import { PrismaClient, Position, MatchResult } from "@prisma/client";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// Route the seed script through Neon's WebSocket pool too, so it works from
+// networks that block port 5432.
+neonConfig.webSocketConstructor = ws;
+const _pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter: new PrismaNeon(_pool) });
 
 // ---------------------------------------------------------------------------
 // Deterministic RNG — same seed produces the same demo dataset every time.
