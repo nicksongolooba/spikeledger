@@ -1,0 +1,280 @@
+// SpikeLedger database schema
+// Source of truth: SpikeLedger_ARCHITECTURE.md Section 3
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTHENTICATION & BILLING
+// ============================================================
+
+model User {
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  name                 String?
+  passwordHash         String
+  role                 UserRole  @default(COACH)
+  plan                 Plan      @default(FREE)
+  stripeId             String?   @unique
+  stripeSubscriptionId String?   @unique
+  planExpiresAt        DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  clubs ClubMember[]
+  teams Team[]
+}
+
+enum UserRole {
+  COACH
+  ADMIN
+  ATHLETE
+  PARENT
+}
+
+enum Plan {
+  FREE
+  COACH_PRO
+  CLUB
+}
+
+// ============================================================
+// ORGANIZATION
+// ============================================================
+
+model Club {
+  id        String   @id @default(cuid())
+  name      String
+  logo      String?
+  country   String   @default("CA")
+  province  String?
+  createdAt DateTime @default(now())
+
+  members ClubMember[]
+  teams   Team[]
+}
+
+model ClubMember {
+  id     String   @id @default(cuid())
+  userId String
+  clubId String
+  role   ClubRole @default(COACH)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId])
+}
+
+enum ClubRole {
+  OWNER
+  COACH
+  ASSISTANT
+}
+
+// ============================================================
+// TEAMS & PLAYERS
+// ============================================================
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  ageGroup  String?
+  season    String?
+  clubId    String?
+  coachId   String
+  createdAt DateTime @default(now())
+
+  club        Club?        @relation(fields: [clubId], references: [id])
+  coach       User         @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  players     Player[]
+  tournaments Tournament[]
+}
+
+model Player {
+  id                String    @id @default(cuid())
+  name              String
+  number            Int?
+  primaryPosition   Position
+  secondaryPosition Position?
+  teamId            String
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+
+  team              Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  statLines         StatLine[]
+  attendanceRecords Attendance[]
+}
+
+enum Position {
+  OH
+  RS
+  MB
+  S
+  L
+  DS
+  OPP
+  UTIL
+}
+
+// ============================================================
+// COMPETITIONS
+// ============================================================
+
+model Tournament {
+  id        String    @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime?
+  location  String?
+  teamId    String
+  createdAt DateTime  @default(now())
+
+  team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  matches Match[]
+}
+
+model Match {
+  id           String       @id @default(cuid())
+  tournamentId String
+  opponent     String
+  matchNumber  Int
+  setsWon      Int          @default(0)
+  setsLost     Int          @default(0)
+  result       MatchResult?
+  createdAt    DateTime     @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  statLines  StatLine[]
+}
+
+enum MatchResult {
+  WIN
+  LOSS
+  DRAW
+}
+
+// ============================================================
+// STAT LINES — atomic unit of analytics data
+// ============================================================
+
+model StatLine {
+  id       String @id @default(cuid())
+  matchId  String
+  playerId String
+
+  // Attacking
+  kills          Int @default(0)
+  attackErrors   Int @default(0)
+  attackAttempts Int @default(0)
+
+  // Serving
+  aces          Int @default(0)
+  serveErrors   Int @default(0)
+  serveAttempts Int @default(0)
+
+  // Blocking
+  blocks      Int @default(0)
+  blockErrors Int @default(0)
+
+  // Setting
+  assists       Int @default(0)
+  settingErrors Int @default(0)
+
+  // Serve Receive (SR 0/1/2/3 breakdown — drives the Bank Account passing logic)
+  sr0 Int @default(0)
+  sr1 Int @default(0)
+  sr2 Int @default(0)
+  sr3 Int @default(0)
+
+  // General
+  generalErrors Int @default(0)
+  digs          Int @default(0)
+
+  // Playing time
+  setsPlayed Int     @default(0)
+  didNotPlay Boolean @default(false)
+
+  // What position they played THIS match (handles dual-role players)
+  positionPlayed Position?
+
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, playerId])
+}
+
+// ============================================================
+// ATTENDANCE
+// ============================================================
+
+model Attendance {
+  id       String           @id @default(cuid())
+  playerId String
+  date     DateTime
+  type     AttendanceType
+  status   AttendanceStatus
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+}
+
+enum AttendanceType {
+  PRACTICE
+  MATCH
+  CAMP
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+// ============================================================
+// GENERATED REPORTS
+// ============================================================
+
+model Report {
+  id          String     @id @default(cuid())
+  type        ReportType
+  scope       String
+  imageUrls   String[]
+  metadata    Json?
+  generatedAt DateTime   @default(now())
+  teamId      String
+}
+
+enum ReportType {
+  PLAYER_INDIVIDUAL
+  PLAYER_SEASON
+  TEAM_TOURNAMENT
+  TEAM_SEASON
+  BANK_ACCOUNT
+  PARENT_REPORT
+  WHATSAPP_PACKAGE
+}
+
+// ============================================================
+// AI INSIGHT CACHE
+// ============================================================
+// LLM calls take 5–30s. We hash the request payload and stash the parsed
+// response — same stats produce the same insight, no point re-asking Gemma.
+
+model AIInsightCache {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique
+  kind      String   // "player" | "team"
+  response  Json
+  provider  String   // "ollama" | "google" | "rule-based"
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([cacheKey, expiresAt])
+}

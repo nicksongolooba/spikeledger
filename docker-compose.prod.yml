@@ -1,0 +1,59 @@
+# Production-style Docker Compose for self-hosting.
+# Brings up the app + Postgres + Ollama (for local AI). Use vercel.json for the
+# managed-platform path instead.
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://spikeledger:spikeledger@db:5432/spikeledger
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - AI_PROVIDER=${AI_PROVIDER:-ollama}
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma4}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY:-}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - STRIPE_COACH_PRO_MONTHLY_PRICE_ID=${STRIPE_COACH_PRO_MONTHLY_PRICE_ID:-}
+      - STRIPE_COACH_PRO_YEARLY_PRICE_ID=${STRIPE_COACH_PRO_YEARLY_PRICE_ID:-}
+      - STRIPE_CLUB_MONTHLY_PRICE_ID=${STRIPE_CLUB_MONTHLY_PRICE_ID:-}
+      - STRIPE_CLUB_YEARLY_PRICE_ID=${STRIPE_CLUB_YEARLY_PRICE_ID:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: spikeledger
+      POSTGRES_PASSWORD: spikeledger
+      POSTGRES_DB: spikeledger
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spikeledger -d spikeledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: comment this whole service out if you'd rather not run an LLM
+  # locally. AI insights silently fall back to the rule-based engine.
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  pgdata:
+  ollama_data:

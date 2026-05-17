@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spikeledger-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: spikeledger
+      POSTGRES_PASSWORD: spikeledger
+      POSTGRES_DB: spikeledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - spikeledger_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spikeledger -d spikeledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  spikeledger_pgdata:

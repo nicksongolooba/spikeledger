@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    background-color: #020617; /* slate-950 */
+    color: #f1f5f9; /* slate-100 */
+    min-height: 100%;
+  }
+
+  body {
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: rgba(34, 211, 238, 0.25);
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-slate-800 bg-slate-900;
+  }
+
+  .card-hover {
+    @apply transition-colors hover:border-slate-700 hover:bg-slate-800/60;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-slate-300;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply btn bg-cyan-400 text-cyan-950 hover:bg-cyan-300;
+  }
+
+  .btn-secondary {
+    @apply btn border border-slate-700 bg-slate-900 text-slate-100 hover:border-slate-600 hover:bg-slate-800;
+  }
+
+  .btn-ghost {
+    @apply btn text-slate-300 hover:bg-slate-800/60 hover:text-slate-100;
+  }
+
+  .btn-danger {
+    @apply btn border border-red-400/40 bg-red-400/10 text-red-300 hover:bg-red-400/20;
+  }
+
+  .stat-number {
+    @apply font-mono tabular-nums;
+  }
+}
