@@ -68,55 +68,68 @@ export function MatchEntry({
   const router = useRouter();
   const matchId = match.id;
 
-  // ---- Initial state ----
-  const persisted = useMemo(() => readPersisted(matchId), [matchId]);
+  // ---- Initial state: SERVER-SAFE DEFAULTS ONLY ----
+  // Never read localStorage / navigator / the WAL during render. They exist
+  // only on the client, so seeding initial state from them makes the first
+  // client render diverge from the server HTML. That hydration mismatch, in
+  // production, leaves the whole screen (this lineup modal included) rendered
+  // but inert - no click handlers attach. We restore the saved session in the
+  // mount effect below, after the first render has matched the server.
 
-  // positions per player, defaulting from any saved positionPlayed in DB
-  const initialPositions: PositionByPlayer = useMemo(() => {
+  // Positions known from the DB - deterministic, so safe at first render.
+  const dbPositions: PositionByPlayer = useMemo(() => {
     const out: PositionByPlayer = {};
     for (const sl of initialStatLines) {
       if (sl.positionPlayed) out[sl.playerId] = sl.positionPlayed;
     }
-    if (persisted?.positions) {
-      for (const [k, v] of Object.entries(persisted.positions)) out[k] = v;
-    }
     return out;
-  }, [initialStatLines, persisted]);
+  }, [initialStatLines]);
 
-  const [onCourt, setOnCourt] = useState<string[]>(
-    persisted?.onCourt ?? [],
-  );
-  const [positions, setPositions] =
-    useState<PositionByPlayer>(initialPositions);
-  const [setIdx, setSetIdx] = useState<number>(persisted?.setIdx ?? 0);
-  const [sets, setSets] = useState<SetScore[]>(
-    persisted?.sets && persisted.sets.length > 0
-      ? persisted.sets
-      : [{ us: 0, them: 0 }],
-  );
-  const [rotation, setRotation] = useState<number>(persisted?.rotation ?? 1);
-  const [serving, setServing] = useState<"us" | "them">(
-    persisted?.serving ?? "us",
-  );
-  const [undoStack, setUndoStack] = useState<UndoEntry[]>(
-    persisted?.undo ?? [],
-  );
+  const [onCourt, setOnCourt] = useState<string[]>([]);
+  const [positions, setPositions] = useState<PositionByPlayer>(dbPositions);
+  const [setIdx, setSetIdx] = useState<number>(0);
+  const [sets, setSets] = useState<SetScore[]>([{ us: 0, them: 0 }]);
+  const [rotation, setRotation] = useState<number>(1);
+  const [serving, setServing] = useState<"us" | "them">("us");
+  const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
-  const [offline, setOffline] = useState<boolean>(
-    typeof navigator !== "undefined" ? !navigator.onLine : false,
-  );
-  const [queueSize, setQueueSize] = useState<number>(
-    typeof window !== "undefined" ? readWal(matchId).length : 0,
-  );
+  const [offline, setOffline] = useState<boolean>(false);
+  const [queueSize, setQueueSize] = useState<number>(0);
+  const [showLineup, setShowLineup] = useState<boolean>(true);
 
-  const [showLineup, setShowLineup] = useState<boolean>(
-    (persisted?.onCourt?.length ?? 0) === 0,
-  );
-
-  // Persist all the screen state whenever it changes.
+  // Restore the saved session (localStorage + WAL + online status) AFTER the
+  // first paint, so the initial client render matches the server. `hydrated`
+  // gates the persist effect below so we don't overwrite the save with the
+  // defaults before we've had a chance to read it.
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
+    const persisted = readPersisted(matchId);
+    if (persisted) {
+      if (persisted.onCourt) setOnCourt(persisted.onCourt);
+      if (persisted.positions) {
+        setPositions((prev) => ({ ...prev, ...persisted.positions }));
+      }
+      if (typeof persisted.setIdx === "number") setSetIdx(persisted.setIdx);
+      if (persisted.sets && persisted.sets.length > 0) setSets(persisted.sets);
+      if (typeof persisted.rotation === "number") setRotation(persisted.rotation);
+      if (persisted.serving) setServing(persisted.serving);
+      if (persisted.undo) setUndoStack(persisted.undo);
+      // Keep the lineup modal up only if there's still no lineup set.
+      setShowLineup((persisted.onCourt?.length ?? 0) === 0);
+    }
+    if (typeof navigator !== "undefined") setOffline(!navigator.onLine);
+    setQueueSize(readWal(matchId).length);
+    setHydrated(true);
+    // Run once per match, on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchId]);
+
+  // Persist all the screen state whenever it changes - but not until the saved
+  // session has been restored, or we'd overwrite it with the defaults.
+  useEffect(() => {
+    if (!hydrated) return;
     writePersisted(matchId, {
       onCourt,
       positions,
@@ -126,7 +139,7 @@ export function MatchEntry({
       serving,
       undo: undoStack,
     });
-  }, [matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack]);
+  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack]);
 
   // Track online/offline transitions to drive the WAL replay.
   const refreshQueueSize = useCallback(() => {
