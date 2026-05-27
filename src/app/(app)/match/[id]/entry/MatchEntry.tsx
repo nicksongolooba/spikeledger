@@ -458,9 +458,7 @@ export function MatchEntry({
         roster={roster}
         initialOnCourt={onCourt}
         initialPositions={positions}
-        onClose={() => {
-          if (onCourt.length > 0) setShowLineup(false);
-        }}
+        onClose={() => setShowLineup(false)}
         onConfirm={applyLineup}
       />
     </div>
