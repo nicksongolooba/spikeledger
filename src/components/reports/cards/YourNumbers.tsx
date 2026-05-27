@@ -61,7 +61,7 @@ function sectionsFor(data: ReportCardData): Section[] {
               total:
                 s.totalKills + s.totalAttackErrors > 0
                   ? fmtPct(s.hittingEfficiency, 1)
-                  : "—",
+                  : "-",
               perMatch: "target 20%+",
               emphasis:
                 s.hittingEfficiency >= 0.2

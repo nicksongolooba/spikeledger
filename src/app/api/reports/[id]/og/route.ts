@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // Serves the first image of a public share report as a real PNG so WhatsApp,
-// iMessage, Slack etc. can pull a preview. No auth — same access rule as
+// iMessage, Slack etc. can pull a preview. No auth - same access rule as
 // /share/[id]: the only secret is the cuid in the URL.
 export async function GET(
   _req: Request,

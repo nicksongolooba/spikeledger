@@ -42,7 +42,7 @@ export default async function GeneratePage({
   ]);
 
   // Pre-compute report card data for every (player, scope) combination once
-  // and ship it to the client. That keeps the render side fast — the browser
+  // and ship it to the client. That keeps the render side fast - the browser
   // only has to mount + screenshot, no math.
   const scopeOptions = [
     {

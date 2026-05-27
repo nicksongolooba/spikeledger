@@ -3,9 +3,9 @@ import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "SpikeLedger — Position-Fair Volleyball Analytics",
+  title: "SpikeLedger - Position-Fair Volleyball Analytics",
   description:
-    "Turn match stats into actionable coaching insights. The Bank Account system every volleyball coach needs.",
+    "Turn match stats into coaching feedback you can use. The Bank Account system every volleyball coach needs.",
 };
 
 export default function RootLayout({

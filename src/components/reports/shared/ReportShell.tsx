@@ -18,7 +18,7 @@ const GROUP_ACCENT: Record<PositionGroup, string> = {
 
 interface Props {
   position: Position;
-  // The shell positions an accent stripe down the left edge — pass a rating
+  // The shell positions an accent stripe down the left edge - pass a rating
   // color (from BankAccountResult) and we use that instead, useful for the
   // Performance Overview card which is mostly about the rating.
   accentOverride?: string;

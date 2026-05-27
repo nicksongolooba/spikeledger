@@ -19,8 +19,8 @@ function calloutsFor(data: ReportCardData): Callout[] {
   const group = POSITION_GROUP_MAP[data.player.position];
   if (group === "libero_ds") {
     return [
-      { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "—" },
-      { label: "Perfect Pass %", value: s.srTotal > 0 ? fmtPct(s.perfectPassPercentage, 0) : "—" },
+      { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "-" },
+      { label: "Perfect Pass %", value: s.srTotal > 0 ? fmtPct(s.perfectPassPercentage, 0) : "-" },
       { label: "Digs / Match", value: fmtNum(s.digsPerMatch, 1) },
       { label: "Aces / Match", value: fmtNum(s.acesPerMatch, 1) },
       { label: "Errors / Match", value: fmtNum(s.errorsPerMatch, 1) },
@@ -42,10 +42,10 @@ function calloutsFor(data: ReportCardData): Callout[] {
       value:
         s.totalKills + s.totalAttackErrors > 0
           ? fmtPct(s.hittingEfficiency, 1)
-          : "—",
+          : "-",
     },
     { label: "Aces / Match", value: fmtNum(s.acesPerMatch, 1) },
-    { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "—" },
+    { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "-" },
     { label: "Errors / Match", value: fmtNum(s.errorsPerMatch, 1) },
   ];
 }

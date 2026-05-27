@@ -125,7 +125,7 @@ export function ReviewTable({ rows }: { rows: ReviewRow[] }) {
               <td className="whitespace-nowrap px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <span className="stat-number w-7 text-center text-xs text-slate-500">
-                    {r.number !== null ? `#${r.number}` : "—"}
+                    {r.number !== null ? `#${r.number}` : "-"}
                   </span>
                   <span className="font-medium text-slate-100">{r.name}</span>
                   <PositionBadge position={r.position} size="xs" />
@@ -158,7 +158,7 @@ export function ReviewTable({ rows }: { rows: ReviewRow[] }) {
                   c.key
                 ] as number;
                 if (c.key === "srAvg") {
-                  value = r.srAvg === null ? "—" : fmtNum(r.srAvg, 2);
+                  value = r.srAvg === null ? "-" : fmtNum(r.srAvg, 2);
                 }
                 return (
                   <td

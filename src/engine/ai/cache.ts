@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import type { InsightProvider } from "./types";
 
-// Cache TTL is intentionally far in the future — invalidation is driven by the
+// Cache TTL is intentionally far in the future - invalidation is driven by the
 // stats hash being baked into the cache key. When stats change, the key changes,
 // so the old row is naturally orphaned.
 const TTL_DAYS = 365;

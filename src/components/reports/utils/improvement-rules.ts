@@ -1,4 +1,4 @@
-// Rule-based "What To Work On" — picks the three most relevant focus areas
+// Rule-based "What To Work On" - picks the three most relevant focus areas
 // for a player, taking position into account so a libero isn't told to work on
 // hitting efficiency.
 //
@@ -39,7 +39,7 @@ const RULES: Rule[] = [
         target: "2.0+",
         detail:
           "Wall-pass repetitions, 10 min/practice. Focus on platform angle and shoulder alignment on hard serves.",
-        severity: severity * 1.2, // weighted higher — this is the libero's core job
+        severity: severity * 1.2, // weighted higher - this is the libero's core job
       };
     },
   },
@@ -140,14 +140,14 @@ const RULES: Rule[] = [
         current: s.assistsPerMatch.toFixed(1) + " assists/match",
         target: "8+",
         detail:
-          "Get to more second balls — even off bad passes. Footwork drill: pass-set-pass triangles 5 min/practice.",
+          "Get to more second balls - even off bad passes. Footwork drill: pass-set-pass triangles 5 min/practice.",
         severity: Math.max(0, (8 - s.assistsPerMatch) / 8) * 0.6,
       };
     },
   },
 ];
 
-// "Maintain" callout when a player has no obvious weaknesses — we still want
+// "Maintain" callout when a player has no obvious weaknesses - we still want
 // to fill the slot with something specific and encouraging.
 const MAINTAIN_AREAS: Record<
   "hitter" | "setter_middle" | "libero_ds",
@@ -156,8 +156,8 @@ const MAINTAIN_AREAS: Record<
   hitter: [
     {
       metric: "Stay aggressive late",
-      current: "—",
-      target: "—",
+      current: "-",
+      target: "-",
       detail:
         "Your numbers are strong. Focus on closing sets: keep swinging at 20+ even when tired.",
       severity: 0,
@@ -166,8 +166,8 @@ const MAINTAIN_AREAS: Record<
   setter_middle: [
     {
       metric: "Mix up sets",
-      current: "—",
-      target: "—",
+      current: "-",
+      target: "-",
       detail:
         "Strong base. Add a low quick or back-row attack once per rotation to keep blocks honest.",
       severity: 0,
@@ -176,10 +176,10 @@ const MAINTAIN_AREAS: Record<
   libero_ds: [
     {
       metric: "Lead from the back",
-      current: "—",
-      target: "—",
+      current: "-",
+      target: "-",
       detail:
-        "Numbers are excellent. Talk more — call seams and tips early so blockers know what's coming.",
+        "Numbers are excellent. Talk more - call seams and tips early so blockers know what's coming.",
       severity: 0,
     },
   ],

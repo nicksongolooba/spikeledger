@@ -21,7 +21,7 @@ export default function GlobalError({
         Something went wrong.
       </h1>
       <p className="mt-2 max-w-md text-sm text-slate-400">
-        The error has been logged. Try refreshing — if it keeps happening,
+        The error has been logged. Try refreshing - if it keeps happening,
         the issue is on our side and we&apos;ll get to it.
       </p>
       {error.digest && (

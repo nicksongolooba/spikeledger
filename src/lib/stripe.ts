@@ -1,5 +1,5 @@
 // Stripe server-side client + a single isConfigured() check used by API routes
-// and UI: when the env keys aren't set we degrade gracefully — billing routes
+// and UI: when the env keys aren't set we degrade gracefully - billing routes
 // return 503 with a friendly note rather than crashing.
 
 import Stripe from "stripe";

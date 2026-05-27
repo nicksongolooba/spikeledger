@@ -94,7 +94,7 @@ export function GenerateClient({
     null;
   const previewData = previewPlayer ? scopeData[previewPlayer] : null;
 
-  // Hidden render target — sized to the exact PNG dimensions so html-to-image
+  // Hidden render target - sized to the exact PNG dimensions so html-to-image
   // captures a 1:1 pixel snapshot.
   const renderRootRef = useRef<HTMLDivElement>(null);
   const [renderingNow, setRenderingNow] = useState<{
@@ -279,7 +279,7 @@ export function GenerateClient({
                 }
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-800 stat-number text-sm font-bold">
-                  {p.number ?? "—"}
+                  {p.number ?? "-"}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium text-slate-100">
@@ -341,7 +341,7 @@ export function GenerateClient({
             </span>
             <span className="mt-0.5 block text-xs text-amber-100/70">
               Shows how each player ranks against teammates in the same
-              position group. Some coaches share this only privately — opt-in.
+              position group. Some coaches share this only privately - opt-in.
             </span>
           </span>
         </label>
@@ -363,7 +363,7 @@ export function GenerateClient({
             <span className="mt-0.5 block text-xs text-violet-100/70">
               Adds an AI-generated coaching summary on the Performance Overview
               and replaces &quot;What To Work On&quot; with data-grounded drills.
-              Falls back silently if AI is unavailable. ~5–30s per player.
+              Falls back silently if AI is unavailable. ~5-30s per player.
             </span>
           </span>
         </label>
@@ -494,7 +494,7 @@ export function GenerateClient({
                       onClick={async () => {
                         const result = await sharePlayer(r, scopeLabel);
                         if (!result.ok && result.reason !== "files-not-shareable") {
-                          alert("Web Share isn't supported here — use the ZIP / PDF buttons.");
+                          alert("Web Share isn't supported here - use the ZIP / PDF buttons.");
                         }
                       }}
                       className="btn-ghost px-2 py-1 text-xs"
@@ -512,7 +512,7 @@ export function GenerateClient({
                         href={url}
                         download={`${safeFilename(r.playerName)}_${b.key}.png`}
                         onClick={() => {
-                          // Revoke after the click — browsers usually finish the download first.
+                          // Revoke after the click - browsers usually finish the download first.
                           setTimeout(() => URL.revokeObjectURL(url), 5000);
                         }}
                         className="group relative overflow-hidden rounded-md border border-slate-800 transition-colors hover:border-cyan-400/60"

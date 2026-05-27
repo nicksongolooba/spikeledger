@@ -6,7 +6,7 @@ import { logEnvOnce } from "./env-check";
 
 logEnvOnce();
 
-// Node runtimes (WSL dev, self-hosted Docker) don't have a global WebSocket —
+// Node runtimes (WSL dev, self-hosted Docker) don't have a global WebSocket -
 // hand the Neon driver the `ws` package. Vercel's Node-18 runtime already has
 // one and this is harmless there.
 if (!neonConfig.webSocketConstructor) {

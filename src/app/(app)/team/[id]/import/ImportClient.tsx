@@ -217,7 +217,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
                           .map((r) => r[h])
                           .filter((v) => v !== "" && v !== null && v !== undefined)
                           .slice(0, 3)
-                          .join(", ") || "—"}
+                          .join(", ") || "-"}
                       </div>
                     </div>
                     <select
@@ -230,7 +230,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
                       }
                       className="input max-w-[160px] py-1 text-xs"
                     >
-                      <option value="">— skip —</option>
+                      <option value="">- skip -</option>
                       {CANONICAL_FIELDS.map((f) => (
                         <option key={f} value={f}>
                           {CANONICAL_LABELS[f]}

@@ -53,7 +53,7 @@ export async function POST(
   }
 
   // Upsert StatLine stubs so positionPlayed is locked in even before any stat
-  // is recorded — important for dual-role players (Jordan, Sam).
+  // is recorded - important for dual-role players (Jordan, Sam).
   const ops = parsed.data.entries.map((e) =>
     prisma.statLine.upsert({
       where: {

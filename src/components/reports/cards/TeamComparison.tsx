@@ -149,7 +149,7 @@ export function TeamComparison({ data }: { data: ReportCardData }) {
           lineHeight: 1.4,
         }}
       >
-        Compared only with teammates at the same position — a fair comparison
+        Compared only with teammates at the same position - a fair comparison
         is the only kind that matters.
       </div>
 

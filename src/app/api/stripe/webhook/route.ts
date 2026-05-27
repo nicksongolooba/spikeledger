@@ -9,7 +9,7 @@ import {
   isWebhookConfigured,
 } from "@/lib/stripe";
 
-// Stripe sends raw bytes — Next 14 App Router gives us req.text() which we
+// Stripe sends raw bytes - Next 14 App Router gives us req.text() which we
 // pass to stripe.webhooks.constructEvent for signature verification.
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ async function updatePlanForCustomer(
 
 export async function POST(req: Request) {
   if (!isStripeConfigured() || !isWebhookConfigured()) {
-    // Return 200 so Stripe doesn't retry forever when keys aren't set up yet —
+    // Return 200 so Stripe doesn't retry forever when keys aren't set up yet -
     // log a hint and move on.
     console.warn("Stripe webhook received but billing is not configured.");
     return new NextResponse("Billing not configured", { status: 200 });
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
       break;
     }
     case "invoice.payment_failed": {
-      // Flag the account — for now we just log; email is future work.
+      // Flag the account - for now we just log; email is future work.
       const invoice = event.data.object as Stripe.Invoice;
       console.warn("Payment failed for customer", invoice.customer);
       break;

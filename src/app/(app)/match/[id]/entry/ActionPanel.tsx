@@ -72,7 +72,7 @@ export function ActionPanel({
           <div className="text-lg font-bold text-slate-100">
             {player.name}{" "}
             <span className="font-normal text-slate-500">
-              #{player.number ?? "—"} · {positionPlayed ?? player.primaryPosition}
+              #{player.number ?? "-"} · {positionPlayed ?? player.primaryPosition}
             </span>
           </div>
         </div>
@@ -169,7 +169,7 @@ function ActionRow({
             )}
             aria-label={
               isRestricted
-                ? `${a.label} — uncommon for this position`
+                ? `${a.label} - uncommon for this position`
                 : a.label
             }
           >

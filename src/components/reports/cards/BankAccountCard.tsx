@@ -175,7 +175,7 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
           How the Bank Account works:
         </span>{" "}
         Deposits are actions that help the team. Withdrawals are actions that
-        hurt it. Each position is evaluated on what it&apos;s supposed to do —
+        hurt it. Each position is evaluated on what it&apos;s supposed to do -
         a libero&apos;s good pass counts as a deposit because passing is the
         job; a hitter&apos;s good pass is the baseline.
       </div>

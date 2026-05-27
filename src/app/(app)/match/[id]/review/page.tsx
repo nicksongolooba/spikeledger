@@ -131,7 +131,7 @@ export default async function MatchReviewPage({
       <header className="mt-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            vs {match.opponent} — {resultLabel}
+            vs {match.opponent} - {resultLabel}
           </h1>
           <div className="mt-1 text-sm text-slate-400">
             Match {match.matchNumber} · sets {match.setsWon}-{match.setsLost}
@@ -167,7 +167,7 @@ export default async function MatchReviewPage({
         />
         <SumTile
           label="Team SR Avg"
-          value={srAtt > 0 ? fmtNum(teamSr, 2) : "—"}
+          value={srAtt > 0 ? fmtNum(teamSr, 2) : "-"}
           accent="cyan"
         />
       </section>
@@ -217,7 +217,7 @@ export default async function MatchReviewPage({
           Bank Account leaderboard
         </h2>
         <p className="mb-3 text-sm text-slate-400">
-          Players grouped by position so comparisons are fair — a libero&apos;s
+          Players grouped by position so comparisons are fair - a libero&apos;s
           number isn&apos;t lined up next to a hitter&apos;s.
         </p>
         <BankAccountBars data={barData} />

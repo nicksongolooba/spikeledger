@@ -153,7 +153,7 @@ export function PricingSection() {
                           : "bg-slate-800 text-slate-600")
                       }
                     >
-                      {f.ok ? "✓" : "—"}
+                      {f.ok ? "✓" : "-"}
                     </span>
                     <span>{f.label}</span>
                   </li>

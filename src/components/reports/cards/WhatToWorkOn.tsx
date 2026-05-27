@@ -78,7 +78,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                 >
                   {area.metric}
                 </div>
-                {(area.current !== "—" || area.target !== "—") && (
+                {(area.current !== "-" || area.target !== "-") && (
                   <div
                     style={{
                       marginTop: "8px",

@@ -14,7 +14,7 @@ export function MatchRow({
   const setsLabel =
     match.setsWon > 0 || match.setsLost > 0
       ? `${match.setsWon}-${match.setsLost}`
-      : "—";
+      : "-";
 
   let resultLabel = "Pending";
   let resultClass = "bg-slate-800 text-slate-300";

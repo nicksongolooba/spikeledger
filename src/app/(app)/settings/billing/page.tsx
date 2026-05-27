@@ -265,7 +265,7 @@ function Item({ ok, children }: { ok: boolean; children: React.ReactNode }) {
             : "bg-slate-800 text-slate-600")
         }
       >
-        {ok ? "✓" : "—"}
+        {ok ? "✓" : "-"}
       </span>
       <span>{children}</span>
     </li>

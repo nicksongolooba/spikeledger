@@ -40,7 +40,7 @@ export default function RegisterPage() {
     const signin = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
     if (!signin || signin.error) {
-      setError("Account created — please log in.");
+      setError("Account created - please log in.");
       router.push("/login");
       return;
     }

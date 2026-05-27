@@ -25,7 +25,7 @@ const ImportSchema = z.object({
   mapping: MappingSchema,
   rows: z.array(RowSchema).min(1).max(2000),
   // Optional: enforce a position fallback when a row's player can't be matched
-  // against the active roster — we create the player on the fly.
+  // against the active roster - we create the player on the fly.
   positionFallback: PositionEnum.optional(),
 });
 
@@ -276,7 +276,7 @@ export async function POST(
     });
   }
 
-  // Optionally infer match results from kill/error totals (skip — let the
+  // Optionally infer match results from kill/error totals (skip - let the
   // coach edit results manually for accuracy).
 
   return NextResponse.json({
@@ -289,6 +289,6 @@ export async function POST(
 }
 
 // Type alias to satisfy lint for unused import (MatchResult is referenced
-// in case we ever auto-assign results — keep it imported so future work
+// in case we ever auto-assign results - keep it imported so future work
 // doesn't drop it).
 export type _Unused = MatchResult;

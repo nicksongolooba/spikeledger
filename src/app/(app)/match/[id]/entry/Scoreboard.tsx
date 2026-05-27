@@ -123,7 +123,7 @@ export function Scoreboard({
             {us}
           </span>
         </button>
-        <span className="stat-number text-2xl font-bold text-slate-600">–</span>
+        <span className="stat-number text-2xl font-bold text-slate-600">-</span>
         <button
           type="button"
           onPointerDown={() => startHold("them")}

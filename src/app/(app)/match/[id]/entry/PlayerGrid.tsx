@@ -151,7 +151,7 @@ function PlayerCard({
       )}
     >
       <div className="stat-number text-base font-bold text-slate-100">
-        #{player.number ?? "—"}
+        #{player.number ?? "-"}
       </div>
       <div className="mt-0.5 truncate text-xs font-medium text-slate-200">
         {player.name}
@@ -219,7 +219,7 @@ function SubFor({
                 className="flex flex-col items-center rounded-lg border border-slate-800 bg-slate-900 py-2 transition-colors hover:border-slate-700"
               >
                 <div className="stat-number text-sm font-bold text-slate-100">
-                  #{p.number ?? "—"}
+                  #{p.number ?? "-"}
                 </div>
                 <div className="truncate text-xs text-slate-200">{p.name}</div>
                 <PositionBadge position={pos} size="xs" className="mt-1" />

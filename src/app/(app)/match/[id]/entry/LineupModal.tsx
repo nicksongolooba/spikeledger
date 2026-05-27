@@ -113,7 +113,7 @@ export function LineupModal({
               }
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-800 stat-number text-sm font-bold">
-                {p.number ?? "—"}
+                {p.number ?? "-"}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-slate-100">
@@ -182,7 +182,7 @@ export function LineupModal({
                 >
                   <span className="text-slate-200">
                     {p.name}{" "}
-                    <span className="text-slate-500">#{p.number ?? "—"}</span>
+                    <span className="text-slate-500">#{p.number ?? "-"}</span>
                   </span>
                   <span className="flex items-center gap-2 text-slate-400">
                     {POSITION_LABELS[pos]}

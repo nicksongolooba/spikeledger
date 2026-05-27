@@ -20,7 +20,7 @@ const WITHDRAWAL_PALETTE = [
   "#eab308",
 ];
 
-// We render a donut chart using a single conic-gradient — avoids depending on
+// We render a donut chart using a single conic-gradient - avoids depending on
 // Recharts inside the html-to-image capture, which can be flaky.
 function donutGradient(values: number[], palette: string[]): string {
   const total = values.reduce((s, v) => s + v, 0);

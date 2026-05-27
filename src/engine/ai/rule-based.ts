@@ -21,7 +21,7 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
 
   if (ba.rating === "GREEN") {
     out.push(
-      `Bank Account ${ba.balance >= 0 ? "+" : ""}${ba.balance} (${ba.ratingLabel}) — ${(ba.ratio * 100).toFixed(0)}% of contributions are deposits.`,
+      `Bank Account ${ba.balance >= 0 ? "+" : ""}${ba.balance} (${ba.ratingLabel}) - ${(ba.ratio * 100).toFixed(0)}% of contributions are deposits.`,
     );
   } else if (ba.rating === "BLUE") {
     out.push(
@@ -29,21 +29,21 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
     );
   }
   if (group === "libero_ds" && s.srAverage !== undefined && s.srAverage >= 1.8) {
-    out.push(`Reliable passing — SR average ${s.srAverage.toFixed(2)} keeps the offense in system.`);
+    out.push(`Reliable passing - SR average ${s.srAverage.toFixed(2)} keeps the offense in system.`);
   }
   if (group === "hitter" && s.hittingEfficiency !== undefined && s.hittingEfficiency >= 0.15) {
     out.push(
-      `Efficient swings — hitting ${fmtPct(s.hittingEfficiency, 1)} this scope.`,
+      `Efficient swings - hitting ${fmtPct(s.hittingEfficiency, 1)} this scope.`,
     );
   }
   if (group === "setter_middle" && s.assistsPerMatch !== undefined && s.assistsPerMatch >= 8) {
     out.push(
-      `Strong distribution — ${fmtNum(s.assistsPerMatch, 1)} assists per match.`,
+      `Strong distribution - ${fmtNum(s.assistsPerMatch, 1)} assists per match.`,
     );
   }
   if (group === "setter_middle" && s.blocksPerMatch !== undefined && s.blocksPerMatch >= 1.0) {
     out.push(
-      `Active at the net — ${fmtNum(s.blocksPerMatch, 1)} blocks per match.`,
+      `Active at the net - ${fmtNum(s.blocksPerMatch, 1)} blocks per match.`,
     );
   }
   if (s.acesPerMatch !== undefined && s.acesPerMatch >= 1.5) {
@@ -51,7 +51,7 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
       `Tough server: ${fmtNum(s.acesPerMatch, 1)} aces/match keeps opponents off-balance.`,
     );
   }
-  if (out.length === 0) out.push(`Showing up and contributing — this is the floor to build from.`);
+  if (out.length === 0) out.push(`Showing up and contributing - this is the floor to build from.`);
   return out.slice(0, 3);
 }
 
@@ -91,7 +91,7 @@ function buildImprovements(req: PlayerInsightRequest): ImprovementInsight[] {
     targetValue: a.target,
     drill: a.detail,
     explanation:
-      "Targeted improvement work compounds quickly — small daily reps move the number within a tournament cycle.",
+      "A few focused reps every practice move this number fast, usually within a tournament or two.",
   }));
 }
 
@@ -112,15 +112,15 @@ function parentFriendlyFor(req: PlayerInsightRequest): string {
         : ba.rating === "ORANGE"
           ? `working through some growing pains in ${role} this ${req.scopeLabel}.`
           : ba.rating === "RED"
-            ? `having a tough stretch in ${role} this ${req.scopeLabel} — every player has them.`
+            ? `having a tough stretch in ${role} this ${req.scopeLabel} - every player has them.`
             : `still gathering stats in ${role}.`;
-  return `${req.player.name} is ${verdict} They&rsquo;re evaluated on what their position is supposed to do, not on everyone else&rsquo;s stats — that&rsquo;s the fair-comparison principle SpikeLedger is built on.`;
+  return `${req.player.name} is ${verdict} They&rsquo;re evaluated on what their position is supposed to do, not on everyone else&rsquo;s stats - that&rsquo;s the fair-comparison principle SpikeLedger is built on.`;
 }
 
 export function generateRuleBasedPlayerInsight(
   req: PlayerInsightRequest,
 ): PlayerInsightResponse {
-  const summary = `${req.player.name} — Bank Account ${
+  const summary = `${req.player.name} - Bank Account ${
     req.bankAccount.balance >= 0 ? "+" : ""
   }${req.bankAccount.balance} (${req.bankAccount.ratingLabel}) in ${req.scopeLabel}. ${
     req.bankAccount.deposits
@@ -129,7 +129,7 @@ export function generateRuleBasedPlayerInsight(
   const group = POSITION_GROUP_MAP[req.player.position];
   const coachingNote =
     group === "libero_ds"
-      ? "Lean on this player as the floor anchor — get them more reps in serve receive rotations 1 and 6."
+      ? "Lean on this player as the floor anchor - get them more reps in serve receive rotations 1 and 6."
       : group === "setter_middle"
         ? "Mix in more middle-fast tempo on serve-receive 2s to reward strong passing."
         : "Run a quick attack ahead of this player's outside set to soften the block.";
@@ -169,20 +169,20 @@ export function generateRuleBasedTeamInsight(
   if (sorted.length > 0) {
     const top = sorted[0];
     insights.push(
-      `${top.name} (${top.position}) leads the Bank Account at ${top.balance >= 0 ? "+" : ""}${top.balance} (${top.rating}) — give them the high-pressure rotations.`,
+      `${top.name} (${top.position}) leads the Bank Account at ${top.balance >= 0 ? "+" : ""}${top.balance} (${top.rating}) - give them the high-pressure rotations.`,
     );
   }
   if (sorted.length >= 4) {
     const bottom = sorted[sorted.length - 1];
     if (bottom.balance < 0) {
       insights.push(
-        `${bottom.name} (${bottom.position}) sits at ${bottom.balance} this scope — a focused one-on-one this week could move the team total fast.`,
+        `${bottom.name} (${bottom.position}) sits at ${bottom.balance} this scope - a focused one-on-one this week could move the team total fast.`,
       );
     }
   }
   if (insights.length === 0) {
     insights.push(
-      `Log more matches to surface trends — the Bank Account becomes more useful as the sample size grows.`,
+      `Log more matches to surface trends - the Bank Account becomes more useful as the sample size grows.`,
     );
   }
   return {

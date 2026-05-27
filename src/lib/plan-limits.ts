@@ -1,4 +1,4 @@
-// Plan-tier capabilities — single source of truth used by both server
+// Plan-tier capabilities - single source of truth used by both server
 // gating (API routes) and client UI (badges, upgrade prompts).
 
 import type { Plan } from "@prisma/client";
@@ -107,7 +107,7 @@ export interface UpgradeReason {
 }
 
 // Returns a short, user-friendly reason for why an action is blocked, plus the
-// plan they need to unlock it. Used by the UpgradePrompt component.
+// plan they need to do it. Used by the UpgradePrompt component.
 export function getUpgradeReason(
   plan: Plan,
   action:
@@ -149,7 +149,7 @@ export function getUpgradeReason(
       return {
         feature: "AI coaching insights",
         reason:
-          "Gemma 4-powered insights with specific drill recommendations. Unlocked on Coach Pro.",
+          "Gemma 4 insights with specific drill recommendations. Coach Pro and up.",
         recommendedPlan: "COACH_PRO",
       };
     case "share-link":

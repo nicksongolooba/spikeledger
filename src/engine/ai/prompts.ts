@@ -5,16 +5,16 @@ import type {
 
 const POSITION_GUIDANCE = {
   libero_ds:
-    "Libero/DS: focus on passing (SR), defense (digs), serve consistency. NEVER mention hitting or blocking — liberos don't attack or play at the net.",
+    "Libero/DS: focus on passing (SR), defense (digs), serve consistency. NEVER mention hitting or blocking - liberos don't attack or play at the net.",
   hitter:
-    "Hitter (OH/RS/OPP): focus on hitting efficiency, kill rate, serve receive, serving, attack errors. Blocking is team-strategy dependent — only mention if blocks/match is unusually high or low.",
+    "Hitter (OH/RS/OPP): focus on hitting efficiency, kill rate, serve receive, serving, attack errors. Blocking is team-strategy dependent - only mention if blocks/match is unusually high or low.",
   setter_middle:
-    "Setter or Middle Blocker: setters → assists, decision-making, serving; middles → blocking presence, quick attack efficiency, serving. Neither is in serve receive — never mention SR.",
+    "Setter or Middle Blocker: setters → assists, decision-making, serving; middles → blocking presence, quick attack efficiency, serving. Neither is in serve receive - never mention SR.",
 };
 
-export const PLAYER_SYSTEM_PROMPT = `You are an experienced volleyball coach analyzing player statistics for a youth team (ages 14–18). You provide specific, data-driven coaching insights.
+export const PLAYER_SYSTEM_PROMPT = `You are an experienced volleyball coach analyzing player statistics for a youth team (ages 14-18). You provide specific, data-driven coaching insights.
 
-RULES — read each carefully and follow exactly:
+RULES - read each carefully and follow exactly:
 1. ALWAYS reference actual numbers from the data. Do not invent stats.
 2. Every improvement suggestion MUST include a specific drill (name + duration). Vague advice is unacceptable.
 3. Be encouraging but honest. These are youth athletes. Frame weaknesses as growth opportunities, not failures.
@@ -23,13 +23,13 @@ RULES — read each carefully and follow exactly:
    - ${POSITION_GUIDANCE.hitter}
    - ${POSITION_GUIDANCE.setter_middle}
 5. Address the player by name in summary and parentFriendly.
-6. Keep all text concise — coaches read these on phones. Each field ≤ 2 sentences except improvements.
+6. Keep all text concise - coaches read these on phones. Each field ≤ 2 sentences except improvements.
 7. The parentFriendly summary uses plain English (no volleyball jargon like "SR" or "kill efficiency"). Translate.
 8. Respond ONLY with valid JSON matching the schema. No markdown fences, no preamble, no explanation outside the JSON.
 
 SCHEMA (exact field names and types):
 {
-  "summary": "1–2 sentence performance overview, references concrete numbers",
+  "summary": "1-2 sentence performance overview, references concrete numbers",
   "strengths": ["2 to 3 concrete strengths, each ≤ 15 words"],
   "improvements": [
     {
@@ -40,17 +40,17 @@ SCHEMA (exact field names and types):
       "explanation": "Why this matters and how the drill helps (≤ 25 words)"
     }
   ],
-  "coachingNote": "1–2 sentence tactical suggestion for the coach (rotation, set selection, etc.)",
-  "parentFriendly": "Plain-English 2–3 sentence summary a parent who has never played volleyball would understand"
+  "coachingNote": "1-2 sentence tactical suggestion for the coach (rotation, set selection, etc.)",
+  "parentFriendly": "Plain-English 2-3 sentence summary a parent who has never played volleyball would understand"
 }
 
-Provide 2–3 strengths and 2–3 improvements. Always exactly those counts.`;
+Provide 2-3 strengths and 2-3 improvements. Always exactly those counts.`;
 
-const TEAM_SYSTEM_PROMPT = `You are an experienced volleyball coach analyzing team performance for a youth team. You write 3–4 concise, data-grounded insights.
+const TEAM_SYSTEM_PROMPT = `You are an experienced volleyball coach analyzing team performance for a youth team. You write 3-4 concise, data-grounded insights.
 
 RULES:
 1. Reference actual numbers from the data (specific players, exact stat changes, tournament results).
-2. Each insight stands alone — 1–2 sentences.
+2. Each insight stands alone - 1-2 sentences.
 3. Mix performance description with tactical suggestion when applicable.
 4. Position-fair: comparisons stay within position group when comparing players.
 5. Encouraging but honest. Highlight both wins and structural problems.
@@ -78,15 +78,15 @@ export function buildPlayerUserPrompt(req: PlayerInsightRequest): string {
   lines.push(statBlock(req.stats));
   lines.push(``);
   lines.push(
-    `Bank Account: ${req.bankAccount.balance >= 0 ? "+" : ""}${req.bankAccount.balance} (${req.bankAccount.rating} — ${req.bankAccount.ratingLabel})`,
+    `Bank Account: ${req.bankAccount.balance >= 0 ? "+" : ""}${req.bankAccount.balance} (${req.bankAccount.rating} - ${req.bankAccount.ratingLabel})`,
   );
   lines.push(
-    `  Deposits: ${req.bankAccount.deposits} — ${Object.entries(req.bankAccount.depositBreakdown)
+    `  Deposits: ${req.bankAccount.deposits} - ${Object.entries(req.bankAccount.depositBreakdown)
       .map(([k, v]) => `${k}:${v}`)
       .join(", ") || "none"}`,
   );
   lines.push(
-    `  Withdrawals: ${req.bankAccount.withdrawals} — ${Object.entries(req.bankAccount.withdrawalBreakdown)
+    `  Withdrawals: ${req.bankAccount.withdrawals} - ${Object.entries(req.bankAccount.withdrawalBreakdown)
       .map(([k, v]) => `${k}:${v}`)
       .join(", ") || "none"}`,
   );
@@ -96,7 +96,7 @@ export function buildPlayerUserPrompt(req: PlayerInsightRequest): string {
     lines.push(`Trend across tournaments:`);
     for (const t of req.trend) {
       lines.push(
-        `  ${t.scopeLabel}: Bank ${t.bankAccount.balance >= 0 ? "+" : ""}${t.bankAccount.balance} (${t.bankAccount.rating}) — ${Object.entries(
+        `  ${t.scopeLabel}: Bank ${t.bankAccount.balance >= 0 ? "+" : ""}${t.bankAccount.balance} (${t.bankAccount.rating}) - ${Object.entries(
           t.stats,
         )
           .map(([k, v]) => `${k} ${v.toFixed(2).replace(/\.00$/, "")}`)
@@ -148,7 +148,7 @@ export function buildTeamUserPrompt(req: TeamInsightRequest): string {
   }
   lines.push(``);
   lines.push(
-    `Produce 3–4 specific, data-grounded insights as a JSON array of strings.`,
+    `Produce 3-4 specific, data-grounded insights as a JSON array of strings.`,
   );
   return lines.join("\n");
 }

@@ -20,7 +20,7 @@ export async function GET() {
   });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  // Usage snapshot — number of teams, total tournaments, reports generated this month.
+  // Usage snapshot - number of teams, total tournaments, reports generated this month.
   const monthStart = new Date();
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);

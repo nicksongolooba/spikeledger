@@ -15,7 +15,7 @@ export default function robots(): MetadataRoute.Robots {
           "/reports/",
           "/settings/",
           "/api/",
-          "/share/", // private per-report URLs — don't index
+          "/share/", // private per-report URLs - don't index
         ],
       },
     ],

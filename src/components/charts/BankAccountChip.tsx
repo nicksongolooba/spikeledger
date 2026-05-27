@@ -20,7 +20,7 @@ export function BankAccountChip({
           className,
         )}
       >
-        — no data
+        - no data
       </span>
     );
   }

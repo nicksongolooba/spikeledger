@@ -16,7 +16,7 @@ export default async function SettingsPage() {
         <dl className="mt-4 grid gap-3 sm:grid-cols-2">
           <div>
             <dt className="text-xs text-slate-500">Name</dt>
-            <dd className="text-sm text-slate-100">{user.name ?? "—"}</dd>
+            <dd className="text-sm text-slate-100">{user.name ?? "-"}</dd>
           </div>
           <div>
             <dt className="text-xs text-slate-500">Email</dt>

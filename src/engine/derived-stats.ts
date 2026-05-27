@@ -1,6 +1,6 @@
 // Rate-based stats derived from raw StatLine rows.
 // Rule of thumb: ALWAYS show per-match averages and percentages when comparing
-// players, never raw totals — otherwise a starter and a sub aren't comparable.
+// players, never raw totals - otherwise a starter and a sub aren't comparable.
 
 import type { Position, StatLine } from "@prisma/client";
 import {
@@ -23,10 +23,10 @@ export interface DerivedStats {
   totalServeErrors: number;
 
   // Passing (serve receive)
-  srAverage: number;            // weighted average on a 0–3 scale
+  srAverage: number;            // weighted average on a 0-3 scale
   srTotal: number;              // number of passes received
   perfectPassPercentage: number; // sr3 / total
-  passable: boolean;            // true if any SR data — drives "hide passing column" for setters/middles
+  passable: boolean;            // true if any SR data - drives "hide passing column" for setters/middles
 
   // Blocking
   blocksPerMatch: number;
@@ -167,13 +167,13 @@ export function computeDerivedStats(
   };
 }
 
-// Common formatters for display layer — kept here so the same numbers are
+// Common formatters for display layer - kept here so the same numbers are
 // rendered consistently everywhere.
 export function fmtPct(n: number, digits = 1): string {
   return `${(n * 100).toFixed(digits)}%`;
 }
 export function fmtNum(n: number, digits = 1): string {
-  return Number.isFinite(n) ? n.toFixed(digits) : "—";
+  return Number.isFinite(n) ? n.toFixed(digits) : "-";
 }
 export function fmtSigned(n: number): string {
   if (n > 0) return `+${n}`;

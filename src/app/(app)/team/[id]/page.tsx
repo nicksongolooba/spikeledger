@@ -148,7 +148,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
                 className="card card-hover flex items-center gap-3 p-3"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-800 stat-number text-sm font-bold">
-                  {p.number ?? "—"}
+                  {p.number ?? "-"}
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium text-slate-100">
@@ -184,13 +184,13 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
               value={
                 totalMatchesPlayed > 0
                   ? fmtNum(totalKills / totalMatchesPlayed, 1)
-                  : "—"
+                  : "-"
               }
               accent="emerald"
             />
             <StatTile
               label="Team SR Avg"
-              value={srAtt > 0 ? fmtNum(srAvg, 2) : "—"}
+              value={srAtt > 0 ? fmtNum(srAvg, 2) : "-"}
               accent="cyan"
             />
             <div className="card p-4 sm:col-span-2 lg:col-span-4">
@@ -199,7 +199,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
                 <span className="text-slate-400">
                   {netPoints.length > 0
                     ? `Latest: ${fmtSigned(netPoints[netPoints.length - 1].net)}`
-                    : "—"}
+                    : "-"}
                 </span>
               </div>
               <NetProductionSparkline

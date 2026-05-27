@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Each image is a base64 data URL captured by html-to-image on the client.
-// We keep them inline on the Report row — fine for Phase 4 demo scale, will
+// We keep them inline on the Report row - fine for Phase 4 demo scale, will
 // move to Cloudflare R2 in a future infra pass.
 const ImageSchema = z.object({
   key: z.string().min(1).max(40),

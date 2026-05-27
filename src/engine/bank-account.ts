@@ -1,20 +1,20 @@
 // =============================================================================
-// SpikeLedger Bank Account engine — the position-fair evaluation algorithm.
+// SpikeLedger Bank Account engine - the position-fair evaluation algorithm.
 // =============================================================================
 // Every action is either a deposit (helps the team) or a withdrawal (hurts it),
 // but the rules differ by position group:
 //
-//   Libero/DS  — SR 2 IS a deposit (good passing is the job).
+//   Libero/DS  - SR 2 IS a deposit (good passing is the job).
 //                Attack errors / net errors don't count against them.
-//   Hitter     — Only SR 3 (perfect pass) is a deposit; SR 2 is baseline.
+//   Hitter     - Only SR 3 (perfect pass) is a deposit; SR 2 is baseline.
 //                Attack and net errors DO count.
-//   Setter/MB  — Not in serve receive, so SR fields don't count either way.
+//   Setter/MB  - Not in serve receive, so SR fields don't count either way.
 //                Attack and net errors count.
 //
 // This module is pure and works on either a single StatLine row or an array
 // (for tournament/season aggregates). Dual-role players are handled naturally:
 // each StatLine carries its own positionPlayed, and the aggregate sums the
-// per-line contributions — RS matches use hitter rules, libero matches use
+// per-line contributions - RS matches use hitter rules, libero matches use
 // libero rules.
 
 import type { Position, StatLine } from "@prisma/client";
@@ -130,7 +130,7 @@ function contributionsFor(
     deposits.sr2 = line.sr2;
     deposits.sr3 = line.sr3;
     withdrawals.sr0 = line.sr0;
-    // Liberos rarely attack or play at the net — those errors don't count.
+    // Liberos rarely attack or play at the net - those errors don't count.
   } else if (group === "hitter") {
     // Hitters: only perfect passes (SR 3) are deposits; good passes are baseline.
     deposits.sr3 = line.sr3;
@@ -200,10 +200,10 @@ export function calculateBankAccount(
  * Each line is evaluated under the position group of its own `positionPlayed`
  * (so a dual-role player like Jordan gets RS rules on his RS matches and
  * libero rules on his libero matches). Then deposits and withdrawals are
- * summed across all lines — the resulting ratio is naturally weighted by
+ * summed across all lines - the resulting ratio is naturally weighted by
  * how many matches were played at each position.
  *
- * Pass `fallbackPosition` so lines without a stored positionPlayed (rare —
+ * Pass `fallbackPosition` so lines without a stored positionPlayed (rare -
  * shouldn't happen post-Phase-2 lineup) still classify correctly.
  */
 export function calculateAggregateBankAccount(

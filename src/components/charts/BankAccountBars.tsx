@@ -67,7 +67,7 @@ export function BankAccountBars({
   if (data.length === 0) {
     return (
       <div className="card flex h-40 items-center justify-center text-sm text-slate-500">
-        No Bank Account data yet — record some match stats first.
+        No Bank Account data yet - record some match stats first.
       </div>
     );
   }

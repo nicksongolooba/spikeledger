@@ -191,7 +191,7 @@ export function RosterClient({
               >
                 {POSITIONS.map((p) => (
                   <option key={p} value={p}>
-                    {p} — {POSITION_LABELS[p]}
+                    {p} - {POSITION_LABELS[p]}
                   </option>
                 ))}
               </select>
@@ -213,10 +213,10 @@ export function RosterClient({
               }
               className="input"
             >
-              <option value="">— None —</option>
+              <option value="">- None -</option>
               {POSITIONS.map((p) => (
                 <option key={p} value={p}>
-                  {p} — {POSITION_LABELS[p]}
+                  {p} - {POSITION_LABELS[p]}
                 </option>
               ))}
             </select>
@@ -277,7 +277,7 @@ function PlayerTable({
           {players.map((p) => (
             <tr key={p.id} className="transition-colors hover:bg-slate-800/40">
               <td className="px-4 py-2.5 stat-number font-bold text-slate-300">
-                {p.number ?? "—"}
+                {p.number ?? "-"}
               </td>
               <td className="px-4 py-2.5 font-medium text-slate-100">{p.name}</td>
               <td className="px-4 py-2.5">
@@ -287,7 +287,7 @@ function PlayerTable({
                 {p.secondaryPosition ? (
                   <PositionBadge position={p.secondaryPosition} />
                 ) : (
-                  <span className="text-slate-600">—</span>
+                  <span className="text-slate-600">-</span>
                 )}
               </td>
               <td className="px-4 py-2.5 text-right">
@@ -314,7 +314,7 @@ function PlayerTable({
         {players.map((p) => (
           <li key={p.id} className="flex items-center gap-3 px-4 py-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-800 stat-number text-sm font-bold">
-              {p.number ?? "—"}
+              {p.number ?? "-"}
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium text-slate-100">{p.name}</div>

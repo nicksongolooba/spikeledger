@@ -42,7 +42,7 @@ export async function POST(
     },
   });
   if (!existing) {
-    // Nothing to undo — treat as a no-op so the client stays in sync.
+    // Nothing to undo - treat as a no-op so the client stays in sync.
     return NextResponse.json({ ok: true, noop: true });
   }
 

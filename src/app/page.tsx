@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { PricingSection } from "./PricingSection";
 
 export const metadata: Metadata = {
-  title: "SpikeLedger — Position-Fair Volleyball Analytics",
+  title: "SpikeLedger - Position-Fair Volleyball Analytics",
   description:
-    "Turn match stats into actionable coaching insights with the Bank Account system. WhatsApp-ready report cards, AI coaching, and position-fair analysis for volleyball coaches.",
+    "Turn match stats into coaching feedback you can use, with the Bank Account system. WhatsApp-ready report cards, AI coaching, and position-fair analysis for volleyball coaches.",
   keywords: [
     "volleyball stats",
     "volleyball analytics",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "bank account volleyball",
   ],
   openGraph: {
-    title: "SpikeLedger — Position-Fair Volleyball Analytics",
+    title: "SpikeLedger - Position-Fair Volleyball Analytics",
     description:
       "The coaching analytics tool that evaluates every player fairly by position.",
     type: "website",
@@ -42,7 +42,7 @@ const features = [
   },
   {
     title: "Courtside Stat Entry",
-    body: "Two taps — player → action. Works one-handed on your phone in a noisy gym. Offline-capable so flaky WiFi can't lose your stats.",
+    body: "Two taps: the player, then what they did. Works one-handed on your phone in a loud gym. Works offline too, so bad WiFi never loses a stat.",
     accent: "from-emerald-400/20 to-emerald-400/5",
     iconColor: "text-emerald-300",
     icon: (
@@ -103,15 +103,15 @@ const features = [
 const faqs = [
   {
     q: "Can I cancel anytime?",
-    a: "Yes. Cancel from the billing portal — your plan stays active through the end of the period, then drops to Free. No questions asked.",
+    a: "Yes. Cancel from the billing portal - your plan stays active through the end of the period, then drops to Free. No questions asked.",
   },
   {
     q: "What happens to my data if I downgrade?",
-    a: "Nothing. Every stat, match, and player you've logged stays. You just hit the Free-plan limits again (1 team, 3 tournaments) — and any data above those limits becomes read-only until you upgrade or remove it.",
+    a: "Nothing. Every stat, match, and player you've logged stays. You just hit the Free-plan limits again (1 team, 3 tournaments) - and any data above those limits becomes read-only until you upgrade or remove it.",
   },
   {
     q: "Do you offer team or club discounts?",
-    a: "The Club tier is built for it — one subscription covers up to 15 coaches sharing data. For larger orgs, email us and we'll work out a plan.",
+    a: "The Club tier is built for it - one subscription covers up to 15 coaches sharing data. For larger orgs, email us and we'll work out a plan.",
   },
   {
     q: "Is my players' data private?",
@@ -123,7 +123,7 @@ const faqs = [
   },
   {
     q: "Can I import stats from a spreadsheet?",
-    a: "Yes — Coach Pro and up. Drag in a CSV or Excel file, map your columns, and a whole season backfills in a minute.",
+    a: "Yes - Coach Pro and up. Drag in a CSV or Excel file, map your columns, and a whole season backfills in a minute.",
   },
 ];
 
@@ -201,7 +201,7 @@ export default function LandingPage() {
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link href="/register" className="btn-primary px-6 py-3 text-base">
-            Start Free — No Credit Card Required
+            Start Free - No Credit Card Required
             <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
               <path
                 fillRule="evenodd"
@@ -255,7 +255,7 @@ export default function LandingPage() {
           Simple pricing
         </h2>
         <p className="mt-3 text-center text-slate-400">
-          Free tier is a real product — not a crippled demo. Upgrade when you
+          Free tier is a real product - not a crippled demo. Upgrade when you
           want it for your whole team.
         </p>
         <div className="mt-12">
@@ -271,7 +271,7 @@ export default function LandingPage() {
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-slate-400">
             The Bank Account system was calibrated over 9 tournaments with two
-            real teams — not invented in a boardroom. Every metric was
+            real teams - not invented in a boardroom. Every metric was
             stress-tested against what actually helps youth players improve.
           </p>
           <div className="mt-8">

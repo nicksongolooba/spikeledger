@@ -10,7 +10,7 @@ import {
   type UpgradeReason,
 } from "@/lib/plan-limits";
 
-// Inline upgrade banner — used when the gate is just a card or button.
+// Inline upgrade banner - used when the gate is just a card or button.
 export function UpgradeBanner({
   reason,
   onUpgrade,
@@ -49,7 +49,7 @@ export function UpgradeBanner({
   );
 }
 
-// Modal variant — used when the user explicitly tries to take the gated action
+// Modal variant - used when the user explicitly tries to take the gated action
 // (e.g. clicks the "Add Tournament" button when they're at the limit).
 export function UpgradePromptModal({
   open,
@@ -169,7 +169,7 @@ export function useUpgradePrompt(): {
   close: () => void;
   modal: React.ReactNode;
 } {
-  // Stateful via React — kept inline so consumers can drop it into one place.
+  // Stateful via React - kept inline so consumers can drop it into one place.
   // The hook returns a JSX `modal` node consumers render somewhere stable.
   // (Defined as a function-call-using-hooks helper so callers stay terse.)
   // eslint-disable-next-line react-hooks/rules-of-hooks

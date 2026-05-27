@@ -18,10 +18,10 @@ export interface ReportCardData {
   bankAccount: BankAccountResult;
   improvementAreas: ImprovementArea[];
   // Set when the user has enabled AI insights for this generation run.
-  aiSummary?: string;            // 1–2 sentence overview shown on Performance Overview
+  aiSummary?: string;            // 1-2 sentence overview shown on Performance Overview
   aiParentFriendly?: string;     // plain-English summary saved with the share link
   aiProvider?: "ollama" | "google" | "rule-based";
-  // For team comparison — within-position-group cohort
+  // For team comparison - within-position-group cohort
   cohort: Array<{
     playerId: string;
     name: string;
@@ -34,13 +34,13 @@ export interface ReportCardData {
   }>;
 }
 
-// Image dimensions — locked at 1080×1350 (4:5) so they look right in
+// Image dimensions - locked at 1080×1350 (4:5) so they look right in
 // WhatsApp previews and on portrait phone screens.
 export const REPORT_WIDTH = 1080;
 export const REPORT_HEIGHT = 1350;
 
 // Background tokens shared across cards. Keep as plain strings (not Tailwind
-// classes) — html-to-image relies on computed CSS and these end up inline.
+// classes) - html-to-image relies on computed CSS and these end up inline.
 export const REPORT_BG = "#0a0e17";
 export const REPORT_CARD_BG = "#111827";
 export const REPORT_BORDER = "#1f2937";

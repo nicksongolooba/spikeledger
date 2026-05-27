@@ -253,7 +253,7 @@ export function MatchEntry({
         }),
       });
     } catch {
-      pushToast("Lineup queued — will sync when online", "info");
+      pushToast("Lineup queued - will sync when online", "info");
     }
   }
 
@@ -282,7 +282,7 @@ export function MatchEntry({
       removeWal(matchId, entry.id);
       refreshQueueSize();
     } catch {
-      // Leave in queue — flushed when online event fires.
+      // Leave in queue - flushed when online event fires.
       setOffline(true);
     }
   }
@@ -301,7 +301,7 @@ export function MatchEntry({
       ts: Date.now(),
     };
 
-    // Optimistic UI — push to undo stack immediately and clear selection.
+    // Optimistic UI - push to undo stack immediately and clear selection.
     setUndoStack((prev) => {
       const next = [...prev, { id: walId, playerId, playerName, action, ts: walEntry.ts }];
       return next.length > 50 ? next.slice(next.length - 50) : next;
@@ -357,7 +357,7 @@ export function MatchEntry({
       router.refresh();
     } catch {
       setEnding(false);
-      pushToast("Could not finalize match — check connection.", "danger");
+      pushToast("Could not finalize match - check connection.", "danger");
     }
   }
 

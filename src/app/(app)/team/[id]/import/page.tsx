@@ -27,7 +27,7 @@ export default async function ImportPage({
         <h1 className="text-2xl font-bold tracking-tight">Import stats</h1>
         <p className="mt-1 text-sm text-slate-400">
           Drop in a CSV or Excel file of past matches. Columns are
-          auto-mapped where possible — you confirm before anything saves.
+          auto-mapped where possible - you confirm before anything saves.
         </p>
       </header>
 

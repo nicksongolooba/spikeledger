@@ -131,7 +131,7 @@ export async function sharePlayer(
   try {
     await navigator.share({
       files,
-      title: `${report.playerName} — match report`,
+      title: `${report.playerName} - match report`,
       text: `${report.playerName}'s performance from ${scopeLabel}`,
     });
     return { ok: true };

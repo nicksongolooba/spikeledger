@@ -30,8 +30,8 @@ function statTilesFor(
 ): StatTileItem[] {
   if (group === "libero_ds") {
     return [
-      { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "—", accent: "emerald" },
-      { label: "Perfect Pass %", value: s.srTotal > 0 ? fmtPct(s.perfectPassPercentage, 0) : "—", accent: "cyan" },
+      { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "-", accent: "emerald" },
+      { label: "Perfect Pass %", value: s.srTotal > 0 ? fmtPct(s.perfectPassPercentage, 0) : "-", accent: "cyan" },
       { label: "Digs / Match", value: fmtNum(s.digsPerMatch, 1) },
       { label: "Errors / Match", value: fmtNum(s.errorsPerMatch, 1), accent: "red" },
     ];
@@ -53,11 +53,11 @@ function statTilesFor(
       value:
         s.totalKills + s.totalAttackErrors > 0
           ? fmtPct(s.hittingEfficiency, 1)
-          : "—",
+          : "-",
       accent: "amber",
     },
     { label: "Aces / Match", value: fmtNum(s.acesPerMatch, 1), accent: "cyan" },
-    { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "—" },
+    { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "-" },
   ];
 }
 
@@ -213,7 +213,7 @@ export default async function PlayerReportPage({
       <header className="mt-4 flex flex-wrap items-end justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 stat-number text-2xl font-bold">
-            #{player.number ?? "—"}
+            #{player.number ?? "-"}
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
@@ -355,7 +355,7 @@ export default async function PlayerReportPage({
                       <td className="stat-number px-3 py-2.5 text-right">{b.digs}</td>
                       <td className="stat-number px-3 py-2.5 text-right">{b.errors}</td>
                       <td className="stat-number px-3 py-2.5 text-right">
-                        {b.srAvg !== null ? fmtNum(b.srAvg, 2) : "—"}
+                        {b.srAvg !== null ? fmtNum(b.srAvg, 2) : "-"}
                       </td>
                       <td className="px-3 py-2.5 text-right">
                         <span

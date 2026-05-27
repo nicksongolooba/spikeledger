@@ -44,7 +44,7 @@ export function AIBadge({
 export function AIUnavailableNote({ className }: { className?: string }) {
   return (
     <p className={cn("text-[11px] text-slate-500", className)}>
-      AI insights unavailable — using standard analysis.
+      AI insights unavailable - using standard analysis.
     </p>
   );
 }

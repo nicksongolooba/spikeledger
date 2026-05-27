@@ -89,7 +89,7 @@ export default async function TournamentPage({
           <h1 className="text-3xl font-bold tracking-tight">{tournament.name}</h1>
           <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-400">
             <span>{formatDate(tournament.startDate)}</span>
-            {tournament.endDate && <span>– {formatDate(tournament.endDate)}</span>}
+            {tournament.endDate && <span>- {formatDate(tournament.endDate)}</span>}
             {tournament.location && (
               <span className="text-slate-500">· {tournament.location}</span>
             )}
@@ -171,7 +171,7 @@ export default async function TournamentPage({
               />
               <SumTile
                 label="Team SR Avg"
-                value={srAtt > 0 ? fmtNum(srAvg, 2) : "—"}
+                value={srAtt > 0 ? fmtNum(srAvg, 2) : "-"}
                 accent="cyan"
               />
             </div>
@@ -219,7 +219,7 @@ export default async function TournamentPage({
       {bankAccountBars.length > 0 && (
         <section className="mt-8">
           <h2 className="mb-3 text-lg font-semibold">
-            Bank Account — this tournament
+            Bank Account - this tournament
           </h2>
           <BankAccountBars data={bankAccountBars.map((p) => p.bar)} />
         </section>
@@ -232,7 +232,7 @@ export default async function TournamentPage({
             teamId={team.id}
             scope="tournament"
             scopeId={tournament.id}
-            title="AI Coach Analysis — this tournament"
+            title="AI Coach Analysis - this tournament"
           />
         </div>
       )}
