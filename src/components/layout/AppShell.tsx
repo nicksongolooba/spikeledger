@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -53,13 +54,15 @@ export function AppShell({
     <div className="min-h-screen bg-slate-950">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-slate-800 bg-slate-900/60 lg:flex">
-        <div className="flex h-16 items-center gap-2 border-b border-slate-800 px-5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400 text-cyan-950">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-              <path d="M12 2L2 7v6c0 5.5 4 9 10 11 6-2 10-5.5 10-11V7l-10-5z" />
-            </svg>
-          </div>
-          <div className="font-semibold tracking-tight">SpikeLedger</div>
+        <div className="flex h-16 items-center border-b border-slate-800 px-5">
+          <Image
+            src="/logo-full.png"
+            alt="SpikeLedger"
+            width={556}
+            height={141}
+            priority
+            className="h-8 w-auto"
+          />
         </div>
         <nav className="flex-1 px-3 py-4">
           {NAV.map((item) => (
@@ -115,13 +118,15 @@ export function AppShell({
 
       {/* Mobile top bar */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-800 bg-slate-900/80 px-4 backdrop-blur lg:hidden">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-400 text-cyan-950">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M12 2L2 7v6c0 5.5 4 9 10 11 6-2 10-5.5 10-11V7l-10-5z" />
-            </svg>
-          </div>
-          <span className="font-semibold tracking-tight">SpikeLedger</span>
+        <Link href="/dashboard" className="flex items-center">
+          <Image
+            src="/logo-full.png"
+            alt="SpikeLedger"
+            width={556}
+            height={141}
+            priority
+            className="h-7 w-auto"
+          />
         </Link>
         <button
           type="button"

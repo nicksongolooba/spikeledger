@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PricingSection } from "./PricingSection";
@@ -155,13 +156,15 @@ export default function LandingPage() {
       {/* Header */}
       <header className="relative z-10">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400 text-cyan-950">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-                <path d="M12 2L2 7v6c0 5.5 4 9 10 11 6-2 10-5.5 10-11V7l-10-5z" />
-              </svg>
-            </div>
-            <span className="text-lg font-bold tracking-tight">SpikeLedger</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo-full.png"
+              alt="SpikeLedger"
+              width={556}
+              height={141}
+              priority
+              className="h-9 w-auto"
+            />
           </Link>
           <nav className="flex items-center gap-1 sm:gap-3">
             <Link href="#features" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100 sm:inline">
@@ -311,13 +314,14 @@ export default function LandingPage() {
       <footer className="relative z-10 mt-32 border-t border-slate-800/60 py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-400 text-cyan-950">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                  <path d="M12 2L2 7v6c0 5.5 4 9 10 11 6-2 10-5.5 10-11V7l-10-5z" />
-                </svg>
-              </div>
-              <span className="text-sm font-semibold">SpikeLedger</span>
+            <div className="flex items-center">
+              <Image
+                src="/logo-full.png"
+                alt="SpikeLedger"
+                width={556}
+                height={141}
+                className="h-7 w-auto"
+              />
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Built by a volleyball coach, for volleyball coaches.
