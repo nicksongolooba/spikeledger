@@ -15,6 +15,8 @@ interface ScoreboardProps {
   syncQueueSize: number;
   // Bumps a nonce when an auto-score fires so the scored side flashes briefly.
   flash: { side: "us" | "them"; nonce: number } | null;
+  // Bumps each time the rotation auto-advances so R# flashes to catch the eye.
+  rotationFlash: number;
   onSetChange: (idx: number) => void;
   onAddSet: () => void;
   onScore: (who: "us" | "them", delta: 1 | -1) => void;
@@ -33,6 +35,7 @@ export function Scoreboard({
   offline,
   syncQueueSize,
   flash,
+  rotationFlash,
   onSetChange,
   onAddSet,
   onScore,
@@ -47,6 +50,15 @@ export function Scoreboard({
     const t = setTimeout(() => setLit(null), 450);
     return () => clearTimeout(t);
   }, [flash]);
+
+  // Flash the rotation chip when it auto-advances (nonce 0 = initial, skip).
+  const [rotLit, setRotLit] = useState(false);
+  useEffect(() => {
+    if (!rotationFlash) return;
+    setRotLit(true);
+    const t = setTimeout(() => setRotLit(false), 1000);
+    return () => clearTimeout(t);
+  }, [rotationFlash]);
 
   const usHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const themHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -166,7 +178,14 @@ export function Scoreboard({
 
       {/* Rotation + serving */}
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-        <div className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 px-2 py-1">
+        <div
+          className={cn(
+            "relative flex items-center gap-1.5 rounded-lg border px-2 py-1 transition-all duration-300",
+            rotLit
+              ? "border-cyan-400 bg-cyan-400/15 shadow-[0_0_0_3px_rgba(34,211,238,0.25)]"
+              : "border-slate-800 bg-slate-950",
+          )}
+        >
           <span className="text-slate-500">Rot</span>
           <button
             type="button"
@@ -176,7 +195,12 @@ export function Scoreboard({
           >
             ◀
           </button>
-          <span className="stat-number w-5 text-center font-bold text-slate-100">
+          <span
+            className={cn(
+              "stat-number inline-block w-6 text-center font-bold transition-all duration-300",
+              rotLit ? "scale-150 text-cyan-300" : "text-slate-100",
+            )}
+          >
             R{rotation}
           </span>
           <button
@@ -187,6 +211,11 @@ export function Scoreboard({
           >
             ▶
           </button>
+          {rotLit && (
+            <span className="absolute -top-2 right-1 animate-pulse rounded-full bg-cyan-400 px-1.5 text-[9px] font-bold uppercase tracking-wide text-cyan-950">
+              Rotated
+            </span>
+          )}
         </div>
         <button
           type="button"

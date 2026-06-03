@@ -123,6 +123,8 @@ export function MatchEntry({
     side: "us" | "them";
     nonce: number;
   } | null>(null);
+  // Bumped each time the rotation auto-advances so the Scoreboard flashes R#.
+  const [rotationFlash, setRotationFlash] = useState<number>(0);
 
   // Restore the saved session (localStorage + WAL + online status) AFTER the
   // first paint, so the initial client render matches the server. `hydrated`
@@ -244,24 +246,36 @@ export function MatchEntry({
   function flashScore(side: "us" | "them") {
     setScoreFlash((prev) => ({ side, nonce: (prev?.nonce ?? 0) + 1 }));
   }
-  function handleScore(who: "us" | "them", delta: 1 | -1) {
-    setSets((prev) => {
-      const next = prev.map((s, i) =>
-        i === setIdx
-          ? {
-              ...s,
-              [who]: Math.max(0, s[who] + delta),
-            }
-          : s,
-      );
-      return next;
-    });
-    // Auto-advance rotation only on side-out: we scored while they were serving.
-    if (who === "us" && delta === 1 && serving === "them") {
+  function flashRotation() {
+    setRotationFlash((n) => n + 1);
+  }
+  // `servingBefore` lets a caller assert who was serving at the start of the
+  // rally - e.g. an ace or serve error proves we were serving, even if the
+  // toggle was wrong. When omitted we trust the current `serving` state.
+  function handleScore(
+    who: "us" | "them",
+    delta: 1 | -1,
+    servingBefore?: "us" | "them",
+  ) {
+    setSets((prev) =>
+      prev.map((s, i) =>
+        i === setIdx ? { ...s, [who]: Math.max(0, s[who] + delta) } : s,
+      ),
+    );
+    // Only a won rally (+1) changes serve/rotation. A correction (-1) doesn't.
+    if (delta !== 1) return;
+    const wasServing = servingBefore ?? serving;
+    if (who === "us" && wasServing === "them") {
+      // Side-out won by us: take the serve and rotate one position.
       setServing("us");
       setRotation((r) => (r % 6) + 1);
-    } else if (who === "them" && delta === 1 && serving === "us") {
+      flashRotation();
+    } else if (who === "them" && wasServing === "us") {
+      // They side-out off our serve: they get the serve, we don't rotate.
       setServing("them");
+    } else if (servingBefore && servingBefore !== serving) {
+      // Serving team scored, but the toggle was wrong - correct it silently.
+      setServing(servingBefore);
     }
   }
   function handleSetChange(idx: number) {
@@ -406,11 +420,15 @@ export function MatchEntry({
 
     // Auto-score: most rally-ending actions move the scoreboard so the coach
     // doesn't have to tap twice. They can still hold to correct an edge case.
+    // An ace or serve error only happens on our serve, so assert we were
+    // serving - this fixes the toggle and keeps the side-out math honest.
+    const servingBefore =
+      action === "ACE" || action === "S_ERR" ? "us" : undefined;
     if (SCORES_US.has(action)) {
-      handleScore("us", 1);
+      handleScore("us", 1, servingBefore);
       flashScore("us");
     } else if (SCORES_THEM.has(action)) {
-      handleScore("them", 1);
+      handleScore("them", 1, servingBefore);
       flashScore("them");
     }
 
@@ -529,6 +547,7 @@ export function MatchEntry({
             offline={offline}
             syncQueueSize={queueSize}
             flash={scoreFlash}
+            rotationFlash={rotationFlash}
             onSetChange={handleSetChange}
             onAddSet={handleAddSet}
             onScore={handleScore}
