@@ -8,6 +8,7 @@ import { assertTeamOwnership } from "@/lib/access";
 import {
   parsePosition,
   parseNumber,
+  AGGREGATE_MATCH_LABEL,
   type CanonicalField,
 } from "@/lib/import-schema";
 
@@ -75,12 +76,17 @@ export async function POST(
   for (const [csvHeader, canonical] of Object.entries(mapping)) {
     if (canonical) inverse.set(canonical as CanonicalField, csvHeader);
   }
-  if (!inverse.has("match") || !inverse.has("player")) {
+  if (!inverse.has("player")) {
     return NextResponse.json(
-      { error: "Both Match and Player columns must be mapped." },
+      { error: "A Player column must be mapped." },
       { status: 400 },
     );
   }
+  // No match column? The sheet is tournament/season totals - roll every row
+  // into one synthetic "Tournament Aggregate" match.
+  const useAggregate = !inverse.has("match");
+  const matchLabelFor = (row: Record<string, unknown>): string =>
+    useAggregate ? AGGREGATE_MATCH_LABEL : String(val(row, "match") ?? "").trim();
 
   const startD = new Date(startDate);
   if (Number.isNaN(startD.getTime())) {
@@ -113,9 +119,9 @@ export async function POST(
   const playerNames = new Set<string>();
   const errors: string[] = [];
   rows.forEach((r, i) => {
-    const match = String(val(r, "match") ?? "").trim();
+    const match = matchLabelFor(r);
     const player = String(val(r, "player") ?? "").trim();
-    if (!match) errors.push(`Row ${i + 2}: missing match label.`);
+    if (!useAggregate && !match) errors.push(`Row ${i + 2}: missing match label.`);
     if (!player) errors.push(`Row ${i + 2}: missing player name.`);
     if (match) matchLabels.add(match);
     if (player) playerNames.add(player);
@@ -211,7 +217,7 @@ export async function POST(
   ): number => parseNumber(val(row, field));
 
   for (const r of rows) {
-    const matchLabel = String(val(r, "match") ?? "").trim();
+    const matchLabel = matchLabelFor(r);
     const playerName = String(val(r, "player") ?? "").trim();
     const matchId = matchLabelToId.get(matchLabel)!;
     const player = rosterByLower.get(playerName.toLowerCase().trim())!;

@@ -9,6 +9,7 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ReactNode;
+  children?: { href: string; label: string }[];
 }
 
 const NAV: NavItem[] = [
@@ -33,6 +34,7 @@ const NAV: NavItem[] = [
         <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
       </svg>
     ),
+    children: [{ href: "/settings/billing", label: "Billing" }],
   },
 ];
 
@@ -61,19 +63,34 @@ export function AppShell({
         </div>
         <nav className="flex-1 px-3 py-4">
           {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive(item.href)
-                  ? "bg-cyan-400/10 text-cyan-300"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100",
-              )}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                className={cn(
+                  "mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive(item.href)
+                    ? "bg-cyan-400/10 text-cyan-300"
+                    : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100",
+                )}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+              {item.children?.map((child) => (
+                <Link
+                  key={child.href}
+                  href={child.href}
+                  className={cn(
+                    "mb-1 ml-8 flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                    pathname.startsWith(child.href)
+                      ? "bg-cyan-400/10 text-cyan-300"
+                      : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100",
+                  )}
+                >
+                  {child.label}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="border-t border-slate-800 p-3">

@@ -48,10 +48,16 @@ export const CANONICAL_LABELS: Record<CanonicalField, string> = {
   sr3: "SR 3 (perfect)",
   digs: "Digs",
   generalErrors: "General errors",
-  setsPlayed: "Sets played",
+  setsPlayed: "Sets / matches played",
 };
 
-export const REQUIRED_FIELDS: CanonicalField[] = ["match", "player"];
+// Only the player column is mandatory. If no match column is mapped, the
+// importer rolls every row for a player into one "Tournament Aggregate" match -
+// the shape coaches get when their historical data is season/tournament totals.
+export const REQUIRED_FIELDS: CanonicalField[] = ["player"];
+
+// Label used for the synthetic match when the sheet has no per-match breakdown.
+export const AGGREGATE_MATCH_LABEL = "Tournament Aggregate";
 
 // Synonyms for auto-detection. Lowercased, no whitespace.
 const HEADER_ALIASES: Record<CanonicalField, string[]> = {
@@ -74,7 +80,7 @@ const HEADER_ALIASES: Record<CanonicalField, string[]> = {
   sr3: ["sr3", "passing3", "p3", "perfectpass", "perfectpasses"],
   digs: ["digs", "dig", "d"],
   generalErrors: ["generalerrors", "generalerror", "errors", "err", "miscerrors", "otherrors"],
-  setsPlayed: ["setsplayed", "sets", "setplayed", "sp"],
+  setsPlayed: ["setsplayed", "sets", "setplayed", "sp", "matchesplayed", "matchplayed", "gamesplayed", "mp", "gp"],
 };
 
 function normalize(s: string) {

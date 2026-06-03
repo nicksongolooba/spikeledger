@@ -128,7 +128,8 @@ export function ImportClient({ teamId }: { teamId: string }) {
             CSV or .xlsx
           </div>
           <div className="text-xs text-slate-500">
-            One row per (match, player). Headers in row 1.
+            One row per player per match, or one row per player for tournament
+            totals. Headers in row 1.
           </div>
           <input
             type="file"
@@ -192,7 +193,9 @@ export function ImportClient({ teamId }: { teamId: string }) {
               3. Column mapping
             </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Auto-detected where possible. Required: Match + Player.
+              Auto-detected where possible. Player is required. No Match column?
+              We roll every row into one &quot;Tournament Aggregate&quot; match -
+              map your &quot;Matches Played&quot; column to Sets / matches played.
             </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {headers.map((h) => {

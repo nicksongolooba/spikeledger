@@ -11,7 +11,7 @@ const _pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter: new PrismaNeon(_pool) });
 
 // ---------------------------------------------------------------------------
-// Deterministic RNG — same seed produces the same demo dataset every time.
+// Deterministic RNG - same seed produces the same demo dataset every time.
 // ---------------------------------------------------------------------------
 function mulberry32(a: number) {
   return function () {
@@ -28,7 +28,7 @@ function ri(min: number, max: number) {
 }
 
 // ---------------------------------------------------------------------------
-// Roster — order matches the Phase 1 spec exactly.
+// Roster - order matches the Phase 1 spec exactly.
 // ---------------------------------------------------------------------------
 interface SeedPlayer {
   name: string;
@@ -313,7 +313,7 @@ function makeStatLineForPlayer(
 }
 
 // ---------------------------------------------------------------------------
-// Main seeding routine — wiped on each run for idempotency.
+// Main seeding routine - wiped on each run for idempotency.
 // ---------------------------------------------------------------------------
 async function main() {
   console.log("Resetting database…");
