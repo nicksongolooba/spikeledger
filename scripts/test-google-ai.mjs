@@ -11,9 +11,8 @@ if (!KEY) {
 console.log(`Key loaded: ${KEY.slice(0, 6)}…${KEY.slice(-4)} (len ${KEY.length})\n`);
 
 const MODELS = [
+  "gemini-3.5-flash",
   "gemini-2.5-flash",
-  "gemini-2.5-pro",
-  "gemini-2.0-flash",
   "gemini-flash-latest",
 ];
 

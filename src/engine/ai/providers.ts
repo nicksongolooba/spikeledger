@@ -12,7 +12,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_AI_API_KEY || "";
 // Must be a real, currently-served model on the Generative Language API.
 // gemini-1.5-* was retired, so the default tracks a current Flash model.
 // Override with GOOGLE_AI_MODEL (e.g. gemini-2.5-flash, gemini-2.5-pro).
-const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemini-2.0-flash";
+const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemini-3.5-flash";
 
 export interface Provider {
   name: InsightProvider;
