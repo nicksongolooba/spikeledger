@@ -26,3 +26,12 @@ export interface SetScore {
   us: number;
   them: number;
 }
+
+// Tracks an active libero substitution made via the quick LIB button, so one
+// tap can swap the replaced player back in (the libero comes out every time
+// they rotate to the front row).
+export interface LiberoSwap {
+  liberoId: string;
+  replacedId: string;
+  replacedPosition: Position;
+}

@@ -24,6 +24,9 @@ export function PlayerGrid({
   onSelect,
   onSub,
   onOpenLineup,
+  liberoActive,
+  onLiberoIn,
+  onLiberoOut,
 }: {
   roster: RosterPlayer[];
   onCourt: string[];
@@ -33,10 +36,55 @@ export function PlayerGrid({
   onSelect: (playerId: string) => void;
   onSub: (benchId: string, courtId: string, position: Position) => void;
   onOpenLineup: () => void;
+  liberoActive: boolean;
+  onLiberoIn: (liberoId: string, courtId: string) => void;
+  onLiberoOut: () => void;
 }) {
   const [subFor, setSubFor] = useState<RosterPlayer | null>(null);
+  // Two-step libero picker: pick which libero (only when 2+ are available),
+  // then pick the on-court player they sub in for.
+  const [liberoStep, setLiberoStep] = useState<"closed" | "libero" | "court">(
+    "closed",
+  );
+  const [chosenLibero, setChosenLibero] = useState<string | null>(null);
 
   const playerById = (id: string) => roster.find((p) => p.id === id) ?? null;
+
+  // A team's liberos = anyone whose primary slot is L or DS.
+  const liberos = roster.filter(
+    (p) => POSITION_GROUP[p.primaryPosition] === "libero",
+  );
+  const hasLibero = liberos.length > 0;
+  // Liberos available to come in = those not already on court.
+  const benchLiberos = liberos.filter((p) => !onCourt.includes(p.id));
+  // Court players a libero can replace (anyone on court who isn't a libero).
+  const liberoEligibleCourt = onCourt
+    .map(playerById)
+    .filter(
+      (p): p is RosterPlayer =>
+        !!p &&
+        POSITION_GROUP[positions[p.id] ?? p.primaryPosition] !== "libero",
+    );
+
+  function handleLiberoButton() {
+    if (liberoActive) {
+      onLiberoOut();
+      return;
+    }
+    if (benchLiberos.length === 0) return; // nobody to bring in
+    if (benchLiberos.length === 1) {
+      setChosenLibero(benchLiberos[0].id);
+      setLiberoStep("court");
+    } else {
+      setChosenLibero(null);
+      setLiberoStep("libero");
+    }
+  }
+
+  function closeLiberoPicker() {
+    setLiberoStep("closed");
+    setChosenLibero(null);
+  }
 
   return (
     <div className="card p-3 sm:p-4">
@@ -44,13 +92,30 @@ export function PlayerGrid({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
           On Court ({onCourt.length}/6)
         </h3>
-        <button
-          type="button"
-          onClick={onOpenLineup}
-          className="text-xs text-cyan-300 hover:text-cyan-200"
-        >
-          Edit lineup
-        </button>
+        <div className="flex items-center gap-3">
+          {hasLibero && (
+            <button
+              type="button"
+              onClick={handleLiberoButton}
+              aria-pressed={liberoActive}
+              className={cn(
+                "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-colors",
+                liberoActive
+                  ? "border-emerald-400 bg-emerald-400/15 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-400 hover:border-emerald-400/50 hover:text-emerald-300",
+              )}
+            >
+              {liberoActive ? "Libero out" : "Libero"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onOpenLineup}
+            className="text-xs text-cyan-300 hover:text-cyan-200"
+          >
+            Edit lineup
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -117,6 +182,79 @@ export function PlayerGrid({
             onCancel={() => setSubFor(null)}
           />
         )}
+      </Modal>
+
+      <Modal
+        open={liberoStep !== "closed"}
+        onClose={closeLiberoPicker}
+        title={liberoStep === "libero" ? "Which libero?" : "Libero in for who?"}
+      >
+        {liberoStep === "libero" ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {benchLiberos.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  setChosenLibero(p.id);
+                  setLiberoStep("court");
+                }}
+                className="flex flex-col items-center rounded-lg border border-slate-800 bg-slate-900 py-2 transition-colors hover:border-emerald-400/50"
+              >
+                <div className="stat-number text-sm font-bold text-slate-100">
+                  #{p.number ?? "-"}
+                </div>
+                <div className="truncate text-xs text-slate-200">{p.name}</div>
+                <PositionBadge
+                  position={p.primaryPosition}
+                  size="xs"
+                  className="mt-1"
+                />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {liberoEligibleCourt.map((p) => {
+                const pos = positions[p.id] ?? p.primaryPosition;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      if (chosenLibero) onLiberoIn(chosenLibero, p.id);
+                      closeLiberoPicker();
+                    }}
+                    className="flex flex-col items-center rounded-lg border border-slate-800 bg-slate-900 py-2 transition-colors hover:border-emerald-400/50"
+                  >
+                    <div className="stat-number text-sm font-bold text-slate-100">
+                      #{p.number ?? "-"}
+                    </div>
+                    <div className="truncate text-xs text-slate-200">
+                      {p.name}
+                    </div>
+                    <PositionBadge position={pos} size="xs" className="mt-1" />
+                  </button>
+                );
+              })}
+            </div>
+            {liberoEligibleCourt.length === 0 && (
+              <p className="text-sm text-slate-400">
+                No eligible court players to replace.
+              </p>
+            )}
+          </div>
+        )}
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={closeLiberoPicker}
+            className="btn-secondary"
+          >
+            Cancel
+          </button>
+        </div>
       </Modal>
     </div>
   );

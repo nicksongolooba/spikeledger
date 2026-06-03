@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Match, Position, StatLine } from "@prisma/client";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { STAT_ACTION_LABELS, type StatActionId } from "@/lib/stat-actions";
+import { POSITION_GROUP } from "@/lib/positions";
 import { Scoreboard } from "./Scoreboard";
 import { PlayerGrid } from "./PlayerGrid";
 import { ActionPanel } from "./ActionPanel";
@@ -19,7 +20,13 @@ import {
   sendWalEntry,
   type WalEntry,
 } from "./wal";
-import type { PositionByPlayer, RosterPlayer, SetScore, UndoEntry } from "./types";
+import type {
+  LiberoSwap,
+  PositionByPlayer,
+  RosterPlayer,
+  SetScore,
+  UndoEntry,
+} from "./types";
 
 interface Props {
   match: Match;
@@ -46,6 +53,7 @@ interface PersistedState {
   serving: "us" | "them";
   undo: UndoEntry[];
   opponentErrors: number;
+  liberoSwap: LiberoSwap | null;
 }
 
 function lsKey(matchId: string) {
@@ -102,6 +110,8 @@ export function MatchEntry({
   const [opponentErrors, setOpponentErrors] = useState<number>(
     match.opponentErrors ?? 0,
   );
+  // Active libero substitution from the quick LIB button (null = libero out).
+  const [liberoSwap, setLiberoSwap] = useState<LiberoSwap | null>(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -134,6 +144,9 @@ export function MatchEntry({
       if (typeof persisted.opponentErrors === "number") {
         setOpponentErrors(persisted.opponentErrors);
       }
+      if (persisted.liberoSwap !== undefined) {
+        setLiberoSwap(persisted.liberoSwap);
+      }
       // Keep the lineup modal up only if there's still no lineup set.
       setShowLineup((persisted.onCourt?.length ?? 0) === 0);
     }
@@ -157,8 +170,9 @@ export function MatchEntry({
       serving,
       undo: undoStack,
       opponentErrors,
+      liberoSwap,
     });
-  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors]);
+  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors, liberoSwap]);
 
   // Track online/offline transitions to drive the WAL replay.
   const refreshQueueSize = useCallback(() => {
@@ -292,20 +306,66 @@ export function MatchEntry({
     }
   }
 
+  function persistPositionPlayed(playerId: string, position: Position) {
+    void fetch(`/api/matches/${matchId}/lineup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        entries: [{ playerId, positionPlayed: position }],
+      }),
+    }).catch(() => undefined);
+  }
+
   function handleSub(benchId: string, courtId: string, position: Position) {
     setOnCourt((prev) =>
       prev.map((id) => (id === courtId ? benchId : id)),
     );
     setPositions((prev) => ({ ...prev, [benchId]: position }));
+    // A regular sub that touches either side of an active libero swap voids the
+    // pairing - the one-tap "libero out" would otherwise restore a stale player.
+    if (
+      liberoSwap &&
+      (courtId === liberoSwap.liberoId ||
+        courtId === liberoSwap.replacedId ||
+        benchId === liberoSwap.liberoId ||
+        benchId === liberoSwap.replacedId)
+    ) {
+      setLiberoSwap(null);
+    }
     // Tell the server so positionPlayed is locked in for the new player.
-    void fetch(`/api/matches/${matchId}/lineup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        entries: [{ playerId: benchId, positionPlayed: position }],
-      }),
-    });
+    persistPositionPlayed(benchId, position);
     pushToast(`Subbed ${playerById(benchId)?.name} in`, "info");
+  }
+
+  // ---- Libero quick swap ----
+  // Bring a libero in for an on-court player. Remembers who they replaced so
+  // the next LIB tap can send that player straight back (libero out).
+  function handleLiberoIn(liberoId: string, courtId: string) {
+    const lib = playerById(liberoId);
+    if (!lib) return;
+    const replacedPosition =
+      positions[courtId] ?? playerById(courtId)?.primaryPosition ?? lib.primaryPosition;
+    setOnCourt((prev) => prev.map((id) => (id === courtId ? liberoId : id)));
+    setPositions((prev) => ({ ...prev, [liberoId]: lib.primaryPosition }));
+    setLiberoSwap({ liberoId, replacedId: courtId, replacedPosition });
+    if (selectedId === courtId) setSelectedId(null);
+    persistPositionPlayed(liberoId, lib.primaryPosition);
+    pushToast(
+      `Libero ${lib.name} in for ${playerById(courtId)?.name}`,
+      "success",
+    );
+  }
+
+  // Send the libero back out, restoring the exact player they replaced.
+  function handleLiberoOut() {
+    if (!liberoSwap) return;
+    const { liberoId, replacedId, replacedPosition } = liberoSwap;
+    setOnCourt((prev) => prev.map((id) => (id === liberoId ? replacedId : id)));
+    setPositions((prev) => ({ ...prev, [replacedId]: replacedPosition }));
+    setLiberoSwap(null);
+    if (selectedId === liberoId) setSelectedId(null);
+    persistPositionPlayed(replacedId, replacedPosition);
+    pushToast(`${playerById(replacedId)?.name} back in for libero`, "info");
   }
 
   // ---- Stat recording with WAL ----
@@ -490,6 +550,9 @@ export function MatchEntry({
           }
           onSub={handleSub}
           onOpenLineup={() => setShowLineup(true)}
+          liberoActive={liberoSwap !== null}
+          onLiberoIn={handleLiberoIn}
+          onLiberoOut={handleLiberoOut}
         />
 
         <ActionPanel
