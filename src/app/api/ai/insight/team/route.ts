@@ -111,6 +111,8 @@ export async function POST(req: Request) {
     scopedLinesByPlayer,
   });
 
-  const response = await getTeamInsight(request);
+  // The Refresh button sends X-Refresh: 1 to bypass the (year-long) cache.
+  const forceRefresh = req.headers.get("x-refresh") === "1";
+  const response = await getTeamInsight(request, { forceRefresh });
   return NextResponse.json(response);
 }

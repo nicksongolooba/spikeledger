@@ -72,8 +72,10 @@ export async function getPlayerInsight(
         await writeCache(cacheKey, "player", response, provider.name);
         return response;
       }
-    } catch {
-      // fall through to rule-based
+    } catch (err) {
+      // Log so the failure is visible in server logs, then fall through to
+      // the rule-based insight rather than surfacing an error to the coach.
+      console.error(`[ai] ${provider.name} player insight failed:`, err);
     }
   }
 
@@ -135,8 +137,8 @@ export async function getTeamInsight(
         await writeCache(cacheKey, "team", response, provider.name);
         return response;
       }
-    } catch {
-      // fall through
+    } catch (err) {
+      console.error(`[ai] ${provider.name} team insight failed:`, err);
     }
   }
 

@@ -115,6 +115,8 @@ export async function POST(req: Request) {
     trendBuckets,
   });
 
-  const response = await getPlayerInsight(request);
+  // The Refresh button sends X-Refresh: 1 to bypass the (year-long) cache.
+  const forceRefresh = req.headers.get("x-refresh") === "1";
+  const response = await getPlayerInsight(request, { forceRefresh });
   return NextResponse.json(response);
 }

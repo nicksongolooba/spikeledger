@@ -18,13 +18,18 @@ export function PlayerInsightPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(
+    async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (forceRefresh) headers["X-Refresh"] = "1";
       const res = await fetch("/api/ai/insight/player", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ playerId, scope, scopeId: scopeId ?? null }),
       });
       if (!res.ok) {
@@ -38,7 +43,9 @@ export function PlayerInsightPanel({
     } finally {
       setLoading(false);
     }
-  }, [playerId, scope, scopeId]);
+    },
+    [playerId, scope, scopeId],
+  );
 
   useEffect(() => {
     void load();
@@ -65,7 +72,7 @@ export function PlayerInsightPanel({
         </h3>
         <button
           type="button"
-          onClick={() => void load()}
+          onClick={() => void load(true)}
           className="btn-ghost px-2 py-1 text-xs"
         >
           Refresh

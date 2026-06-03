@@ -9,7 +9,9 @@ import type { InsightProvider } from "./types";
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "gemma4";
 const GOOGLE_API_KEY = process.env.GOOGLE_AI_API_KEY || "";
-const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemma-4-31b-it";
+// Must be a real model on the Generative Language API. Override with
+// GOOGLE_AI_MODEL if you want a different one (e.g. gemini-1.5-pro).
+const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemini-1.5-flash";
 
 export interface Provider {
   name: InsightProvider;
@@ -177,7 +179,13 @@ export async function pickProvider(): Promise<Provider | null> {
   const order: Provider[] =
     preference === "google" ? [_google, _ollama] : [_ollama, _google];
   for (const p of order) {
-    if (await p.isAvailable()) return p;
+    if (await p.isAvailable()) {
+      console.info(`[ai] provider preference=${preference}, using=${p.name}`);
+      return p;
+    }
   }
+  console.warn(
+    `[ai] no provider available (preference=${preference}, googleKey=${GOOGLE_API_KEY ? "set" : "missing"}); falling back to rule-based`,
+  );
   return null;
 }
