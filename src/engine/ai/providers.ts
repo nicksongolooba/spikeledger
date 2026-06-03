@@ -9,9 +9,10 @@ import type { InsightProvider } from "./types";
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "gemma4";
 const GOOGLE_API_KEY = process.env.GOOGLE_AI_API_KEY || "";
-// Must be a real model on the Generative Language API. Override with
-// GOOGLE_AI_MODEL if you want a different one (e.g. gemini-1.5-pro).
-const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemini-1.5-flash";
+// Must be a real, currently-served model on the Generative Language API.
+// gemini-1.5-* was retired, so the default tracks a current Flash model.
+// Override with GOOGLE_AI_MODEL (e.g. gemini-2.5-flash, gemini-2.5-pro).
+const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemini-2.0-flash";
 
 export interface Provider {
   name: InsightProvider;
