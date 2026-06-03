@@ -1,5 +1,6 @@
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
+import { youtubeSearchUrl } from "@/lib/youtube";
 import { REPORT_CARD_BG, REPORT_MUTED, type ReportCardData } from "./types";
 
 export function WhatToWorkOn({ data }: { data: ReportCardData }) {
@@ -108,6 +109,26 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                 >
                   {area.detail}
                 </div>
+                {area.youtubeQuery && (
+                  <a
+                    href={youtubeSearchUrl(area.youtubeQuery)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      marginTop: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      fontSize: "16px",
+                      fontWeight: 600,
+                      color: "#a78bfa",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <span style={{ fontSize: "14px" }}>▶</span>
+                    Watch drill videos: &ldquo;volleyball {area.youtubeQuery}&rdquo;
+                  </a>
+                )}
               </div>
             </div>
           </div>

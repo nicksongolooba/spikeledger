@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AIBadge, AIUnavailableNote } from "./AIBadge";
 import { InsightSkeleton } from "./InsightSkeleton";
+import { youtubeSearchUrl } from "@/lib/youtube";
 import type { PlayerInsightResponse } from "@/engine/ai/types";
 
 export function PlayerInsightPanel({
@@ -100,17 +101,49 @@ export function PlayerInsightPanel({
             Focus areas
           </h4>
           <ul className="mt-1.5 space-y-2 text-sm text-slate-200">
-            {data.improvements.map((imp, i) => (
-              <li key={i}>
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="font-semibold text-slate-100">{imp.area}</span>
-                  <span className="font-mono text-xs text-slate-500">
-                    {imp.currentValue} → {imp.targetValue}
-                  </span>
-                </div>
-                <div className="text-xs text-slate-400">{imp.drill}</div>
-              </li>
-            ))}
+            {data.improvements.map((imp, i) => {
+              const specs = [imp.duration, imp.reps, imp.players, imp.equipment]
+                .map((s) => s?.trim())
+                .filter((s): s is string => Boolean(s));
+              const ytUrl = imp.youtubeQuery
+                ? youtubeSearchUrl(imp.youtubeQuery)
+                : "";
+              return (
+                <li key={i}>
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="font-semibold text-slate-100">{imp.area}</span>
+                    <span className="font-mono text-xs text-slate-500">
+                      {imp.currentValue} → {imp.targetValue}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-400">{imp.drill}</div>
+                  {specs.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[11px] text-slate-500">
+                      {specs.map((s, j) => (
+                        <span key={j}>{s}</span>
+                      ))}
+                    </div>
+                  )}
+                  {ytUrl && (
+                    <a
+                      href={ytUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-300 hover:text-violet-200 hover:underline"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-3.5 w-3.5"
+                      >
+                        <path d="M10 16.5l6-4.5-6-4.5v9zM12 2a10 10 0 100 20 10 10 0 000-20z" />
+                      </svg>
+                      Watch drill videos
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

@@ -91,6 +91,7 @@ function buildImprovements(req: PlayerInsightRequest): ImprovementInsight[] {
     currentValue: a.current,
     targetValue: a.target,
     drill: a.detail,
+    youtubeQuery: a.youtubeQuery,
     explanation:
       "A few focused reps every practice move this number fast, usually within a tournament or two.",
   }));

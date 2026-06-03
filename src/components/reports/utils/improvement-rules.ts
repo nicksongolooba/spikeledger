@@ -15,6 +15,7 @@ export interface ImprovementArea {
   target: string;        // "2.0+"
   detail: string;        // one-line drill suggestion
   severity: number;      // 0..1, used for ranking
+  youtubeQuery?: string; // drill search terms (no URL); link built in code
 }
 
 interface Rule {
@@ -39,6 +40,7 @@ const RULES: Rule[] = [
         target: "2.0+",
         detail:
           "Wall-pass repetitions, 10 min/practice. Focus on platform angle and shoulder alignment on hard serves.",
+        youtubeQuery: "serve receive passing drill",
         severity: severity * 1.2, // weighted higher - this is the libero's core job
       };
     },
@@ -54,6 +56,7 @@ const RULES: Rule[] = [
         target: "1.8+",
         detail:
           "Movement drill: split-step on contact, square hips to target. 5 min before every practice.",
+        youtubeQuery: "serve receive footwork drill",
         severity: (1.8 - s.srAverage) / 1.8,
       };
     },
@@ -72,6 +75,7 @@ const RULES: Rule[] = [
         target: "20%+",
         detail:
           "Controlled hitting vs block: tip or roll when blocked, swing only when seam is open. 15 reps/practice.",
+        youtubeQuery: "hitting tip and roll drill",
         severity: Math.max(0, (0.2 - s.hittingEfficiency) / 0.2),
       };
     },
@@ -89,6 +93,7 @@ const RULES: Rule[] = [
         target: "<20%",
         detail:
           "Target serving: 20 serves per practice, 5 to each zone. Slow down toss when nerves spike late in sets.",
+        youtubeQuery: "serving accuracy target drill",
         severity: (s.serveErrorPercentage - 0.2) * 1.5,
       };
     },
@@ -107,6 +112,7 @@ const RULES: Rule[] = [
         target: "<2",
         detail:
           "Pepper drills + controlled passing. Slow tempo, prioritize accuracy over power. 8 minutes/practice.",
+        youtubeQuery: "pepper ball control drill",
         severity: Math.min(1, (epm - 2) / 5),
       };
     },
@@ -124,6 +130,7 @@ const RULES: Rule[] = [
         target: "1.5+",
         detail:
           "Read-and-react footwork: watch setter's shoulders, commit to outside-shoot on quick sets. Mirror drills 10 min/practice.",
+        youtubeQuery: "blocking footwork mirror drill",
         severity: Math.max(0, (1.5 - s.blocksPerMatch) / 1.5),
       };
     },
@@ -141,6 +148,7 @@ const RULES: Rule[] = [
         target: "8+",
         detail:
           "Get to more second balls - even off bad passes. Footwork drill: pass-set-pass triangles 5 min/practice.",
+        youtubeQuery: "setter footwork drill",
         severity: Math.max(0, (8 - s.assistsPerMatch) / 8) * 0.6,
       };
     },

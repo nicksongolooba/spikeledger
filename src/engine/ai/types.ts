@@ -33,7 +33,12 @@ export interface ImprovementInsight {
   area: string;
   currentValue: string;
   targetValue: string;
-  drill: string;
+  drill: string;                // drill name + how it works
+  duration?: string;            // e.g. "10 minutes per practice"
+  reps?: string;                // e.g. "30 reps each" or "3 sets of 10"
+  players?: string;             // e.g. "3 players" or "whole team"
+  equipment?: string;           // e.g. "1 ball, net" or "None"
+  youtubeQuery?: string;        // drill search terms only (no URLs); URL built in code
   explanation: string;
 }
 
