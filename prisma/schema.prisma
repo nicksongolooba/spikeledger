@@ -146,10 +146,11 @@ model Match {
   tournamentId String
   opponent     String
   matchNumber  Int
-  setsWon      Int          @default(0)
-  setsLost     Int          @default(0)
-  result       MatchResult?
-  createdAt    DateTime     @default(now())
+  setsWon        Int          @default(0)
+  setsLost       Int          @default(0)
+  opponentErrors Int          @default(0)
+  result         MatchResult?
+  createdAt      DateTime     @default(now())
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   statLines  StatLine[]

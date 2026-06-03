@@ -157,7 +157,7 @@ export default async function MatchReviewPage({
       </header>
 
       {/* Team summary bar */}
-      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
         <SumTile label="Total Kills" value={totalKills.toString()} accent="emerald" />
         <SumTile label="Total Errors" value={totalErrors.toString()} accent="red" />
         <SumTile
@@ -170,7 +170,16 @@ export default async function MatchReviewPage({
           value={srAtt > 0 ? fmtNum(teamSr, 2) : "-"}
           accent="cyan"
         />
+        <SumTile
+          label="Opponent Errors"
+          value={match.opponentErrors.toString()}
+          accent="violet"
+        />
       </section>
+      <p className="mt-2 text-xs text-slate-500">
+        {match.opponentErrors} of our points came from opponent mistakes - the
+        rest were earned.
+      </p>
 
       <section className="mt-3 card p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">

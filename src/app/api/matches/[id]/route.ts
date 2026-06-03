@@ -9,6 +9,7 @@ import { assertCoachOwnsMatch } from "@/lib/match-access";
 const UpdateMatchSchema = z.object({
   setsWon: z.number().int().min(0).max(5).optional(),
   setsLost: z.number().int().min(0).max(5).optional(),
+  opponentErrors: z.number().int().min(0).max(500).optional(),
   result: z.nativeEnum(MatchResult).nullable().optional(),
 });
 

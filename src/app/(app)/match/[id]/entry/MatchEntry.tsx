@@ -31,6 +31,12 @@ interface Props {
 
 const LS_PREFIX = "spikeledger:entry:";
 
+// Which stat actions auto-update the scoreboard. A kill/ace/block wins us the
+// rally; the four error types hand the point to the opponent. SR grades,
+// assists, and digs don't end a rally, so they never move the score.
+const SCORES_US = new Set<StatActionId>(["KILL", "ACE", "BLOCK"]);
+const SCORES_THEM = new Set<StatActionId>(["S_ERR", "A_ERR", "NET_ERR", "GEN_ERR"]);
+
 interface PersistedState {
   onCourt: string[];
   positions: PositionByPlayer;
@@ -39,6 +45,7 @@ interface PersistedState {
   rotation: number;
   serving: "us" | "them";
   undo: UndoEntry[];
+  opponentErrors: number;
 }
 
 function lsKey(matchId: string) {
@@ -92,12 +99,20 @@ export function MatchEntry({
   const [rotation, setRotation] = useState<number>(1);
   const [serving, setServing] = useState<"us" | "them">("us");
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
+  const [opponentErrors, setOpponentErrors] = useState<number>(
+    match.opponentErrors ?? 0,
+  );
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [offline, setOffline] = useState<boolean>(false);
   const [queueSize, setQueueSize] = useState<number>(0);
   const [showLineup, setShowLineup] = useState<boolean>(true);
+  // Bumped each auto-score so the Scoreboard can flash the side that scored.
+  const [scoreFlash, setScoreFlash] = useState<{
+    side: "us" | "them";
+    nonce: number;
+  } | null>(null);
 
   // Restore the saved session (localStorage + WAL + online status) AFTER the
   // first paint, so the initial client render matches the server. `hydrated`
@@ -116,6 +131,9 @@ export function MatchEntry({
       if (typeof persisted.rotation === "number") setRotation(persisted.rotation);
       if (persisted.serving) setServing(persisted.serving);
       if (persisted.undo) setUndoStack(persisted.undo);
+      if (typeof persisted.opponentErrors === "number") {
+        setOpponentErrors(persisted.opponentErrors);
+      }
       // Keep the lineup modal up only if there's still no lineup set.
       setShowLineup((persisted.onCourt?.length ?? 0) === 0);
     }
@@ -138,8 +156,9 @@ export function MatchEntry({
       rotation,
       serving,
       undo: undoStack,
+      opponentErrors,
     });
-  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack]);
+  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors]);
 
   // Track online/offline transitions to drive the WAL replay.
   const refreshQueueSize = useCallback(() => {
@@ -208,6 +227,9 @@ export function MatchEntry({
   }
 
   // ---- Score handling ----
+  function flashScore(side: "us" | "them") {
+    setScoreFlash((prev) => ({ side, nonce: (prev?.nonce ?? 0) + 1 }));
+  }
   function handleScore(who: "us" | "them", delta: 1 | -1) {
     setSets((prev) => {
       const next = prev.map((s, i) =>
@@ -322,7 +344,33 @@ export function MatchEntry({
     setSelectedId(null);
     pushToast(`${playerName} +1 ${STAT_ACTION_LABELS[action]}`, "success");
 
+    // Auto-score: most rally-ending actions move the scoreboard so the coach
+    // doesn't have to tap twice. They can still hold to correct an edge case.
+    if (SCORES_US.has(action)) {
+      handleScore("us", 1);
+      flashScore("us");
+    } else if (SCORES_THEM.has(action)) {
+      handleScore("them", 1);
+      flashScore("them");
+    }
+
     await processWalEntry(walEntry);
+  }
+
+  // ---- Opponent error: a point for us, not credited to any player ----
+  function handleOpponentError() {
+    const next = opponentErrors + 1;
+    setOpponentErrors(next);
+    handleScore("us", 1);
+    flashScore("us");
+    pushToast("Opponent error - point for us", "success");
+    // Persist the running count on the match. Idempotent (absolute value), so
+    // it's safe to fire-and-forget; if offline it'll be resent at End match.
+    void fetch(`/api/matches/${matchId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ opponentErrors: next }),
+    }).catch(() => undefined);
   }
 
   async function handleUndo(entryId: string) {
@@ -364,7 +412,7 @@ export function MatchEntry({
       await fetch(`/api/matches/${matchId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ setsWon, setsLost, result }),
+        body: JSON.stringify({ setsWon, setsLost, result, opponentErrors }),
       });
       router.push(`/match/${matchId}/review`);
       router.refresh();
@@ -420,6 +468,7 @@ export function MatchEntry({
             serving={serving}
             offline={offline}
             syncQueueSize={queueSize}
+            flash={scoreFlash}
             onSetChange={handleSetChange}
             onAddSet={handleAddSet}
             onScore={handleScore}
@@ -447,6 +496,8 @@ export function MatchEntry({
           player={selectedPlayer}
           positionPlayed={selectedPosition}
           onAction={handleAction}
+          onOpponentError={handleOpponentError}
+          opponentErrors={opponentErrors}
         />
       </div>
 

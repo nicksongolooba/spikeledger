@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScoreboardProps {
@@ -13,6 +13,8 @@ interface ScoreboardProps {
   serving: "us" | "them";
   offline: boolean;
   syncQueueSize: number;
+  // Bumps a nonce when an auto-score fires so the scored side flashes briefly.
+  flash: { side: "us" | "them"; nonce: number } | null;
   onSetChange: (idx: number) => void;
   onAddSet: () => void;
   onScore: (who: "us" | "them", delta: 1 | -1) => void;
@@ -30,12 +32,22 @@ export function Scoreboard({
   serving,
   offline,
   syncQueueSize,
+  flash,
   onSetChange,
   onAddSet,
   onScore,
   onRotation,
   onServingToggle,
 }: ScoreboardProps) {
+  // Light up the scored side for a beat when an auto-score lands.
+  const [lit, setLit] = useState<"us" | "them" | null>(null);
+  useEffect(() => {
+    if (!flash) return;
+    setLit(flash.side);
+    const t = setTimeout(() => setLit(null), 450);
+    return () => clearTimeout(t);
+  }, [flash]);
+
   const usHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const themHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const usDidLongPress = useRef(false);
@@ -113,7 +125,12 @@ export function Scoreboard({
           onPointerUp={() => endHold("us")}
           onPointerCancel={() => endHold("us")}
           onClick={() => onClickScore("us")}
-          className="flex flex-col items-center rounded-xl border border-slate-800 bg-slate-950 py-2 transition-colors active:bg-slate-800"
+          className={cn(
+            "flex flex-col items-center rounded-xl border py-2 transition-colors duration-150 active:bg-slate-800",
+            lit === "us"
+              ? "border-emerald-400 bg-emerald-400/25"
+              : "border-slate-800 bg-slate-950",
+          )}
           aria-label="Our score: tap to add, hold to subtract"
         >
           <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
@@ -130,7 +147,12 @@ export function Scoreboard({
           onPointerUp={() => endHold("them")}
           onPointerCancel={() => endHold("them")}
           onClick={() => onClickScore("them")}
-          className="flex flex-col items-center rounded-xl border border-slate-800 bg-slate-950 py-2 transition-colors active:bg-slate-800"
+          className={cn(
+            "flex flex-col items-center rounded-xl border py-2 transition-colors duration-150 active:bg-slate-800",
+            lit === "them"
+              ? "border-red-400 bg-red-400/25"
+              : "border-slate-800 bg-slate-950",
+          )}
           aria-label="Opponent score: tap to add, hold to subtract"
         >
           <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400">
