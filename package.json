@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "tsx --test $(find src -name '*.test.ts')",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:neon": "node scripts/neon-migrate.mjs",

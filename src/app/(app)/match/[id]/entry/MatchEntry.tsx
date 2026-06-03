@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Match, Position, StatLine } from "@prisma/client";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { STAT_ACTION_LABELS, type StatActionId } from "@/lib/stat-actions";
+import { applyRally, servingAssertionFor } from "@/lib/rotation";
 import { POSITION_GROUP } from "@/lib/positions";
 import { Scoreboard } from "./Scoreboard";
 import { PlayerGrid } from "./PlayerGrid";
@@ -264,19 +265,10 @@ export function MatchEntry({
     );
     // Only a won rally (+1) changes serve/rotation. A correction (-1) doesn't.
     if (delta !== 1) return;
-    const wasServing = servingBefore ?? serving;
-    if (who === "us" && wasServing === "them") {
-      // Side-out won by us: take the serve and rotate one position.
-      setServing("us");
-      setRotation((r) => (r % 6) + 1);
-      flashRotation();
-    } else if (who === "them" && wasServing === "us") {
-      // They side-out off our serve: they get the serve, we don't rotate.
-      setServing("them");
-    } else if (servingBefore && servingBefore !== serving) {
-      // Serving team scored, but the toggle was wrong - correct it silently.
-      setServing(servingBefore);
-    }
+    const outcome = applyRally({ serving, rotation }, who, servingBefore);
+    setServing(outcome.serving);
+    setRotation(outcome.rotation);
+    if (outcome.rotated) flashRotation();
   }
   function handleSetChange(idx: number) {
     setSetIdx(idx);
@@ -422,8 +414,7 @@ export function MatchEntry({
     // doesn't have to tap twice. They can still hold to correct an edge case.
     // An ace or serve error only happens on our serve, so assert we were
     // serving - this fixes the toggle and keeps the side-out math honest.
-    const servingBefore =
-      action === "ACE" || action === "S_ERR" ? "us" : undefined;
+    const servingBefore = servingAssertionFor(action);
     if (SCORES_US.has(action)) {
       handleScore("us", 1, servingBefore);
       flashScore("us");
