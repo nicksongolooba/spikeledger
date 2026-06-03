@@ -2,6 +2,7 @@
 // Same shape as the LLM responses so callers don't have to branch.
 
 import { POSITION_GROUP_MAP } from "@/engine/bank-account";
+import { POSITION_LABELS } from "@/lib/positions";
 import { fmtNum, fmtPct } from "@/engine/derived-stats";
 import { computeImprovementAreas } from "@/components/reports/utils/improvement-rules";
 import type { Position } from "@prisma/client";
@@ -97,13 +98,9 @@ function buildImprovements(req: PlayerInsightRequest): ImprovementInsight[] {
 
 function parentFriendlyFor(req: PlayerInsightRequest): string {
   const ba = req.bankAccount;
-  const group = req.player.positionGroup;
-  const role =
-    group === "libero_ds"
-      ? "their defensive specialist role"
-      : group === "setter_middle"
-        ? "their setting / middle role"
-        : "their hitting role";
+  // Speak to the player's actual position, never the internal Bank Account
+  // group - a Setter is "their setter role", not "their setting / middle role".
+  const role = `their ${POSITION_LABELS[req.player.position].toLowerCase()} role`;
   const verdict =
     ba.rating === "GREEN"
       ? `having a strong run in ${role} this ${req.scopeLabel}.`

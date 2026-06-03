@@ -1,4 +1,5 @@
-import { POSITION_GROUP_MAP, BREAKDOWN_LABELS } from "@/engine/bank-account";
+import { BREAKDOWN_LABELS } from "@/engine/bank-account";
+import { POSITION_LABELS } from "@/lib/positions";
 import { fmtSigned } from "@/engine/derived-stats";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
@@ -9,15 +10,8 @@ import {
   type ReportCardData,
 } from "./types";
 
-const GROUP_LABEL = {
-  hitter: "Hitter",
-  setter_middle: "Setter / Middle",
-  libero_ds: "Libero / DS",
-} as const;
-
 export function BankAccountCard({ data }: { data: ReportCardData }) {
   const ba = data.bankAccount;
-  const group = POSITION_GROUP_MAP[data.player.position];
 
   // Build a horizontal bar that visually splits deposits (green) vs withdrawals (red).
   const total = Math.max(1, ba.deposits + ba.withdrawals);
@@ -87,7 +81,7 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
               marginTop: "4px",
             }}
           >
-            {GROUP_LABEL[group]}
+            {POSITION_LABELS[data.player.position]}
           </div>
         </div>
       </div>

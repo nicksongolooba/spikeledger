@@ -1,3 +1,4 @@
+import { POSITION_LABELS } from "@/lib/positions";
 import type {
   PlayerInsightRequest,
   TeamInsightRequest,
@@ -69,9 +70,7 @@ export function buildPlayerUserPrompt(req: PlayerInsightRequest): string {
   lines.push(`Analyze this player's performance.`);
   lines.push(``);
   lines.push(`Player: ${req.player.name}`);
-  lines.push(
-    `Position: ${req.player.position} (evaluated as ${req.player.positionGroup})`,
-  );
+  lines.push(`Position: ${POSITION_LABELS[req.player.position]}`);
   lines.push(`Scope: ${req.scopeLabel}`);
   lines.push(``);
   lines.push(`Stats (position-appropriate):`);
