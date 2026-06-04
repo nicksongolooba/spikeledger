@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   applyRally,
   nextRotation,
+  rotateLineup,
   servingAssertionFor,
   type RallyOutcome,
   type RallyState,
@@ -145,6 +146,30 @@ test("spec walkthrough: opponent serving at R1 through a full exchange", () => {
     { serving: out.serving, rotation: out.rotation, rotated: out.rotated },
     { serving: "us", rotation: 3, rotated: true },
   );
+});
+
+test("rotateLineup: a clockwise rotation moves P2->P1 and P1->P6", () => {
+  // index 0 = position 1 (server). Players A..F at positions 1..6.
+  const out = rotateLineup(["A", "B", "C", "D", "E", "F"], 1);
+  // new P1 is old P2 (B); old P1 (A) drops to P6 (index 5).
+  assert.deepEqual(out, ["B", "C", "D", "E", "F", "A"]);
+  assert.equal(out[0], "B", "new server was at position 2");
+  assert.equal(out[5], "A", "old server rotated to position 6");
+});
+
+test("rotateLineup: backward (-1) reverses a rotation", () => {
+  const start = ["A", "B", "C", "D", "E", "F"];
+  assert.deepEqual(rotateLineup(rotateLineup(start, 1), -1), start);
+});
+
+test("rotateLineup: six clockwise rotations return to the start", () => {
+  let lineup = ["A", "B", "C", "D", "E", "F"];
+  for (let i = 0; i < 6; i++) lineup = rotateLineup(lineup, 1);
+  assert.deepEqual(lineup, ["A", "B", "C", "D", "E", "F"]);
+});
+
+test("rotateLineup: leaves an incomplete lineup untouched", () => {
+  assert.deepEqual(rotateLineup(["A", "B", "C"], 1), ["A", "B", "C"]);
 });
 
 test("spec walkthrough: rotation wraps R1->...->R6->R1 over six side-outs", () => {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Match, Position, StatLine } from "@prisma/client";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { STAT_ACTION_LABELS, type StatActionId } from "@/lib/stat-actions";
-import { applyRally, servingAssertionFor } from "@/lib/rotation";
+import { applyRally, rotateLineup, servingAssertionFor } from "@/lib/rotation";
 import { POSITION_GROUP } from "@/lib/positions";
 import { Scoreboard } from "./Scoreboard";
 import { PlayerGrid } from "./PlayerGrid";
@@ -271,6 +271,13 @@ export function MatchEntry({
   function flashServing() {
     setServingFlash((n) => n + 1);
   }
+  // Physically shift the on-court formation one spot. Forward (+1) is the
+  // clockwise volleyball rotation a side-out triggers (P2->P1, P3->P2, ...,
+  // P1->P6); -1 reverses it for a manual correction. onCourt index i is court
+  // position i+1, so a forward rotation is a left-shift of the array.
+  function rotateCourt(dir: 1 | -1) {
+    setOnCourt((prev) => rotateLineup(prev, dir));
+  }
   function bumpScore(who: "us" | "them", delta: 1 | -1) {
     setSets((prev) =>
       prev.map((s, i) =>
@@ -297,7 +304,10 @@ export function MatchEntry({
     if (outcome.serving !== serving) flashServing();
     setServing(outcome.serving);
     setRotation(outcome.rotation);
-    if (outcome.rotated) flashRotation();
+    if (outcome.rotated) {
+      flashRotation();
+      rotateCourt(1); // side-out: everyone slides one spot clockwise
+    }
   }
   function handleSetChange(idx: number) {
     setSetIdx(idx);
@@ -332,6 +342,8 @@ export function MatchEntry({
       if (next > 6) next = 1;
       return next;
     });
+    // Keep the physical formation locked to the rotation number.
+    rotateCourt(delta);
   }
 
   function handleServingToggle() {

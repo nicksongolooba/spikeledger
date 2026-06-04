@@ -5,6 +5,7 @@ import type { Position } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { POSITION_LABELS } from "@/lib/positions";
+import { CourtFormation } from "./CourtGrid";
 import type { PositionByPlayer, RosterPlayer } from "./types";
 
 const COURT_SIZE = 6;
@@ -91,8 +92,9 @@ export function LineupModal({
       className="max-w-2xl"
     >
       <p className="mb-4 text-sm text-slate-400">
-        Pick 6 starters. Dual-role players will ask which position they&apos;re
-        playing this match.
+        Tap players in rotation order. The first player tapped is the server
+        (Position 1, back-right); the rest fill 2-6 clockwise. Dual-role players
+        will ask which position they&apos;re playing this match.
       </p>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -127,14 +129,20 @@ export function LineupModal({
                 </div>
               </div>
               {isSelected && (
-                <span className="text-cyan-300">
-                  <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.414 0l-3.5-3.5a1 1 0 011.42-1.42l2.79 2.79 6.79-6.79a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                <span
+                  className={
+                    "stat-number flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold " +
+                    (selectedSet.size > 0 && selected[0] === p.id
+                      ? "bg-amber-400 text-amber-950"
+                      : "bg-cyan-400 text-cyan-950")
+                  }
+                  title={
+                    selected[0] === p.id
+                      ? "Position 1 - server"
+                      : `Position ${selected.indexOf(p.id) + 1}`
+                  }
+                >
+                  {selected.indexOf(p.id) + 1}
                 </span>
               )}
               {isDual && isSelected && (
@@ -165,24 +173,50 @@ export function LineupModal({
         {error && <span className="text-red-300">{error}</span>}
       </div>
 
+      {selected.length === 6 && (
+        <div className="mt-4">
+          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Starting formation
+          </div>
+          <CourtFormation
+            ordered={selected}
+            roster={roster}
+            positions={positions}
+            compact
+          />
+        </div>
+      )}
+
       {selected.length > 0 && (
         <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs">
           <div className="mb-2 font-semibold uppercase tracking-wide text-slate-400">
-            This match they play:
+            Rotation order:
           </div>
           <div className="space-y-1.5">
-            {selected.map((id) => {
+            {selected.map((id, i) => {
               const p = roster.find((rp) => rp.id === id);
               if (!p) return null;
               const pos = positions[id] ?? p.primaryPosition;
               return (
-                <div
-                  key={id}
-                  className="flex items-center justify-between"
-                >
-                  <span className="text-slate-200">
+                <div key={id} className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-slate-200">
+                    <span
+                      className={
+                        "stat-number flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold " +
+                        (i === 0
+                          ? "bg-amber-400 text-amber-950"
+                          : "bg-slate-800 text-slate-300")
+                      }
+                    >
+                      {i + 1}
+                    </span>
                     {p.name}{" "}
                     <span className="text-slate-500">#{p.number ?? "-"}</span>
+                    {i === 0 && (
+                      <span className="rounded bg-amber-400/15 px-1 text-[10px] font-semibold uppercase text-amber-300">
+                        Server
+                      </span>
+                    )}
                   </span>
                   <span className="flex items-center gap-2 text-slate-400">
                     {POSITION_LABELS[pos]}

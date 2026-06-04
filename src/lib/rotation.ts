@@ -20,6 +20,18 @@ export function nextRotation(r: number): number {
   return (r % 6) + 1;
 }
 
+// The on-court lineup is stored as an array where index i holds the player at
+// court position i+1 (index 0 = position 1, the back-right serve slot). A
+// clockwise rotation - what a won side-out triggers - moves every player one
+// position lower: P2->P1, P3->P2, P4->P3, P5->P4, P6->P5, P1->P6. In array
+// terms that is a left-shift. dir = -1 reverses it for a manual correction.
+export function rotateLineup<T>(onCourt: T[], dir: 1 | -1 = 1): T[] {
+  if (onCourt.length !== 6) return onCourt.slice();
+  return dir === 1
+    ? [...onCourt.slice(1), onCourt[0]]
+    : [onCourt[onCourt.length - 1], ...onCourt.slice(0, -1)];
+}
+
 // Some actions only happen on our serve - an ace or a serve error prove we
 // were the serving team, regardless of what the toggle said. Returning a
 // value here lets applyRally correct a wrong toggle without faking a rotation.

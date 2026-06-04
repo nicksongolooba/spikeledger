@@ -6,6 +6,7 @@ import { POSITION_GROUP, type PositionGroup } from "@/lib/positions";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/lib/utils";
+import { CourtFormation } from "./CourtGrid";
 import type { PositionByPlayer, RosterPlayer } from "./types";
 
 const GROUP_RING: Record<PositionGroup, string> = {
@@ -118,23 +119,13 @@ export function PlayerGrid({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        {onCourt.map((id) => {
-          const p = playerById(id);
-          if (!p) return null;
-          const pos = positions[id] ?? p.primaryPosition;
-          return (
-            <PlayerCard
-              key={id}
-              player={p}
-              positionPlayed={pos}
-              dim={false}
-              selected={selectedId === id}
-              onClick={() => onSelect(id)}
-            />
-          );
-        })}
-      </div>
+      <CourtFormation
+        ordered={onCourt}
+        roster={roster}
+        positions={positions}
+        selectedId={selectedId}
+        onSelect={onSelect}
+      />
 
       {bench.length > 0 && (
         <>
