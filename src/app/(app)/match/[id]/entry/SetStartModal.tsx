@@ -38,7 +38,7 @@ export function SetStartModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={`Set ${setNumber} — who serves first?`}
+      title={`Set ${setNumber} - who serves first?`}
       className="max-w-md"
     >
       <p className="mb-4 text-sm text-slate-400">
