@@ -1,6 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyRally, nextRotation, servingAssertionFor } from "./rotation";
+import {
+  applyRally,
+  nextRotation,
+  servingAssertionFor,
+  type RallyOutcome,
+  type RallyState,
+} from "./rotation";
+import type { StatActionId } from "./stat-actions";
 
 test("nextRotation cycles R1..R6 and wraps", () => {
   assert.equal(nextRotation(1), 2);
@@ -88,4 +95,65 @@ test("servingAssertionFor flags only ace and serve error", () => {
   assert.equal(servingAssertionFor("KILL"), undefined);
   assert.equal(servingAssertionFor("A_ERR"), undefined);
   assert.equal(servingAssertionFor("BLOCK"), undefined);
+});
+
+// ---- Integration: drive the exact action sequence the entry page wires up.
+// Mirrors MatchEntry.applyPoint: stat actions score for a side and assert who
+// served (ace/serve-error only); the opponent-error button scores for us with
+// no assertion. This is the spec's "test this thoroughly" walkthrough.
+const SCORES_US = new Set<StatActionId>(["KILL", "ACE", "BLOCK"]);
+
+function play(
+  state: RallyState,
+  action: StatActionId | "OPP_ERR",
+): RallyOutcome {
+  if (action === "OPP_ERR") return applyRally(state, "us");
+  const scorer = SCORES_US.has(action) ? "us" : "them";
+  return applyRally(state, scorer, servingAssertionFor(action));
+}
+
+test("spec walkthrough: opponent serving at R1 through a full exchange", () => {
+  let s: RallyState = { serving: "them", rotation: 1 };
+
+  // 2. KILL while they serve -> side-out: rotate to R2, we serve.
+  let out = play(s, "KILL");
+  assert.deepEqual(
+    { serving: out.serving, rotation: out.rotation, rotated: out.rotated },
+    { serving: "us", rotation: 2, rotated: true },
+  );
+  s = out;
+
+  // 3. ACE on our serve -> no rotation, hold serve at R2.
+  out = play(s, "ACE");
+  assert.deepEqual(
+    { serving: out.serving, rotation: out.rotation, rotated: out.rotated },
+    { serving: "us", rotation: 2, rotated: false },
+  );
+  s = out;
+
+  // 4. SERVE ERROR on our serve -> hand serve to them, no rotation, stay R2.
+  out = play(s, "S_ERR");
+  assert.deepEqual(
+    { serving: out.serving, rotation: out.rotation, rotated: out.rotated },
+    { serving: "them", rotation: 2, rotated: false },
+  );
+  s = out;
+
+  // 5. Opponent error while they serve -> side-out: rotate to R3, we serve.
+  out = play(s, "OPP_ERR");
+  assert.deepEqual(
+    { serving: out.serving, rotation: out.rotation, rotated: out.rotated },
+    { serving: "us", rotation: 3, rotated: true },
+  );
+});
+
+test("spec walkthrough: rotation wraps R1->...->R6->R1 over six side-outs", () => {
+  let s: RallyState = { serving: "them", rotation: 1 };
+  const seen: number[] = [];
+  for (let i = 0; i < 6; i++) {
+    const out = play(s, "KILL"); // win serve back -> rotate
+    seen.push(out.rotation);
+    s = { serving: "them", rotation: out.rotation }; // concede serve for next side-out
+  }
+  assert.deepEqual(seen, [2, 3, 4, 5, 6, 1]);
 });

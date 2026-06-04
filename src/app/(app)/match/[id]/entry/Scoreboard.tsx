@@ -17,11 +17,14 @@ interface ScoreboardProps {
   flash: { side: "us" | "them"; nonce: number } | null;
   // Bumps each time the rotation auto-advances so R# flashes to catch the eye.
   rotationFlash: number;
+  // Bumps each time the serve switches so the "Serving" pill pulses briefly.
+  servingFlash: number;
   onSetChange: (idx: number) => void;
   onAddSet: () => void;
   onScore: (who: "us" | "them", delta: 1 | -1) => void;
   onRotation: (delta: 1 | -1) => void;
   onServingToggle: () => void;
+  onEditStart: () => void;
 }
 
 export function Scoreboard({
@@ -36,11 +39,13 @@ export function Scoreboard({
   syncQueueSize,
   flash,
   rotationFlash,
+  servingFlash,
   onSetChange,
   onAddSet,
   onScore,
   onRotation,
   onServingToggle,
+  onEditStart,
 }: ScoreboardProps) {
   // Light up the scored side for a beat when an auto-score lands.
   const [lit, setLit] = useState<"us" | "them" | null>(null);
@@ -59,6 +64,15 @@ export function Scoreboard({
     const t = setTimeout(() => setRotLit(false), 1000);
     return () => clearTimeout(t);
   }, [rotationFlash]);
+
+  // Flash the serving pill when the serve switches sides (nonce 0 = initial).
+  const [serveLit, setServeLit] = useState(false);
+  useEffect(() => {
+    if (!servingFlash) return;
+    setServeLit(true);
+    const t = setTimeout(() => setServeLit(false), 1000);
+    return () => clearTimeout(t);
+  }, [servingFlash]);
 
   const usHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const themHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -197,7 +211,7 @@ export function Scoreboard({
           </button>
           <span
             className={cn(
-              "stat-number inline-block w-6 text-center font-bold transition-all duration-300",
+              "stat-number inline-block w-9 text-center text-lg font-bold leading-none transition-all duration-300",
               rotLit ? "scale-150 text-cyan-300" : "text-slate-100",
             )}
           >
@@ -221,14 +235,24 @@ export function Scoreboard({
           type="button"
           onClick={onServingToggle}
           className={cn(
-            "rounded-lg border px-3 py-1 font-semibold transition-colors",
+            "rounded-lg border px-3 py-1 font-semibold transition-all duration-300",
             serving === "us"
               ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
-              : "border-slate-700 bg-slate-950 text-slate-400",
+              : "border-amber-400 bg-amber-400/10 text-amber-300",
+            serveLit && "scale-105 shadow-[0_0_0_3px_rgba(34,211,238,0.25)]",
           )}
           aria-label={`Serving: ${serving === "us" ? "Us" : "Them"}`}
         >
           Serving: {serving === "us" ? "Us" : "Them"}
+        </button>
+        <button
+          type="button"
+          onClick={onEditStart}
+          className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-slate-400 hover:text-slate-100"
+          aria-label="Set who serves first and starting rotation"
+          title="Set serve & rotation start"
+        >
+          Start
         </button>
       </div>
     </div>

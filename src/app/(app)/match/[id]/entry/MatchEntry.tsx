@@ -12,6 +12,7 @@ import { PlayerGrid } from "./PlayerGrid";
 import { ActionPanel } from "./ActionPanel";
 import { UndoBar } from "./UndoBar";
 import { LineupModal } from "./LineupModal";
+import { SetStartModal } from "./SetStartModal";
 import { ToastStack, type ToastMsg } from "./Toast";
 import {
   appendWal,
@@ -55,6 +56,9 @@ interface PersistedState {
   undo: UndoEntry[];
   opponentErrors: number;
   liberoSwap: LiberoSwap | null;
+  // Indices of sets whose serve/rotation start the coach has already set, so we
+  // don't re-prompt on reload or when flipping back to an earlier set tab.
+  configuredSets: number[];
 }
 
 function lsKey(matchId: string) {
@@ -113,6 +117,9 @@ export function MatchEntry({
   );
   // Active libero substitution from the quick LIB button (null = libero out).
   const [liberoSwap, setLiberoSwap] = useState<LiberoSwap | null>(null);
+  // Sets whose serve/rotation start has been set by the coach.
+  const [configuredSets, setConfiguredSets] = useState<number[]>([]);
+  const [showSetStart, setShowSetStart] = useState<boolean>(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -126,6 +133,8 @@ export function MatchEntry({
   } | null>(null);
   // Bumped each time the rotation auto-advances so the Scoreboard flashes R#.
   const [rotationFlash, setRotationFlash] = useState<number>(0);
+  // Bumped each time the serve switches so the Scoreboard highlights "Serving".
+  const [servingFlash, setServingFlash] = useState<number>(0);
 
   // Restore the saved session (localStorage + WAL + online status) AFTER the
   // first paint, so the initial client render matches the server. `hydrated`
@@ -150,8 +159,16 @@ export function MatchEntry({
       if (persisted.liberoSwap !== undefined) {
         setLiberoSwap(persisted.liberoSwap);
       }
+      if (persisted.configuredSets) setConfiguredSets(persisted.configuredSets);
       // Keep the lineup modal up only if there's still no lineup set.
-      setShowLineup((persisted.onCourt?.length ?? 0) === 0);
+      const hasLineup = (persisted.onCourt?.length ?? 0) > 0;
+      setShowLineup(!hasLineup);
+      // Once the lineup exists but the current set's serve/rotation start was
+      // never set, prompt for it so auto-rotation begins from the truth.
+      const curSet = persisted.setIdx ?? 0;
+      if (hasLineup && !(persisted.configuredSets ?? []).includes(curSet)) {
+        setShowSetStart(true);
+      }
     }
     if (typeof navigator !== "undefined") setOffline(!navigator.onLine);
     setQueueSize(readWal(matchId).length);
@@ -174,8 +191,9 @@ export function MatchEntry({
       undo: undoStack,
       opponentErrors,
       liberoSwap,
+      configuredSets,
     });
-  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors, liberoSwap]);
+  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors, liberoSwap, configuredSets]);
 
   // Track online/offline transitions to drive the WAL replay.
   const refreshQueueSize = useCallback(() => {
@@ -250,22 +268,33 @@ export function MatchEntry({
   function flashRotation() {
     setRotationFlash((n) => n + 1);
   }
-  // `servingBefore` lets a caller assert who was serving at the start of the
-  // rally - e.g. an ace or serve error proves we were serving, even if the
-  // toggle was wrong. When omitted we trust the current `serving` state.
-  function handleScore(
-    who: "us" | "them",
-    delta: 1 | -1,
-    servingBefore?: "us" | "them",
-  ) {
+  function flashServing() {
+    setServingFlash((n) => n + 1);
+  }
+  function bumpScore(who: "us" | "them", delta: 1 | -1) {
     setSets((prev) =>
       prev.map((s, i) =>
         i === setIdx ? { ...s, [who]: Math.max(0, s[who] + delta) } : s,
       ),
     );
-    // Only a won rally (+1) changes serve/rotation. A correction (-1) doesn't.
-    if (delta !== 1) return;
+  }
+
+  // Manual scoreboard tap/hold: a pure score correction. Per the rotation
+  // rules, manual score adjustments must NOT move serve or rotation - only
+  // stat actions and the opponent-error button do that (see `applyPoint`).
+  function handleManualScore(who: "us" | "them", delta: 1 | -1) {
+    bumpScore(who, delta);
+  }
+
+  // A real won rally from a stat action or the opponent-error button: score the
+  // point AND run the side-out logic. `servingBefore` lets a caller assert who
+  // served the rally start - an ace or serve error proves we were serving, so
+  // it corrects a wrong toggle without faking a rotation.
+  function applyPoint(who: "us" | "them", servingBefore?: "us" | "them") {
+    bumpScore(who, 1);
+    flashScore(who);
     const outcome = applyRally({ serving, rotation }, who, servingBefore);
+    if (outcome.serving !== serving) flashServing();
     setServing(outcome.serving);
     setRotation(outcome.rotation);
     if (outcome.rotated) flashRotation();
@@ -274,8 +303,26 @@ export function MatchEntry({
     setSetIdx(idx);
   }
   function handleAddSet() {
+    const newIdx = sets.length;
     setSets((prev) => [...prev, { us: 0, them: 0 }]);
-    setSetIdx(sets.length);
+    setSetIdx(newIdx);
+    // A new set resets rotation tracking - ask the coach how it starts.
+    setShowSetStart(true);
+  }
+
+  // The coach sets who serves first and the opening rotation for the current
+  // set. This is the only place a "start" sets rotation directly (no flash -
+  // it's a deliberate setup, not an auto-advance).
+  function handleSetStartConfirm(
+    startServing: "us" | "them",
+    startRotation: number,
+  ) {
+    setServing(startServing);
+    setRotation(startRotation);
+    setConfiguredSets((prev) =>
+      prev.includes(setIdx) ? prev : [...prev, setIdx],
+    );
+    setShowSetStart(false);
   }
 
   function handleRotation(delta: 1 | -1) {
@@ -287,6 +334,11 @@ export function MatchEntry({
     });
   }
 
+  function handleServingToggle() {
+    setServing((s) => (s === "us" ? "them" : "us"));
+    flashServing();
+  }
+
   // ---- Lineup handling ----
   async function applyLineup(
     newOnCourt: string[],
@@ -295,6 +347,9 @@ export function MatchEntry({
     setOnCourt(newOnCourt);
     setPositions({ ...positions, ...newPositions });
     setShowLineup(false);
+    // First lineup of a set flows straight into the serve/rotation start prompt
+    // so auto-rotation knows whether we or the opponent open serving.
+    if (!configuredSets.includes(setIdx)) setShowSetStart(true);
     // Post to API so positionPlayed is stored even if no stat is ever recorded.
     try {
       await fetch(`/api/matches/${matchId}/lineup`, {
@@ -410,17 +465,15 @@ export function MatchEntry({
     setSelectedId(null);
     pushToast(`${playerName} +1 ${STAT_ACTION_LABELS[action]}`, "success");
 
-    // Auto-score: most rally-ending actions move the scoreboard so the coach
-    // doesn't have to tap twice. They can still hold to correct an edge case.
-    // An ace or serve error only happens on our serve, so assert we were
-    // serving - this fixes the toggle and keeps the side-out math honest.
+    // Auto-score + side-out: most rally-ending actions move the scoreboard and
+    // drive rotation so the coach doesn't have to tap twice. An ace or serve
+    // error only happens on our serve, so assert we were serving - this fixes
+    // a wrong toggle and keeps the side-out math honest.
     const servingBefore = servingAssertionFor(action);
     if (SCORES_US.has(action)) {
-      handleScore("us", 1, servingBefore);
-      flashScore("us");
+      applyPoint("us", servingBefore);
     } else if (SCORES_THEM.has(action)) {
-      handleScore("them", 1, servingBefore);
-      flashScore("them");
+      applyPoint("them", servingBefore);
     }
 
     await processWalEntry(walEntry);
@@ -430,8 +483,9 @@ export function MatchEntry({
   function handleOpponentError() {
     const next = opponentErrors + 1;
     setOpponentErrors(next);
-    handleScore("us", 1);
-    flashScore("us");
+    // A point for us off the opponent's mistake. If they were serving this is a
+    // side-out (rotate + take serve); if we were serving we just hold serve.
+    applyPoint("us");
     pushToast("Opponent error - point for us", "success");
     // Persist the running count on the match. Idempotent (absolute value), so
     // it's safe to fire-and-forget; if offline it'll be resent at End match.
@@ -539,13 +593,13 @@ export function MatchEntry({
             syncQueueSize={queueSize}
             flash={scoreFlash}
             rotationFlash={rotationFlash}
+            servingFlash={servingFlash}
             onSetChange={handleSetChange}
             onAddSet={handleAddSet}
-            onScore={handleScore}
+            onScore={handleManualScore}
             onRotation={handleRotation}
-            onServingToggle={() =>
-              setServing((s) => (s === "us" ? "them" : "us"))
-            }
+            onServingToggle={handleServingToggle}
+            onEditStart={() => setShowSetStart(true)}
           />
         </div>
 
@@ -584,6 +638,15 @@ export function MatchEntry({
         initialPositions={positions}
         onClose={() => setShowLineup(false)}
         onConfirm={applyLineup}
+      />
+
+      <SetStartModal
+        open={showSetStart}
+        setNumber={setIdx + 1}
+        initialServing={serving}
+        initialRotation={rotation}
+        onConfirm={handleSetStartConfirm}
+        onClose={() => setShowSetStart(false)}
       />
     </div>
   );
