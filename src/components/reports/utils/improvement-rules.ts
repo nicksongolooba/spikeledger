@@ -1,12 +1,15 @@
 // Rule-based "What To Work On" - picks the three most relevant focus areas
 // for a player, taking position into account so a libero isn't told to work on
-// hitting efficiency.
+// hitting efficiency, and a middle is never told to work on assists.
 //
-// Phase 5 (Gemma) will replace this with real LLM-generated coaching insights.
-// Until then, these rules keep the report card useful out of the box.
+// Position groups here are the FOUR-way split (hitter / middle / setter /
+// libero) from lib/positions, NOT the Bank Account's three-way grouping that
+// lumps setters and middles together. Coaching advice for a setter (assists,
+// distribution) is wrong for a middle (blocking, quick attacks), so the two
+// must stay separate.
 
 import type { Position } from "@prisma/client";
-import { POSITION_GROUP_MAP } from "@/engine/bank-account";
+import { POSITION_GROUP, type PositionGroup } from "@/lib/positions";
 import type { DerivedStats } from "@/engine/derived-stats";
 
 export interface ImprovementArea {
@@ -20,16 +23,16 @@ export interface ImprovementArea {
 
 interface Rule {
   // Only consider this rule for these position groups
-  appliesTo: ("hitter" | "setter_middle" | "libero_ds")[];
+  appliesTo: PositionGroup[];
   // Returns null if the rule doesn't fire; otherwise returns an area
   // with a severity score (higher = more urgent).
   evaluate: (s: DerivedStats, name: string) => ImprovementArea | null;
 }
 
 const RULES: Rule[] = [
-  // --- Passing (Libero/hitter) ---
+  // --- Passing (Libero / hitter only - setters and middles don't pass) ---
   {
-    appliesTo: ["libero_ds"],
+    appliesTo: ["libero"],
     evaluate: (s) => {
       if (s.srTotal < 5) return null; // not enough data
       if (s.srAverage >= 2.0) return null;
@@ -62,9 +65,9 @@ const RULES: Rule[] = [
     },
   },
 
-  // --- Attacking (Hitter / Middle) ---
+  // --- Attacking: hitters work shot selection ---
   {
-    appliesTo: ["hitter", "setter_middle"],
+    appliesTo: ["hitter"],
     evaluate: (s) => {
       // Only relevant once you've put up enough swings.
       if (s.totalKills + s.totalAttackErrors < 5) return null;
@@ -81,9 +84,27 @@ const RULES: Rule[] = [
     },
   },
 
+  // --- Attacking: middles work quick-attack efficiency (never set) ---
+  {
+    appliesTo: ["middle"],
+    evaluate: (s) => {
+      if (s.totalKills + s.totalAttackErrors < 5) return null;
+      if (s.hittingEfficiency >= 0.15) return null;
+      return {
+        metric: "Quick attack efficiency",
+        current: `${(s.hittingEfficiency * 100).toFixed(0)}%`,
+        target: "20%+",
+        detail:
+          "Quick-set timing: approach early, attack at the top of a fast 1-ball, finish over the seam. 15 swings/practice.",
+        youtubeQuery: "middle quick attack hitting drill",
+        severity: Math.max(0, (0.2 - s.hittingEfficiency) / 0.2),
+      };
+    },
+  },
+
   // --- Serving (everyone who serves) ---
   {
-    appliesTo: ["hitter", "setter_middle", "libero_ds"],
+    appliesTo: ["hitter", "middle", "setter", "libero"],
     evaluate: (s) => {
       if (s.totalServeErrors + s.totalAces < 3) return null;
       if (s.serveErrorPercentage <= 0.3) return null;
@@ -101,7 +122,7 @@ const RULES: Rule[] = [
 
   // --- Ball control (everyone) ---
   {
-    appliesTo: ["hitter", "setter_middle", "libero_ds"],
+    appliesTo: ["hitter", "middle", "setter", "libero"],
     evaluate: (s) => {
       if (s.matchesPlayed === 0) return null;
       const epm = s.errorsPerMatch;
@@ -118,9 +139,9 @@ const RULES: Rule[] = [
     },
   },
 
-  // --- Blocking (Middle specifically) ---
+  // --- Blocking (middles + front-row setters) ---
   {
-    appliesTo: ["setter_middle"],
+    appliesTo: ["middle", "setter"],
     evaluate: (s) => {
       if (s.matchesPlayed < 2) return null;
       if (s.blocksPerMatch >= 1.0) return null;
@@ -136,9 +157,9 @@ const RULES: Rule[] = [
     },
   },
 
-  // --- Setting volume (Setter) ---
+  // --- Distribution (SETTERS ONLY - middles never set) ---
   {
-    appliesTo: ["setter_middle"],
+    appliesTo: ["setter"],
     evaluate: (s) => {
       if (s.matchesPlayed < 2) return null;
       if (s.assistsPerMatch >= 6) return null;
@@ -156,11 +177,9 @@ const RULES: Rule[] = [
 ];
 
 // "Maintain" callout when a player has no obvious weaknesses - we still want
-// to fill the slot with something specific and encouraging.
-const MAINTAIN_AREAS: Record<
-  "hitter" | "setter_middle" | "libero_ds",
-  ImprovementArea[]
-> = {
+// to fill the slot with something specific and encouraging. Keyed by the
+// four-way position group so setters and middles get distinct advice.
+const MAINTAIN_AREAS: Record<PositionGroup, ImprovementArea[]> = {
   hitter: [
     {
       metric: "Stay aggressive late",
@@ -171,17 +190,29 @@ const MAINTAIN_AREAS: Record<
       severity: 0,
     },
   ],
-  setter_middle: [
+  middle: [
+    {
+      metric: "Own transition attacking",
+      current: "-",
+      target: "-",
+      detail:
+        "Strong base. Get off the net fast after blocking and beat the setter to the quick - transition kills win the middle battle.",
+      youtubeQuery: "middle transition footwork drill",
+      severity: 0,
+    },
+  ],
+  setter: [
     {
       metric: "Mix up sets",
       current: "-",
       target: "-",
       detail:
         "Strong base. Add a low quick or back-row attack once per rotation to keep blocks honest.",
+      youtubeQuery: "setter decision making drill",
       severity: 0,
     },
   ],
-  libero_ds: [
+  libero: [
     {
       metric: "Lead from the back",
       current: "-",
@@ -198,7 +229,7 @@ export function computeImprovementAreas(
   position: Position,
   playerName: string,
 ): ImprovementArea[] {
-  const group = POSITION_GROUP_MAP[position];
+  const group = POSITION_GROUP[position];
   const areas: ImprovementArea[] = [];
   for (const rule of RULES) {
     if (!rule.appliesTo.includes(group)) continue;

@@ -1,8 +1,7 @@
 // Always-available fallback when neither Ollama nor Google is reachable.
 // Same shape as the LLM responses so callers don't have to branch.
 
-import { POSITION_GROUP_MAP } from "@/engine/bank-account";
-import { POSITION_LABELS } from "@/lib/positions";
+import { POSITION_GROUP, POSITION_LABELS } from "@/lib/positions";
 import { fmtNum, fmtPct } from "@/engine/derived-stats";
 import { computeImprovementAreas } from "@/components/reports/utils/improvement-rules";
 import type { Position } from "@prisma/client";
@@ -18,7 +17,10 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
   const out: string[] = [];
   const s = req.stats;
   const ba = req.bankAccount;
-  const group = req.player.positionGroup;
+  // Use the four-way split (hitter/middle/setter/libero) so setters and
+  // middles never trade strengths - middles don't set, setters don't get
+  // credited for a middle's job.
+  const group = POSITION_GROUP[req.player.position];
 
   if (ba.rating === "GREEN") {
     out.push(
@@ -29,20 +31,29 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
       `Steady contributor: Bank Account ${ba.balance >= 0 ? "+" : ""}${ba.balance} this scope.`,
     );
   }
-  if (group === "libero_ds" && s.srAverage !== undefined && s.srAverage >= 1.8) {
+  if (group === "libero" && s.srAverage !== undefined && s.srAverage >= 1.8) {
     out.push(`Reliable passing - SR average ${s.srAverage.toFixed(2)} keeps the offense in system.`);
   }
-  if (group === "hitter" && s.hittingEfficiency !== undefined && s.hittingEfficiency >= 0.15) {
+  if (
+    (group === "hitter" || group === "middle") &&
+    s.hittingEfficiency !== undefined &&
+    s.hittingEfficiency >= 0.15
+  ) {
     out.push(
       `Efficient swings - hitting ${fmtPct(s.hittingEfficiency, 1)} this scope.`,
     );
   }
-  if (group === "setter_middle" && s.assistsPerMatch !== undefined && s.assistsPerMatch >= 8) {
+  // Distribution is a setter strength only - middles do not set.
+  if (group === "setter" && s.assistsPerMatch !== undefined && s.assistsPerMatch >= 8) {
     out.push(
       `Strong distribution - ${fmtNum(s.assistsPerMatch, 1)} assists per match.`,
     );
   }
-  if (group === "setter_middle" && s.blocksPerMatch !== undefined && s.blocksPerMatch >= 1.0) {
+  if (
+    (group === "setter" || group === "middle") &&
+    s.blocksPerMatch !== undefined &&
+    s.blocksPerMatch >= 1.0
+  ) {
     out.push(
       `Active at the net - ${fmtNum(s.blocksPerMatch, 1)} blocks per match.`,
     );
@@ -124,13 +135,15 @@ export function generateRuleBasedPlayerInsight(
     req.bankAccount.deposits
   } deposits vs ${req.bankAccount.withdrawals} withdrawals.`;
 
-  const group = POSITION_GROUP_MAP[req.player.position];
+  const group = POSITION_GROUP[req.player.position];
   const coachingNote =
-    group === "libero_ds"
+    group === "libero"
       ? "Lean on this player as the floor anchor - get them more reps in serve receive rotations 1 and 6."
-      : group === "setter_middle"
-        ? "Mix in more middle-fast tempo on serve-receive 2s to reward strong passing."
-        : "Run a quick attack ahead of this player's outside set to soften the block.";
+      : group === "setter"
+        ? "Reward clean first balls by speeding up tempo - run your middle on a quick when this setter is in system."
+        : group === "middle"
+          ? "Feed this middle more first-tempo sets and slides - net touches turn into blocks and quick kills."
+          : "Run a quick attack ahead of this player's outside set to soften the block.";
 
   return {
     summary,
