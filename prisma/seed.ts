@@ -3,6 +3,7 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "node:crypto";
 
 // Route the seed script through Neon's WebSocket pool too, so it works from
 // networks that block port 5432.
@@ -326,7 +327,11 @@ async function main() {
   await prisma.user.deleteMany({ where: { email: "demo@spikeledger.app" } });
 
   console.log("Creating demo coach…");
-  const passwordHash = await bcrypt.hash("demo1234", 10);
+  // Never seed a publicly-known password. Set DEMO_PASSWORD to pick one;
+  // otherwise a random throwaway is generated and printed once below.
+  const demoPassword =
+    process.env.DEMO_PASSWORD || randomBytes(12).toString("base64url");
+  const passwordHash = await bcrypt.hash(demoPassword, 10);
   const coach = await prisma.user.create({
     data: {
       email: "demo@spikeledger.app",
@@ -407,7 +412,10 @@ async function main() {
   }
 
   console.log("\nSeed complete.");
-  console.log("  Demo login: demo@spikeledger.app / demo1234");
+  console.log(
+    `  Demo login: demo@spikeledger.app / ${demoPassword}` +
+      (process.env.DEMO_PASSWORD ? "" : " (random - save it now or reseed)"),
+  );
   console.log(`  ${players.length} players · ${TOURNAMENTS.length} tournaments · ${TOURNAMENTS.length * 4} matches · ${TOURNAMENTS.length * 4 * ROSTER.length} stat lines`);
 }
 

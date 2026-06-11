@@ -105,11 +105,6 @@ function LoginForm() {
           Create one
         </Link>
       </p>
-
-      <div className="mt-6 rounded-lg border border-slate-800 bg-slate-950/50 p-3 text-xs text-slate-500">
-        <span className="font-semibold text-slate-400">Demo:</span>{" "}
-        demo@spikeledger.app / demo1234
-      </div>
     </div>
   );
 }
