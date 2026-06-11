@@ -107,24 +107,29 @@ async function main() {
       data: { name: `Coach2Team-${run}`, coachId: coach2.id, clubId },
     });
 
-    // Visibility: each coach sees both teams; outsiders see neither
+    // Visibility: PRIVATE teams with owner oversight
     const coach2Sees = await prisma.team.findMany({
       where: teamVisibleWhere(coach2.id),
       select: { id: true },
     });
     const ids = coach2Sees.map((t) => t.id);
     check(
-      "coach2 sees own team AND owner's team",
-      ids.includes(ownerTeam.id) && ids.includes(coach2Team.id),
+      "club COACH sees ONLY their own team (private)",
+      ids.includes(coach2Team.id) && !ids.includes(ownerTeam.id),
     );
     const ownerSees = await prisma.team.findMany({
       where: teamVisibleWhere(owner.id),
       select: { id: true },
     });
     check(
-      "owner sees coach2's team",
+      "OWNER sees coach2's team (oversight)",
       ownerSees.some((t) => t.id === coach2Team.id),
     );
+    const assistantSees = await prisma.team.findMany({
+      where: teamVisibleWhere(assistant.id),
+      select: { id: true },
+    });
+    check("ASSISTANT sees no teams (none assigned)", assistantSees.length === 0);
     const outsiderSees = await prisma.team.findMany({
       where: teamVisibleWhere(outsider.id),
       select: { id: true },
@@ -137,20 +142,24 @@ async function main() {
       (await getTeamAccessLevel(coach2Team.id, coach2.id)) === "manage",
     );
     check(
-      "club COACH has read-only access to others' teams",
-      (await getTeamAccessLevel(ownerTeam.id, coach2.id)) === "read",
+      "OWNER has read-only oversight on others' teams",
+      (await getTeamAccessLevel(coach2Team.id, owner.id)) === "read",
     );
     check(
-      "ASSISTANT has stats access to club teams",
-      (await getTeamAccessLevel(ownerTeam.id, assistant.id)) === "stats",
+      "OWNER may NOT write stats on others' teams",
+      !(await assertTeamStatsWrite(coach2Team.id, owner.id)),
     );
     check(
-      "ASSISTANT may write stats on any club team",
-      await assertTeamStatsWrite(ownerTeam.id, assistant.id),
+      "club COACH has NO access to others' teams",
+      (await getTeamAccessLevel(ownerTeam.id, coach2.id)) === null,
     );
     check(
-      "club COACH may NOT write stats on others' teams",
-      !(await assertTeamStatsWrite(ownerTeam.id, coach2.id)),
+      "ASSISTANT has NO access to unassigned teams",
+      (await getTeamAccessLevel(ownerTeam.id, assistant.id)) === null,
+    );
+    check(
+      "ASSISTANT may NOT write stats on unassigned teams",
+      !(await assertTeamStatsWrite(ownerTeam.id, assistant.id)),
     );
     check(
       "club COACH may NOT manage others' teams",

@@ -1,10 +1,11 @@
 // Club tier core: membership lookup, effective plan, club creation, and the
-// invite lifecycle. The permission model (enforced here + in access.ts):
-//   OWNER     - invite/remove coaches, club settings, sees all club teams,
-//               full write on own teams
-//   COACH     - sees all club teams (read), full write on own teams only
-//   ASSISTANT - sees all club teams (read), may enter stats on any club team,
-//               but cannot create teams/tournaments or manage rosters
+// invite lifecycle. Privacy model: teams are PRIVATE with owner oversight.
+//   OWNER     - invite/remove coaches, club settings, sees ALL club teams
+//               (read-only oversight), full write on own teams
+//   COACH     - sees ONLY their own teams (identical to the Coach Pro
+//               experience), full write on them; knows they're in the club
+//   ASSISTANT - sees only teams explicitly assigned to them (assignments are
+//               a future feature - today that means only teams they created)
 // Club members inherit the club's feature tier: belonging to a club whose
 // owner has an active CLUB subscription grants CLUB features.
 

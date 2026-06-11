@@ -38,7 +38,9 @@ export default async function ClubPage() {
       orderBy: { role: "asc" }, // OWNER first (enum order)
     }),
     prisma.team.findMany({
-      where: { clubId },
+      // Private teams with owner oversight: only the OWNER sees the whole
+      // club's teams; everyone else sees just their own here.
+      where: isOwner ? { clubId } : { clubId, coachId: user.id },
       include: {
         coach: { select: { id: true, name: true } },
         _count: { select: { players: true, tournaments: true } },
@@ -99,13 +101,15 @@ export default async function ClubPage() {
         )}
       </header>
 
-      {/* Club-wide stats */}
-      <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ClubStat label="Coaches" value={members.length.toString()} />
-        <ClubStat label="Teams" value={teams.length.toString()} />
-        <ClubStat label="Players" value={playerCount.toString()} />
-        <ClubStat label="Overall Record" value={`${wins}-${losses}`} accent />
-      </section>
+      {/* Club-wide stats - owner oversight only */}
+      {isOwner && (
+        <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ClubStat label="Coaches" value={members.length.toString()} />
+          <ClubStat label="Teams" value={teams.length.toString()} />
+          <ClubStat label="Players" value={playerCount.toString()} />
+          <ClubStat label="Overall Record" value={`${wins}-${losses}`} accent />
+        </section>
+      )}
 
       {/* Coaches */}
       <section className="mt-10">
@@ -118,12 +122,14 @@ export default async function ClubPage() {
             <div key={m.id} className="flex items-center justify-between gap-3 p-4">
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium text-slate-100">
-                  {m.user.name ?? m.user.email}
+                  {m.user.name ?? (isOwner ? m.user.email : "Coach")}
                   {m.user.id === user.id && (
                     <span className="ml-2 text-xs text-slate-500">(you)</span>
                   )}
                 </div>
-                <div className="truncate text-xs text-slate-500">{m.user.email}</div>
+                {isOwner && (
+                  <div className="truncate text-xs text-slate-500">{m.user.email}</div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <span
@@ -165,11 +171,17 @@ export default async function ClubPage() {
 
       {/* Teams across the club */}
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold">Club teams</h2>
+        <h2 className="mb-3 text-lg font-semibold">
+          {isOwner ? "Club teams" : "Your teams"}
+        </h2>
         {teams.length === 0 ? (
           <EmptyState
-            title="No club teams yet"
-            description="Teams created by club coaches appear here automatically."
+            title={isOwner ? "No club teams yet" : "No teams yet"}
+            description={
+              isOwner
+                ? "Teams created by club coaches appear here automatically."
+                : "Teams you create appear here. Other coaches' teams stay private."
+            }
           />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

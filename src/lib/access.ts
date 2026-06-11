@@ -1,10 +1,13 @@
-// Team access control, club-aware. Visibility rule: a team is visible to its
-// creating coach AND to any member of the team's club. Write access is
-// tiered (see club.ts for the role matrix):
-//   - "manage" (create/rename teams, rosters, tournaments): creating coach only
-//   - "stats" (record/edit match stats, scores, lineups): creating coach OR
-//     an ASSISTANT member of the team's club
-//   - read: any club member
+// Team access control: private teams with owner oversight. Visibility rule:
+// a team is visible to its creating coach, plus the club OWNER for every
+// team in their club (oversight). Club COACHes see only their own teams -
+// their experience matches Coach Pro exactly. ASSISTANTs will see explicitly
+// assigned teams once assignments exist; until then they see only teams they
+// created themselves. Write tiers:
+//   - "manage" (rosters, tournaments, team settings): creating coach only
+//   - "stats" (record/edit stats, scores, lineups): creating coach only for
+//     now - reserved for per-team ASSISTANT assignments later
+//   - read: the club OWNER
 
 import { notFound } from "next/navigation";
 import type { Prisma } from "@prisma/client";
@@ -15,7 +18,8 @@ export function teamVisibleWhere(userId: string): Prisma.TeamWhereInput {
   return {
     OR: [
       { coachId: userId },
-      { club: { is: { members: { some: { userId } } } } },
+      // Owner oversight: OWNERs see every team in their club.
+      { club: { is: { members: { some: { userId, role: "OWNER" } } } } },
     ],
   };
 }
@@ -45,12 +49,14 @@ export async function getTeamAccessLevel(
   if (!team) return null;
   if (team.coachId === userId) return "manage";
   if (!team.clubId) return null;
-  const membership = await prisma.clubMember.findFirst({
-    where: { userId, clubId: team.clubId },
-    select: { role: true },
+  // Only the club OWNER sees other coaches' teams (read-only oversight).
+  // COACH members get nothing on teams they didn't create; ASSISTANT access
+  // waits on per-team assignments.
+  const ownerMembership = await prisma.clubMember.findFirst({
+    where: { userId, clubId: team.clubId, role: "OWNER" },
+    select: { id: true },
   });
-  if (!membership) return null;
-  return membership.role === "ASSISTANT" ? "stats" : "read";
+  return ownerMembership ? "read" : null;
 }
 
 // WRITE: team management (roster, tournaments, team settings, imports).
