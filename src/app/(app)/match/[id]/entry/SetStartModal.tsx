@@ -58,7 +58,7 @@ export function SetStartModal({
             className={cn(
               "rounded-lg border px-3 py-3 text-sm font-semibold transition-colors",
               serving === side
-                ? "border-cyan-400 bg-cyan-400/10 text-cyan-200"
+                ? "border-volt-400 bg-volt-400/10 text-volt-200"
                 : "border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700",
             )}
           >
@@ -79,7 +79,7 @@ export function SetStartModal({
             className={cn(
               "stat-number rounded-lg border py-2 text-sm font-bold transition-colors",
               rotation === r
-                ? "border-cyan-400 bg-cyan-400/10 text-cyan-200"
+                ? "border-volt-400 bg-volt-400/10 text-volt-200"
                 : "border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700",
             )}
           >

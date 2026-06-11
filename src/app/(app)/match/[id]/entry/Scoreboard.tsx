@@ -118,7 +118,7 @@ export function Scoreboard({
             className={cn(
               "rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors",
               i === setIdx
-                ? "bg-cyan-400 text-cyan-950"
+                ? "bg-volt-400 text-volt-950"
                 : "bg-slate-800 text-slate-400 hover:text-slate-100",
             )}
           >
@@ -159,7 +159,7 @@ export function Scoreboard({
           )}
           aria-label="Our score: tap to add, hold to subtract"
         >
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-volt-300">
             Hawks
           </span>
           <span className="stat-number text-4xl font-bold text-slate-50 sm:text-5xl">
@@ -196,7 +196,7 @@ export function Scoreboard({
           className={cn(
             "relative flex items-center gap-1.5 rounded-lg border px-2 py-1 transition-all duration-300",
             rotLit
-              ? "border-cyan-400 bg-cyan-400/15 shadow-[0_0_0_3px_rgba(34,211,238,0.25)]"
+              ? "border-volt-400 bg-volt-400/15 shadow-[0_0_0_3px_rgba(34,211,238,0.25)]"
               : "border-slate-800 bg-slate-950",
           )}
         >
@@ -212,7 +212,7 @@ export function Scoreboard({
           <span
             className={cn(
               "stat-number inline-block w-9 text-center text-lg font-bold leading-none transition-all duration-300",
-              rotLit ? "scale-150 text-cyan-300" : "text-slate-100",
+              rotLit ? "scale-150 text-volt-300" : "text-slate-100",
             )}
           >
             R{rotation}
@@ -226,7 +226,7 @@ export function Scoreboard({
             ▶
           </button>
           {rotLit && (
-            <span className="absolute -top-2 right-1 animate-pulse rounded-full bg-cyan-400 px-1.5 text-[9px] font-bold uppercase tracking-wide text-cyan-950">
+            <span className="absolute -top-2 right-1 animate-pulse rounded-full bg-volt-400 px-1.5 text-[9px] font-bold uppercase tracking-wide text-volt-950">
               Rotated
             </span>
           )}
@@ -237,7 +237,7 @@ export function Scoreboard({
           className={cn(
             "rounded-lg border px-3 py-1 font-semibold transition-all duration-300",
             serving === "us"
-              ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
+              ? "border-volt-400 bg-volt-400/10 text-volt-300"
               : "border-amber-400 bg-amber-400/10 text-amber-300",
             serveLit && "scale-105 shadow-[0_0_0_3px_rgba(34,211,238,0.25)]",
           )}

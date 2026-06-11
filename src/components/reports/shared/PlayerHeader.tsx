@@ -8,9 +8,9 @@ function badgeColors(position: Position) {
   const cls = POSITION_BADGE_CLASS[position];
   if (cls.includes("amber")) return { bg: "#fbbf24", fg: "#451a03" };
   if (cls.includes("violet")) return { bg: "#a78bfa", fg: "#2e1065" };
-  if (cls.includes("cyan")) return { bg: "#22d3ee", fg: "#083344" };
+  if (cls.includes("volt")) return { bg: "#cbf03c", fg: "#1a2403" };
   if (cls.includes("emerald")) return { bg: "#34d399", fg: "#022c22" };
-  return { bg: "#94a3b8", fg: "#0f172a" };
+  return { bg: "#8a97ad", fg: "#121b30" };
 }
 
 export function PlayerHeader({
@@ -37,8 +37,8 @@ export function PlayerHeader({
             width: "96px",
             height: "96px",
             borderRadius: "20px",
-            background: "#0f172a",
-            border: "2px solid #1f2937",
+            background: "#121b30",
+            border: "2px solid #1b2742",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -86,7 +86,7 @@ export function PlayerHeader({
           {secondaryPosition && (
             <span
               style={{
-                border: "1px solid #334155",
+                border: "1px solid #2a3a5e",
                 color: REPORT_MUTED,
                 padding: "5px 10px",
                 borderRadius: "8px",

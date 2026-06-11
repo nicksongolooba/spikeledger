@@ -96,7 +96,7 @@ export default async function SharePage({
           - free for coaches at{" "}
           <a
             href="/"
-            className="text-cyan-300 hover:text-cyan-200"
+            className="text-volt-300 hover:text-volt-200"
           >
             spikeledger.app
           </a>

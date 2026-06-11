@@ -19,7 +19,7 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
     <div
       style={{
         background: REPORT_CARD_BG,
-        border: "1px solid #1f2937",
+        border: "1px solid #1b2742",
         borderRadius: "16px",
         padding: "18px 20px",
         display: "flex",
@@ -31,7 +31,7 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
         style={{
           fontSize: "16px",
           fontWeight: 700,
-          color: "#cbd5e1",
+          color: "#b6c0d1",
           textTransform: "uppercase",
           letterSpacing: "0.06em",
         }}
@@ -53,7 +53,7 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
             <span
               style={{
                 width: "110px",
-                color: r.isMe ? "#22d3ee" : "#94a3b8",
+                color: r.isMe ? "#cbf03c" : "#8a97ad",
                 fontWeight: r.isMe ? 700 : 500,
               }}
             >
@@ -63,7 +63,7 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
               style={{
                 flex: 1,
                 height: "16px",
-                background: "#0f172a",
+                background: "#121b30",
                 borderRadius: "8px",
                 overflow: "hidden",
               }}
@@ -72,7 +72,7 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
                 style={{
                   width: `${width}%`,
                   height: "100%",
-                  background: r.isMe ? "#22d3ee" : "#475569",
+                  background: r.isMe ? "#cbf03c" : "#3c4f78",
                   borderRadius: "8px",
                   minWidth: "4px",
                 }}
@@ -83,7 +83,7 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
                 width: "70px",
                 textAlign: "right",
                 fontFamily: '"JetBrains Mono", monospace',
-                color: r.isMe ? "#22d3ee" : "#cbd5e1",
+                color: r.isMe ? "#cbf03c" : "#b6c0d1",
                 fontWeight: 700,
               }}
             >

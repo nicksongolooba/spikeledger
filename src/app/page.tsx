@@ -32,8 +32,8 @@ const features = [
   {
     title: "Bank Account System",
     body: "Every action is a deposit or withdrawal, calibrated to what each position is supposed to do. A libero's good pass counts. A hitter's is baseline.",
-    accent: "from-cyan-400/20 to-cyan-400/5",
-    iconColor: "text-cyan-300",
+    accent: "from-volt-400/20 to-volt-400/5",
+    iconColor: "text-volt-300",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
         <rect x="3" y="6" width="18" height="13" rx="2" />
@@ -79,8 +79,8 @@ const features = [
   {
     title: "Position-Fair Comparison",
     body: "Liberos compared to liberos. Hitters to hitters. Never judge a defensive specialist by kills or a middle by serve receive.",
-    accent: "from-cyan-400/20 to-cyan-400/5",
-    iconColor: "text-cyan-300",
+    accent: "from-volt-400/20 to-volt-400/5",
+    iconColor: "text-volt-300",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
         <path d="M3 6h18M3 12h12M3 18h6" />
@@ -149,7 +149,7 @@ export default function LandingPage() {
       />
       {/* Background gradient */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-cyan-400/10 blur-[120px]" />
+        <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-volt-400/10 blur-[120px]" />
         <div className="absolute bottom-0 left-1/3 h-[400px] w-[600px] rounded-full bg-violet-400/10 blur-[120px]" />
       </div>
 
@@ -194,7 +194,7 @@ export default function LandingPage() {
         </div>
         <h1 className="text-balance text-4xl font-bold leading-tight tracking-tight text-slate-50 sm:text-5xl md:text-6xl">
           Your Team&apos;s Performance Has a{" "}
-          <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-volt-300 via-volt-400 to-gold-300 bg-clip-text text-transparent">
             Balance Sheet
           </span>
         </h1>

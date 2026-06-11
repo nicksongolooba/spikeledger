@@ -56,7 +56,7 @@ export function MatchRow({
         >
           {resultLabel}
         </span>
-        <span className="hidden text-xs font-medium text-cyan-300 sm:inline">
+        <span className="hidden text-xs font-medium text-volt-300 sm:inline">
           {ctaLabel} →
         </span>
       </div>

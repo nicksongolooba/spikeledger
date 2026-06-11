@@ -221,7 +221,7 @@ export function CoachChat({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-[90] inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-cyan-300 shadow-xl shadow-cyan-950/50 transition hover:bg-slate-800 hover:text-cyan-200"
+          className="fixed bottom-5 right-5 z-[90] inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-gold-300 shadow-xl shadow-gold-950/50 transition hover:bg-slate-800 hover:text-gold-200"
         >
           <Sparkle className="h-4 w-4" />
           Ask Coach AI
@@ -246,7 +246,7 @@ export function CoachChat({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
               <div className="flex items-center gap-2">
-                <Sparkle className="h-4 w-4 text-cyan-300" />
+                <Sparkle className="h-4 w-4 text-gold-300" />
                 <span className="text-sm font-bold text-slate-100">Coach AI</span>
                 {remaining !== null && (
                   <span className="text-[11px] text-slate-500">
@@ -280,7 +280,7 @@ export function CoachChat({
             {!canChat ? (
               /* Upgrade prompt for free plan */
               <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-                <Sparkle className="h-8 w-8 text-cyan-300/60" />
+                <Sparkle className="h-8 w-8 text-gold-300/60" />
                 <div className="text-sm font-bold text-slate-100">
                   Ask Coach AI is a Coach Pro feature
                 </div>
@@ -290,7 +290,7 @@ export function CoachChat({
                 </p>
                 <Link
                   href="/settings/billing"
-                  className="mt-1 rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-300"
+                  className="mt-1 rounded-lg bg-gold-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-gold-300"
                 >
                   Upgrade to Coach Pro
                 </Link>
@@ -309,7 +309,7 @@ export function CoachChat({
                           key={s}
                           type="button"
                           onClick={() => send(s)}
-                          className="rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-300 hover:border-cyan-400/40 hover:text-cyan-200"
+                          className="rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-300 hover:border-gold-400/40 hover:text-gold-200"
                         >
                           {s}
                         </button>
@@ -320,7 +320,7 @@ export function CoachChat({
                     m.role === "user" ? (
                       <div
                         key={i}
-                        className="ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-cyan-400 px-3.5 py-2.5 text-sm font-medium text-slate-950"
+                        className="ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-gold-400 px-3.5 py-2.5 text-sm font-medium text-slate-950"
                       >
                         <div className="whitespace-pre-wrap break-words">{m.content}</div>
                       </div>
@@ -365,13 +365,13 @@ export function CoachChat({
                     rows={1}
                     maxLength={2000}
                     placeholder="Ask about your team..."
-                    className="max-h-28 flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none"
+                    className="max-h-28 flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-gold-400/60 focus:outline-none"
                   />
                   <button
                     type="submit"
                     disabled={busy || input.trim().length === 0}
                     aria-label="Send"
-                    className="rounded-xl bg-cyan-400 p-2.5 text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-xl bg-gold-400 p-2.5 text-slate-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
                       <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" />

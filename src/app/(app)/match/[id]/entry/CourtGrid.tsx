@@ -23,7 +23,7 @@ const COURT_LAYOUT: Record<number, { col: 0 | 1 | 2; row: 0 | 1 }> = {
 const GROUP_RING: Record<PositionGroup, string> = {
   hitter: "ring-amber-400/40",
   middle: "ring-violet-400/40",
-  setter: "ring-cyan-400/40",
+  setter: "ring-volt-400/40",
   libero: "ring-emerald-400/40",
 };
 
@@ -136,7 +136,7 @@ function CourtCard({
         "ring-1",
         GROUP_RING[group],
         selected
-          ? "border-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_0_2px_rgba(34,211,238,0.25)]"
+          ? "border-volt-400 ring-2 ring-volt-400 shadow-[0_0_0_2px_rgba(34,211,238,0.25)]"
           : isServer
             ? "border-amber-400/80"
             : "border-slate-800",

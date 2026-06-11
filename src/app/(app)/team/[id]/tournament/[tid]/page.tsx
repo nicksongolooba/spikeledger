@@ -266,7 +266,7 @@ function SumTile({
       : accent === "red"
         ? "text-red-300"
         : accent === "cyan"
-          ? "text-cyan-300"
+          ? "text-volt-300"
           : "text-slate-100";
   return (
     <div className="card p-4">

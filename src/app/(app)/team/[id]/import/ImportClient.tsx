@@ -124,7 +124,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
           </svg>
           <div className="text-sm text-slate-300">
-            <span className="font-semibold text-cyan-300">Click to upload</span>{" "}
+            <span className="font-semibold text-volt-300">Click to upload</span>{" "}
             CSV or .xlsx
           </div>
           <div className="text-xs text-slate-500">
@@ -267,7 +267,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
                             className={
                               "whitespace-nowrap px-2 py-1.5 text-left " +
                               (mapped
-                                ? "text-cyan-300"
+                                ? "text-volt-300"
                                 : "text-slate-500")
                             }
                           >

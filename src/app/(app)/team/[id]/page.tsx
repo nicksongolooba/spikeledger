@@ -126,7 +126,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
           <h2 className="text-lg font-semibold">Roster</h2>
           <Link
             href={`/team/${team.id}/roster`}
-            className="text-sm text-cyan-300 hover:text-cyan-200"
+            className="text-sm text-volt-300 hover:text-volt-200"
           >
             View all →
           </Link>
@@ -218,7 +218,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
           <h2 className="text-lg font-semibold">Tournaments</h2>
           <Link
             href={`/team/${team.id}/tournament/new`}
-            className="text-sm text-cyan-300 hover:text-cyan-200"
+            className="text-sm text-volt-300 hover:text-volt-200"
           >
             + Add Tournament
           </Link>
@@ -318,7 +318,7 @@ function StatTile({
       : accent === "red"
         ? "text-red-300"
         : accent === "cyan"
-          ? "text-cyan-300"
+          ? "text-volt-300"
           : accent === "violet"
             ? "text-violet-300"
             : "text-slate-100";

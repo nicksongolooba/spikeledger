@@ -106,7 +106,7 @@ export function UpgradePromptModal({
             className={
               "rounded-md px-3 py-1.5 font-semibold transition-colors " +
               (interval === "month"
-                ? "bg-cyan-400 text-cyan-950"
+                ? "bg-volt-400 text-volt-950"
                 : "text-slate-400")
             }
           >
@@ -118,7 +118,7 @@ export function UpgradePromptModal({
             className={
               "rounded-md px-3 py-1.5 font-semibold transition-colors " +
               (interval === "year"
-                ? "bg-cyan-400 text-cyan-950"
+                ? "bg-volt-400 text-volt-950"
                 : "text-slate-400")
             }
           >

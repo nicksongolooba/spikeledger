@@ -77,7 +77,7 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
             style={{
               fontSize: "26px",
               fontWeight: 700,
-              color: "#f1f5f9",
+              color: "#f4f3ed",
               marginTop: "4px",
             }}
           >
@@ -106,8 +106,8 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
         <div
           style={{
             height: "32px",
-            background: "#0f172a",
-            border: "1px solid #1f2937",
+            background: "#121b30",
+            border: "1px solid #1b2742",
             borderRadius: "16px",
             overflow: "hidden",
             display: "flex",
@@ -158,14 +158,14 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
           marginTop: "20px",
           padding: "16px 20px",
           background: REPORT_CARD_BG,
-          border: "1px solid #1f2937",
+          border: "1px solid #1b2742",
           borderRadius: "14px",
           fontSize: "15px",
           color: REPORT_DIM,
           lineHeight: 1.55,
         }}
       >
-        <span style={{ color: "#22d3ee", fontWeight: 700 }}>
+        <span style={{ color: "#cbf03c", fontWeight: 700 }}>
           How the Bank Account works:
         </span>{" "}
         Deposits are actions that help the team. Withdrawals are actions that
@@ -191,7 +191,7 @@ function BreakdownColumn({
     <div
       style={{
         background: REPORT_CARD_BG,
-        border: "1px solid #1f2937",
+        border: "1px solid #1b2742",
         borderRadius: "16px",
         padding: "18px 20px",
       }}
@@ -223,14 +223,14 @@ function BreakdownColumn({
                   fontSize: "17px",
                 }}
               >
-                <span style={{ color: "#cbd5e1" }}>
+                <span style={{ color: "#b6c0d1" }}>
                   {BREAKDOWN_LABELS[k] ?? k}
                 </span>
                 <span
                   style={{
                     fontFamily: '"JetBrains Mono", monospace',
                     fontWeight: 700,
-                    color: "#f1f5f9",
+                    color: "#f4f3ed",
                   }}
                 >
                   {v}

@@ -139,7 +139,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
                   marginTop: "8px",
                   fontSize: "22px",
                   fontWeight: 600,
-                  color: "#e2e8f0",
+                  color: "#dbe0e8",
                 }}
               >
                 {ba.ratingLabel}
@@ -161,10 +161,10 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
               style={{
                 marginTop: "16px",
                 paddingTop: "16px",
-                borderTop: "1px solid #1f2937",
+                borderTop: "1px solid #1b2742",
                 fontSize: "18px",
                 lineHeight: 1.4,
-                color: "#e2e8f0",
+                color: "#dbe0e8",
                 fontStyle: "italic",
               }}
             >
@@ -209,7 +209,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
             key={c.label}
             style={{
               background: REPORT_CARD_BG,
-              border: "1px solid #1f2937",
+              border: "1px solid #1b2742",
               borderRadius: "16px",
               padding: "18px 14px",
               textAlign: "center",
@@ -220,7 +220,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
                 fontFamily: '"JetBrains Mono", monospace',
                 fontSize: "40px",
                 fontWeight: 700,
-                color: "#22d3ee",
+                color: "#cbf03c",
                 lineHeight: 1.1,
               }}
             >
@@ -247,7 +247,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
         style={{
           marginTop: "auto",
           paddingTop: "32px",
-          borderTop: "1px solid #1f2937",
+          borderTop: "1px solid #1b2742",
           display: "flex",
           justifyContent: "space-between",
           fontSize: "16px",

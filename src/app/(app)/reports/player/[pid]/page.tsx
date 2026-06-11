@@ -195,7 +195,7 @@ export default async function PlayerReportPage({
       ? "#34d399"
       : group === "setter_middle"
         ? mostPlayed === "S"
-          ? "#22d3ee"
+          ? "#cbf03c"
           : "#a78bfa"
         : "#fbbf24";
 
@@ -395,7 +395,7 @@ function StatTile({ label, value, accent }: StatTileItem) {
       : accent === "red"
         ? "text-red-300"
         : accent === "cyan"
-          ? "text-cyan-300"
+          ? "text-volt-300"
           : accent === "violet"
             ? "text-violet-300"
             : accent === "amber"

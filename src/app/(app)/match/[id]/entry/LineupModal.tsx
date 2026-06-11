@@ -110,7 +110,7 @@ export function LineupModal({
               className={
                 "flex items-center gap-3 rounded-lg border p-2.5 text-left transition-colors " +
                 (isSelected
-                  ? "border-cyan-400 bg-cyan-400/10"
+                  ? "border-volt-400 bg-volt-400/10"
                   : "border-slate-800 bg-slate-900 hover:border-slate-700")
               }
             >
@@ -134,7 +134,7 @@ export function LineupModal({
                     "stat-number flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold " +
                     (selectedSet.size > 0 && selected[0] === p.id
                       ? "bg-amber-400 text-amber-950"
-                      : "bg-cyan-400 text-cyan-950")
+                      : "bg-volt-400 text-volt-950")
                   }
                   title={
                     selected[0] === p.id

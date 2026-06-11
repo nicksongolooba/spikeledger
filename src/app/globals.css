@@ -11,8 +11,8 @@
 
   html,
   body {
-    background-color: #020617; /* slate-950 */
-    color: #f1f5f9; /* slate-100 */
+    background-color: #0c1220; /* deep navy ink */
+    color: #f4f3ed; /* warm white */
     min-height: 100%;
   }
 
@@ -22,7 +22,7 @@
   }
 
   ::selection {
-    background: rgba(34, 211, 238, 0.25);
+    background: rgba(203, 240, 60, 0.3);
   }
 }
 
@@ -36,7 +36,7 @@
   }
 
   .input {
-    @apply w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40;
+    @apply w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-volt-400 focus:ring-1 focus:ring-volt-400/40;
   }
 
   .label {
@@ -48,7 +48,7 @@
   }
 
   .btn-primary {
-    @apply btn bg-cyan-400 text-cyan-950 hover:bg-cyan-300;
+    @apply btn bg-volt-400 text-volt-950 shadow-[0_0_18px_rgba(203,240,60,0.18)] hover:bg-volt-300;
   }
 
   .btn-secondary {

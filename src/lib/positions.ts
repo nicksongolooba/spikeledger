@@ -27,14 +27,14 @@ export const POSITION_GROUP: Record<Position, PositionGroup> = {
 };
 
 // Tailwind class strings for position badges.
-// Hitters: amber. Middles: violet. Setters: cyan. Liberos: emerald.
+// Hitters: amber. Middles: violet. Setters: volt. Liberos: emerald.
 export const POSITION_BADGE_CLASS: Record<Position, string> = {
   OH: "bg-amber-400 text-amber-950",
   RS: "bg-amber-400 text-amber-950",
   OPP: "bg-amber-400 text-amber-950",
   UTIL: "bg-amber-400 text-amber-950",
   MB: "bg-violet-400 text-violet-950",
-  S: "bg-cyan-400 text-cyan-950",
+  S: "bg-volt-400 text-volt-950",
   L: "bg-emerald-400 text-emerald-950",
   DS: "bg-emerald-400 text-emerald-950",
 };

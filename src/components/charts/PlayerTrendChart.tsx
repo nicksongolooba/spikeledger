@@ -36,17 +36,17 @@ export function PlayerTrendChart({
     <div style={{ width: "100%", height: 280 }}>
       <ResponsiveContainer>
         <LineChart data={data} margin={{ top: 6, right: 16, bottom: 6, left: 0 }}>
-          <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+          <CartesianGrid stroke="#1b2742" strokeDasharray="3 3" />
           <XAxis
             dataKey="tournamentName"
-            stroke="#94a3b8"
+            stroke="#8a97ad"
             fontSize={11}
             tickLine={false}
-            axisLine={{ stroke: "#334155" }}
+            axisLine={{ stroke: "#2a3a5e" }}
           />
           <YAxis
             yAxisId="left"
-            stroke="#22d3ee"
+            stroke="#cbf03c"
             fontSize={11}
             tickLine={false}
             axisLine={false}
@@ -61,22 +61,22 @@ export function PlayerTrendChart({
           />
           <Tooltip
             contentStyle={{
-              background: "#0f172a",
-              border: "1px solid #1e293b",
+              background: "#121b30",
+              border: "1px solid #1b2742",
               borderRadius: 6,
               fontSize: 12,
-              color: "#e2e8f0",
+              color: "#dbe0e8",
             }}
-            labelStyle={{ color: "#94a3b8" }}
+            labelStyle={{ color: "#8a97ad" }}
           />
           <Line
             yAxisId="left"
             type="monotone"
             dataKey="bankBalance"
             name="Bank Account"
-            stroke="#22d3ee"
+            stroke="#cbf03c"
             strokeWidth={2}
-            dot={{ r: 3, fill: "#22d3ee" }}
+            dot={{ r: 3, fill: "#cbf03c" }}
           />
           <Line
             yAxisId="right"

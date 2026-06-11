@@ -42,9 +42,9 @@ export const REPORT_HEIGHT = 1350;
 
 // Background tokens shared across cards. Keep as plain strings (not Tailwind
 // classes) - html-to-image relies on computed CSS and these end up inline.
-export const REPORT_BG = "#0a0e17";
-export const REPORT_CARD_BG = "#111827";
-export const REPORT_BORDER = "#1f2937";
-export const REPORT_TEXT = "#f1f5f9";
-export const REPORT_MUTED = "#94a3b8";
-export const REPORT_DIM = "#64748b";
+export const REPORT_BG = "#0a0f1c";
+export const REPORT_CARD_BG = "#121b30";
+export const REPORT_BORDER = "#1b2742";
+export const REPORT_TEXT = "#f4f3ed";
+export const REPORT_MUTED = "#8a97ad";
+export const REPORT_DIM = "#5d6d8f";

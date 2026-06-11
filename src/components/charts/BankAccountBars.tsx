@@ -103,25 +103,25 @@ export function BankAccountBars({
                   layout="vertical"
                   margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
                 >
-                  <CartesianGrid stroke="#1e293b" horizontal={false} />
+                  <CartesianGrid stroke="#1b2742" horizontal={false} />
                   <XAxis
                     type="number"
-                    stroke="#94a3b8"
+                    stroke="#8a97ad"
                     fontSize={11}
                     tickLine={false}
-                    axisLine={{ stroke: "#334155" }}
+                    axisLine={{ stroke: "#2a3a5e" }}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    stroke="#cbd5e1"
+                    stroke="#b6c0d1"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
                     width={108}
                   />
                   <Tooltip
-                    cursor={{ fill: "#1e293b40" }}
+                    cursor={{ fill: "#1b274240" }}
                     content={<ChartTooltip />}
                   />
                   <Bar dataKey="balance" radius={[0, 6, 6, 0]}>

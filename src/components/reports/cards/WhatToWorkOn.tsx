@@ -20,7 +20,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
           marginTop: "32px",
           fontSize: "26px",
           fontWeight: 600,
-          color: "#e2e8f0",
+          color: "#dbe0e8",
         }}
       >
         {data.player.name}, here&apos;s what to focus on next:
@@ -40,7 +40,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
             key={i}
             style={{
               background: REPORT_CARD_BG,
-              border: "1px solid #1f2937",
+              border: "1px solid #1b2742",
               borderRadius: "20px",
               padding: "26px 28px",
               position: "relative",
@@ -54,7 +54,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                 left: "0",
                 bottom: "0",
                 width: "6px",
-                background: "#22d3ee",
+                background: "#cbf03c",
               }}
             />
             <div style={{ display: "flex", alignItems: "baseline", gap: "20px" }}>
@@ -63,7 +63,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                   fontFamily: '"JetBrains Mono", monospace',
                   fontSize: "42px",
                   fontWeight: 800,
-                  color: "#22d3ee",
+                  color: "#cbf03c",
                   minWidth: "60px",
                 }}
               >
@@ -74,7 +74,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                   style={{
                     fontSize: "26px",
                     fontWeight: 700,
-                    color: "#f8fafc",
+                    color: "#faf9f4",
                   }}
                 >
                   {area.metric}
@@ -103,7 +103,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                   style={{
                     marginTop: "12px",
                     fontSize: "18px",
-                    color: "#cbd5e1",
+                    color: "#b6c0d1",
                     lineHeight: 1.45,
                   }}
                 >

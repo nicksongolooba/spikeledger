@@ -43,10 +43,10 @@ export const RATING_INFO: Record<
   { label: string; color: string }
 > = {
   GREEN: { label: "Helping Team Win", color: "#34d399" },
-  BLUE: { label: "Solid Contributor", color: "#22d3ee" },
+  BLUE: { label: "Solid Contributor", color: "#60a5fa" },
   ORANGE: { label: "Needs Work", color: "#fbbf24" },
   RED: { label: "Hurting Team", color: "#f87171" },
-  GREY: { label: "No Data", color: "#64748b" },
+  GREY: { label: "No Data", color: "#5d6d8f" },
 };
 
 export interface BankAccountResult {

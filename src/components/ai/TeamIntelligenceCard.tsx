@@ -60,7 +60,7 @@ export function TeamIntelligenceCard({
           <svg
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="h-5 w-5 text-violet-300"
+            className="h-5 w-5 text-gold-300"
           >
             <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
           </svg>
@@ -87,7 +87,7 @@ export function TeamIntelligenceCard({
           <ul className="space-y-3">
             {data.insights.map((line, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-200">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-300" />
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-300" />
                 <span className="leading-relaxed">{line}</span>
               </li>
             ))}

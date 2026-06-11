@@ -89,7 +89,7 @@ export function ActionPanel({
         <>
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-cyan-300">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-volt-300">
                 Recording for
               </div>
               <div className="text-lg font-bold text-slate-100">
@@ -167,7 +167,7 @@ function ActionRow({
     positive:
       "border-emerald-400/40 bg-emerald-400/10 text-emerald-300 active:bg-emerald-400/20",
     neutral:
-      "border-cyan-400/40 bg-cyan-400/10 text-cyan-300 active:bg-cyan-400/20",
+      "border-volt-400/40 bg-volt-400/10 text-volt-300 active:bg-volt-400/20",
     negative:
       "border-red-400/40 bg-red-400/10 text-red-300 active:bg-red-400/20",
   }[category];

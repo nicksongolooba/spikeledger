@@ -19,10 +19,10 @@ interface Slice {
 
 const DEPOSIT_PALETTE = [
   "#34d399",
-  "#22d3ee",
+  "#cbf03c",
   "#a78bfa",
   "#10b981",
-  "#0ea5e9",
+  "#60a5fa",
   "#6366f1",
 ];
 const WITHDRAWAL_PALETTE = [
@@ -108,7 +108,7 @@ function PieCard({
                 innerRadius={45}
                 outerRadius={70}
                 paddingAngle={2}
-                stroke="#0f172a"
+                stroke="#121b30"
               >
                 {slices.map((s) => (
                   <Cell key={s.key} fill={s.fill} />
@@ -116,18 +116,18 @@ function PieCard({
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: "#0f172a",
-                  border: "1px solid #1e293b",
+                  background: "#121b30",
+                  border: "1px solid #1b2742",
                   borderRadius: 6,
                   fontSize: 12,
-                  color: "#e2e8f0",
+                  color: "#dbe0e8",
                 }}
                 formatter={(value, name) => [value as number, name as string]}
               />
               <Legend
                 verticalAlign="bottom"
                 height={28}
-                wrapperStyle={{ fontSize: 11, color: "#94a3b8" }}
+                wrapperStyle={{ fontSize: 11, color: "#8a97ad" }}
               />
             </PieChart>
           </ResponsiveContainer>

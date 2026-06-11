@@ -72,7 +72,7 @@ export function AppShell({
                 className={cn(
                   "mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive(item.href)
-                    ? "bg-cyan-400/10 text-cyan-300"
+                    ? "bg-volt-400/10 text-volt-300"
                     : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100",
                 )}
               >
@@ -86,7 +86,7 @@ export function AppShell({
                   className={cn(
                     "mb-1 ml-8 flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
                     pathname.startsWith(child.href)
-                      ? "bg-cyan-400/10 text-cyan-300"
+                      ? "bg-volt-400/10 text-volt-300"
                       : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100",
                   )}
                 >
@@ -151,7 +151,7 @@ export function AppShell({
             href={item.href}
             className={cn(
               "flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium",
-              isActive(item.href) ? "text-cyan-300" : "text-slate-400",
+              isActive(item.href) ? "text-volt-300" : "text-slate-400",
             )}
           >
             {item.icon}

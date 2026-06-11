@@ -49,7 +49,7 @@ function ToastItem({
       ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-200"
       : toast.tone === "danger"
         ? "border-red-400/40 bg-red-400/15 text-red-200"
-        : "border-cyan-400/40 bg-cyan-400/15 text-cyan-200";
+        : "border-volt-400/40 bg-volt-400/15 text-volt-200";
   return (
     <div
       className={cn(

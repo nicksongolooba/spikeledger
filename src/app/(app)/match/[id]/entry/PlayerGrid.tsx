@@ -12,7 +12,7 @@ import type { PositionByPlayer, RosterPlayer } from "./types";
 const GROUP_RING: Record<PositionGroup, string> = {
   hitter: "ring-amber-400/40",
   middle: "ring-violet-400/40",
-  setter: "ring-cyan-400/40",
+  setter: "ring-volt-400/40",
   libero: "ring-emerald-400/40",
 };
 
@@ -112,7 +112,7 @@ export function PlayerGrid({
           <button
             type="button"
             onClick={onOpenLineup}
-            className="text-xs text-cyan-300 hover:text-cyan-200"
+            className="text-xs text-volt-300 hover:text-volt-200"
           >
             Edit lineup
           </button>
@@ -274,7 +274,7 @@ function PlayerCard({
         "ring-1",
         GROUP_RING[group],
         selected
-          ? "border-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_0_2px_rgba(34,211,238,0.2)]"
+          ? "border-volt-400 ring-2 ring-volt-400 shadow-[0_0_0_2px_rgba(34,211,238,0.2)]"
           : "border-slate-800",
         dim && !selected ? "opacity-50" : "",
       )}
@@ -324,7 +324,7 @@ function SubFor({
                 className={cn(
                   "flex-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
                   chosenPos === p
-                    ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
+                    ? "border-volt-400 bg-volt-400/10 text-volt-300"
                     : "border-slate-800 bg-slate-900 text-slate-300",
                 )}
               >

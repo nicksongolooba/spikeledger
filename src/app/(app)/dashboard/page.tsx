@@ -73,7 +73,7 @@ export default async function DashboardPage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-100 group-hover:text-cyan-300">
+                      <h3 className="text-lg font-semibold text-slate-100 group-hover:text-volt-300">
                         {team.name}
                       </h3>
                       <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-400">

@@ -5,10 +5,10 @@ import { REPORT_CARD_BG, REPORT_MUTED, type ReportCardData } from "./types";
 
 const DEPOSIT_PALETTE = [
   "#34d399",
-  "#22d3ee",
+  "#cbf03c",
   "#a78bfa",
   "#10b981",
-  "#0ea5e9",
+  "#60a5fa",
   "#6366f1",
 ];
 const WITHDRAWAL_PALETTE = [
@@ -24,7 +24,7 @@ const WITHDRAWAL_PALETTE = [
 // Recharts inside the html-to-image capture, which can be flaky.
 function donutGradient(values: number[], palette: string[]): string {
   const total = values.reduce((s, v) => s + v, 0);
-  if (total === 0) return "conic-gradient(#1f2937 0deg 360deg)";
+  if (total === 0) return "conic-gradient(#1b2742 0deg 360deg)";
   let acc = 0;
   const stops: string[] = [];
   values.forEach((v, i) => {
@@ -109,7 +109,7 @@ function PieColumn({
     <div
       style={{
         background: REPORT_CARD_BG,
-        border: "1px solid #1f2937",
+        border: "1px solid #1b2742",
         borderRadius: "20px",
         padding: "22px 24px",
         display: "flex",
@@ -150,7 +150,7 @@ function PieColumn({
               borderRadius: "50%",
               background:
                 slices.length === 0
-                  ? "#1f2937"
+                  ? "#1b2742"
                   : donutGradient(values, palette),
             }}
           />
@@ -171,7 +171,7 @@ function PieColumn({
                 fontFamily: '"JetBrains Mono", monospace',
                 fontSize: "44px",
                 fontWeight: 800,
-                color: "#f1f5f9",
+                color: "#f4f3ed",
                 lineHeight: 1,
               }}
             >
@@ -226,13 +226,13 @@ function PieColumn({
                     flexShrink: 0,
                   }}
                 />
-                <span style={{ flex: 1, color: "#e2e8f0" }}>
+                <span style={{ flex: 1, color: "#dbe0e8" }}>
                   {BREAKDOWN_LABELS[k] ?? k}
                 </span>
                 <span
                   style={{
                     fontFamily: '"JetBrains Mono", monospace',
-                    color: "#f1f5f9",
+                    color: "#f4f3ed",
                     fontWeight: 700,
                   }}
                 >

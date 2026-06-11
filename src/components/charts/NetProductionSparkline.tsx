@@ -29,28 +29,28 @@ export function NetProductionSparkline({ data }: { data: SparkPoint[] }) {
         <LineChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
           <XAxis dataKey="label" hide />
           <YAxis hide domain={["auto", "auto"]} />
-          <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
+          <ReferenceLine y={0} stroke="#2a3a5e" strokeDasharray="3 3" />
           <Tooltip
-            cursor={{ stroke: "#334155" }}
+            cursor={{ stroke: "#2a3a5e" }}
             contentStyle={{
-              background: "#0f172a",
-              border: "1px solid #1e293b",
+              background: "#121b30",
+              border: "1px solid #1b2742",
               borderRadius: 6,
               fontSize: 12,
-              color: "#e2e8f0",
+              color: "#dbe0e8",
             }}
             formatter={(value) => {
               const n = value as number;
               return [n > 0 ? `+${n}` : `${n}`, "Net"] as [string, string];
             }}
-            labelStyle={{ color: "#94a3b8" }}
+            labelStyle={{ color: "#8a97ad" }}
           />
           <Line
             type="monotone"
             dataKey="net"
-            stroke="#22d3ee"
+            stroke="#cbf03c"
             strokeWidth={2}
-            dot={{ r: 3, fill: "#22d3ee" }}
+            dot={{ r: 3, fill: "#cbf03c" }}
             activeDot={{ r: 5 }}
           />
         </LineChart>

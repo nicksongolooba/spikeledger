@@ -74,7 +74,7 @@ export function ReportShell({ position, accentOverride, cardKey, children }: Pro
           height: "520px",
           bottom: "-200px",
           left: "-120px",
-          background: "radial-gradient(circle, #22d3ee1a 0%, transparent 70%)",
+          background: "radial-gradient(circle, #cbf03c1a 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -99,7 +99,7 @@ export function ReportShell({ position, accentOverride, cardKey, children }: Pro
           bottom: "24px",
           fontSize: "14px",
           fontWeight: 600,
-          color: "#475569",
+          color: "#3c4f78",
           letterSpacing: "0.05em",
         }}
       >

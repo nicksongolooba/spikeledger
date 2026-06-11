@@ -172,7 +172,7 @@ function UsageTile({
       {!isUnlimited(limit) && (
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
           <div
-            className={"h-full " + (near ? "bg-amber-400" : "bg-cyan-400")}
+            className={"h-full " + (near ? "bg-amber-400" : "bg-volt-400")}
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -199,7 +199,7 @@ function PlanColumn({
       className={
         "card relative p-5 " +
         (isCurrent
-          ? "border-cyan-400 ring-1 ring-cyan-400"
+          ? "border-volt-400 ring-1 ring-volt-400"
           : recommended
             ? "border-violet-400/40"
             : "")
@@ -211,7 +211,7 @@ function PlanColumn({
         </span>
       )}
       {isCurrent && (
-        <span className="absolute -top-2 right-4 rounded-md bg-cyan-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-950">
+        <span className="absolute -top-2 right-4 rounded-md bg-volt-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-volt-950">
           Current
         </span>
       )}

@@ -161,7 +161,7 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
             key={section.title}
             style={{
               background: REPORT_CARD_BG,
-              border: "1px solid #1f2937",
+              border: "1px solid #1b2742",
               borderRadius: "16px",
               padding: "20px 22px",
             }}
@@ -189,7 +189,7 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
                     gap: "12px",
                   }}
                 >
-                  <span style={{ fontSize: "17px", color: "#cbd5e1" }}>
+                  <span style={{ fontSize: "17px", color: "#b6c0d1" }}>
                     {row.label}
                   </span>
                   <span
@@ -209,13 +209,13 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
                             ? "#34d399"
                             : row.emphasis === "bad"
                               ? "#f87171"
-                              : "#f1f5f9",
+                              : "#f4f3ed",
                       }}
                     >
                       {row.total}
                     </span>
                     {row.perMatch && (
-                      <span style={{ fontSize: "14px", color: "#64748b" }}>
+                      <span style={{ fontSize: "14px", color: "#5d6d8f" }}>
                         {row.perMatch}
                       </span>
                     )}

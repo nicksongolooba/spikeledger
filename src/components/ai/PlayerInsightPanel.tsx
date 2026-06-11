@@ -64,7 +64,7 @@ export function PlayerInsightPanel({
           <svg
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="h-4 w-4 text-violet-300"
+            className="h-4 w-4 text-gold-300"
           >
             <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
           </svg>
@@ -129,7 +129,7 @@ export function PlayerInsightPanel({
                       href={ytUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-300 hover:text-violet-200 hover:underline"
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-gold-300 hover:text-gold-200 hover:underline"
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -150,7 +150,7 @@ export function PlayerInsightPanel({
 
       <div className="mt-5 grid gap-4 rounded-lg border border-slate-800 bg-slate-950/40 p-3 sm:grid-cols-2">
         <div>
-          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-cyan-300">
+          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-volt-300">
             Tactical note
           </h4>
           <p className="mt-1 text-xs text-slate-300">{data.coachingNote}</p>
