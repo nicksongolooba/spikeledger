@@ -111,10 +111,10 @@ function LoginForm() {
             <p className="mt-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
               Email{" "}
               <a
-                href="mailto:spikeledger06@gmail.com"
+                href="mailto:support@spikeledger.com"
                 className="font-semibold text-volt-300 hover:text-volt-200"
               >
-                spikeledger06@gmail.com
+                support@spikeledger.com
               </a>{" "}
               to reset your password.
             </p>

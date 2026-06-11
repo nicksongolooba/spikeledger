@@ -18,8 +18,8 @@ export function SiteFooter() {
           <Link href="/contact" className="hover:text-slate-300">
             Contact
           </Link>
-          <a href="mailto:spikeledger06@gmail.com" className="hover:text-slate-300">
-            spikeledger06@gmail.com
+          <a href="mailto:support@spikeledger.com" className="hover:text-slate-300">
+            support@spikeledger.com
           </a>
         </nav>
       </div>

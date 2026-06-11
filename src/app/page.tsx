@@ -339,8 +339,8 @@ export default function LandingPage() {
         </div>
         <div className="mx-auto mt-6 max-w-6xl px-6 text-center text-xs text-slate-600">
           © {new Date().getFullYear()} SpikeLedger ·{" "}
-          <a href="mailto:spikeledger06@gmail.com" className="hover:text-slate-400">
-            spikeledger06@gmail.com
+          <a href="mailto:support@spikeledger.com" className="hover:text-slate-400">
+            support@spikeledger.com
           </a>
         </div>
       </footer>
