@@ -26,19 +26,18 @@ export async function POST(req: Request) {
     );
   }
 
+  const { teamVisibleWhere } = await import("@/lib/access");
   const team = await prisma.team.findFirst({
-    where: { id: parsed.data.teamId, coachId: userId },
+    where: { id: parsed.data.teamId, ...teamVisibleWhere(userId) },
   });
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
   // AI insights are a paid feature.
-  const me = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true },
-  });
-  if (me) {
+  const { getEffectivePlan } = await import("@/lib/club");
+  const plan = await getEffectivePlan(userId);
+  {
     const { canUserPerformAction } = await import("@/lib/plan-limits");
-    const check = canUserPerformAction(me.plan, "ai-insights");
+    const check = canUserPerformAction(plan, "ai-insights");
     if (!check.allowed) {
       return NextResponse.json(
         {

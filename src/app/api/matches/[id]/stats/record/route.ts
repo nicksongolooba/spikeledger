@@ -36,8 +36,10 @@ export async function POST(
   }
   const field = STAT_ACTION_FIELDS[parsed.data.action as StatActionId];
 
+  // assertCoachOwnsMatch above already verified stats-write access to this
+  // team (creating coach or club ASSISTANT) - just pin the player to it.
   const player = await prisma.player.findFirst({
-    where: { id: parsed.data.playerId, team: { coachId: userId } },
+    where: { id: parsed.data.playerId, teamId: owns.tournament.teamId },
     select: { id: true, primaryPosition: true },
   });
   if (!player) {

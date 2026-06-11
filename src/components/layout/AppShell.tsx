@@ -13,6 +13,18 @@ interface NavItem {
   children?: { href: string; label: string }[];
 }
 
+const CLUB_ITEM: NavItem = {
+  href: "/club",
+  label: "Club",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+    </svg>
+  ),
+};
+
 const NAV: NavItem[] = [
   {
     href: "/dashboard",
@@ -41,12 +53,15 @@ const NAV: NavItem[] = [
 
 export function AppShell({
   user,
+  showClub = false,
   children,
 }: {
   user: { email: string; name: string | null };
+  showClub?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const nav = showClub ? [NAV[0], CLUB_ITEM, ...NAV.slice(1)] : NAV;
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === href : pathname.startsWith(href);
 
@@ -65,7 +80,7 @@ export function AppShell({
           />
         </div>
         <nav className="flex-1 px-3 py-4">
-          {NAV.map((item) => (
+          {nav.map((item) => (
             <div key={item.href}>
               <Link
                 href={item.href}
@@ -145,7 +160,7 @@ export function AppShell({
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t border-slate-800 bg-slate-900/95 backdrop-blur lg:hidden">
-        {NAV.map((item) => (
+        {nav.map((item) => (
           <Link
             key={item.href}
             href={item.href}

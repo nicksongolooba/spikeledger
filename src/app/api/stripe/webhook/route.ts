@@ -8,6 +8,7 @@ import {
   isStripeConfigured,
   isWebhookConfigured,
 } from "@/lib/stripe";
+import { ensureClubForOwner } from "@/lib/club";
 
 // Stripe sends raw bytes - Next 14 App Router gives us req.text() which we
 // pass to stripe.webhooks.constructEvent for signature verification.
@@ -35,6 +36,13 @@ async function updatePlanForCustomer(
       planExpiresAt: cancelAt,
     },
   });
+  // A new Club subscription gets its Club record immediately, with the
+  // subscriber as OWNER. /club/setup lets them name it afterwards.
+  if (plan === "CLUB") {
+    await ensureClubForOwner(user.id).catch((err) =>
+      console.error("ensureClubForOwner failed:", err),
+    );
+  }
 }
 
 export async function POST(req: Request) {

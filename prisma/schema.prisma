@@ -60,6 +60,7 @@ model Club {
 
   members ClubMember[]
   teams   Team[]
+  invites ClubInvite[]
 }
 
 model ClubMember {
@@ -298,4 +299,26 @@ model ChatUsage {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, day])
+}
+
+// ============================================================
+// CLUB INVITES
+// ============================================================
+// Shareable invite links for the Club tier. No email delivery yet - the
+// owner copies the /invite/[code] link and shares it. Codes expire after
+// 14 days; acceptance writes the ClubMember row.
+
+model ClubInvite {
+  id           String    @id @default(cuid())
+  clubId       String
+  code         String    @unique
+  email        String
+  role         ClubRole  @default(COACH)
+  invitedById  String
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  acceptedById String?
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
 }

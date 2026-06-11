@@ -17,6 +17,7 @@ import { POSITION_LABELS } from "@/lib/positions";
 import { PlayerInsightPanel } from "@/components/ai/PlayerInsightPanel";
 import { CoachChat } from "@/components/ai/CoachChat";
 import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
+import { getEffectivePlan } from "@/lib/club";
 
 export const dynamic = "force-dynamic";
 
@@ -86,9 +87,11 @@ export default async function PlayerReportPage({
   params: { pid: string };
 }) {
   const user = await requireUser();
+  const effectivePlan = await getEffectivePlan(user.id);
 
+  const { teamVisibleWhere } = await import("@/lib/access");
   const player = await prisma.player.findFirst({
-    where: { id: params.pid, team: { coachId: user.id } },
+    where: { id: params.pid, team: teamVisibleWhere(user.id) },
     include: { team: true },
   });
   if (!player) notFound();
@@ -378,8 +381,8 @@ export default async function PlayerReportPage({
 
       <CoachChat
         teamId={player.teamId}
-        canChat={hasFeature(user.plan, "coachChat")}
-        upgradeText={getUpgradeReason(user.plan, "coach-chat").reason}
+        canChat={hasFeature(effectivePlan, "coachChat")}
+        upgradeText={getUpgradeReason(effectivePlan, "coach-chat").reason}
         contextType="player"
         contextId={player.id}
         contextName={player.name}

@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/session";
+import { getClubMembership } from "@/lib/club";
 import { AppShell } from "@/components/layout/AppShell";
 
 export default async function AppLayout({
@@ -7,7 +8,11 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
+  const showClub =
+    user.plan === "CLUB" || Boolean(await getClubMembership(user.id));
   return (
-    <AppShell user={{ email: user.email, name: user.name }}>{children}</AppShell>
+    <AppShell user={{ email: user.email, name: user.name }} showClub={showClub}>
+      {children}
+    </AppShell>
   );
 }

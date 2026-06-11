@@ -18,10 +18,14 @@ export async function POST(
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const tournament = await prisma.tournament.findFirst({
-    where: { id: params.tid, team: { coachId: userId } },
-    select: { id: true },
+    where: { id: params.tid },
+    select: { id: true, teamId: true },
   });
   if (!tournament) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { assertTeamStatsWrite } = await import("@/lib/access");
+  if (!(await assertTeamStatsWrite(tournament.teamId, userId))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   const body = await req.json().catch(() => null);
   const parsed = CreateMatchSchema.safeParse(body);

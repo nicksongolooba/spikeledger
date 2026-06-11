@@ -21,8 +21,9 @@ export default async function GeneratePage({
 }) {
   const user = await requireUser();
 
+  const { teamVisibleWhere } = await import("@/lib/access");
   const team = await prisma.team.findFirst({
-    where: { id: params.teamId, coachId: user.id },
+    where: { id: params.teamId, ...teamVisibleWhere(user.id) },
   });
   if (!team) notFound();
 

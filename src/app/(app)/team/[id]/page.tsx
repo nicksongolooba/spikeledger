@@ -16,12 +16,15 @@ import { fmtNum, fmtSigned } from "@/engine/derived-stats";
 import { TeamIntelligenceCard } from "@/components/ai/TeamIntelligenceCard";
 import { CoachChat } from "@/components/ai/CoachChat";
 import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
+import { getEffectivePlan } from "@/lib/club";
 
 export const dynamic = "force-dynamic";
 
 export default async function TeamPage({ params }: { params: { id: string } }) {
   const user = await requireUser();
+  const effectivePlan = await getEffectivePlan(user.id);
   const team = await getTeamForCoach(params.id, user.id);
+  const canManage = team.coachId === user.id;
 
   const [players, tournaments, statLines, matches] = await Promise.all([
     prisma.player.findMany({
@@ -100,9 +103,11 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/team/${team.id}/import`} className="btn-secondary">
-            Import stats
-          </Link>
+          {canManage && (
+            <Link href={`/team/${team.id}/import`} className="btn-secondary">
+              Import stats
+            </Link>
+          )}
           {statLines.length > 0 && (
             <Link
               href={`/reports/generate/${team.id}`}
@@ -111,12 +116,20 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
               Season reports
             </Link>
           )}
-          <Link href={`/team/${team.id}/roster`} className="btn-secondary">
-            Manage Roster
-          </Link>
-          <Link href={`/team/${team.id}/tournament/new`} className="btn-primary">
-            Add Tournament
-          </Link>
+          {canManage && (
+            <Link href={`/team/${team.id}/roster`} className="btn-secondary">
+              Manage Roster
+            </Link>
+          )}
+          {canManage ? (
+            <Link href={`/team/${team.id}/tournament/new`} className="btn-primary">
+              Add Tournament
+            </Link>
+          ) : (
+            <span className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-400">
+              Shared club team - view only
+            </span>
+          )}
         </div>
       </header>
 
@@ -294,8 +307,8 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
 
       <CoachChat
         teamId={team.id}
-        canChat={hasFeature(user.plan, "coachChat")}
-        upgradeText={getUpgradeReason(user.plan, "coach-chat").reason}
+        canChat={hasFeature(effectivePlan, "coachChat")}
+        upgradeText={getUpgradeReason(effectivePlan, "coach-chat").reason}
         contextType="team"
         contextName={team.name}
       />

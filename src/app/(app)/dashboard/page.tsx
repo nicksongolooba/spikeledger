@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { teamVisibleWhere } from "@/lib/access";
+import { ensureClubForOwner } from "@/lib/club";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CreateTeamButton } from "./CreateTeamButton";
 import { formatDate, pluralize } from "@/lib/utils";
@@ -9,10 +11,13 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await requireUser();
+  // Club owners get their club auto-created on first visit after checkout.
+  const membership = user.plan === "CLUB" ? await ensureClubForOwner(user.id) : null;
   const teams = await prisma.team.findMany({
-    where: { coachId: user.id },
+    where: teamVisibleWhere(user.id),
     orderBy: { createdAt: "desc" },
     include: {
+      coach: { select: { id: true, name: true } },
       _count: { select: { players: true, tournaments: true } },
       tournaments: {
         orderBy: { startDate: "desc" },
@@ -24,6 +29,18 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      {membership && membership.club.name.endsWith("'s Club") && (
+        <Link
+          href="/club/setup"
+          className="mb-6 flex items-center justify-between rounded-xl border border-gold-400/40 bg-gold-400/10 px-4 py-3 text-sm text-gold-200 hover:bg-gold-400/15"
+        >
+          <span>
+            <span className="font-bold">Finish setting up your club</span> - name
+            it and start inviting coaches.
+          </span>
+          <span aria-hidden>→</span>
+        </Link>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Your Teams</h1>
@@ -83,6 +100,11 @@ export default async function DashboardPage() {
                           </span>
                         )}
                         {team.season && <span>{team.season}</span>}
+                        {team.coach.id !== user.id && (
+                          <span className="rounded-md border border-gold-400/30 bg-gold-400/10 px-1.5 py-0.5 text-gold-200">
+                            {team.coach.name ?? "Club coach"}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

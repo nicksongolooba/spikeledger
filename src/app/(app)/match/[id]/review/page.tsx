@@ -13,6 +13,7 @@ import { ReviewTable } from "./ReviewTable";
 import { BankAccountBars } from "@/components/charts/BankAccountBars";
 import { CoachChat } from "@/components/ai/CoachChat";
 import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
+import { getEffectivePlan } from "@/lib/club";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,10 @@ export default async function MatchReviewPage({
   params: { id: string };
 }) {
   const user = await requireUser();
+  const effectivePlan = await getEffectivePlan(user.id);
+  const { teamVisibleWhere } = await import("@/lib/access");
   const match = await prisma.match.findFirst({
-    where: { id: params.id, tournament: { team: { coachId: user.id } } },
+    where: { id: params.id, tournament: { team: teamVisibleWhere(user.id) } },
     include: { tournament: { include: { team: true } } },
   });
   if (!match) notFound();
@@ -251,8 +254,8 @@ export default async function MatchReviewPage({
 
       <CoachChat
         teamId={match.tournament.teamId}
-        canChat={hasFeature(user.plan, "coachChat")}
-        upgradeText={getUpgradeReason(user.plan, "coach-chat").reason}
+        canChat={hasFeature(effectivePlan, "coachChat")}
+        upgradeText={getUpgradeReason(effectivePlan, "coach-chat").reason}
         contextType="match"
         contextId={match.id}
         contextName={match.opponent}

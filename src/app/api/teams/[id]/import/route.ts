@@ -42,13 +42,11 @@ export async function POST(
   if (!owns) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // CSV/Excel import is a paid feature.
-  const me = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true },
-  });
-  if (me) {
+  const { getEffectivePlan } = await import("@/lib/club");
+  const plan = await getEffectivePlan(userId);
+  {
     const { canUserPerformAction } = await import("@/lib/plan-limits");
-    const check = canUserPerformAction(me.plan, "csv-import");
+    const check = canUserPerformAction(plan, "csv-import");
     if (!check.allowed) {
       return NextResponse.json(
         {

@@ -9,6 +9,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUserPerformAction, PLAN_LIMITS } from "@/lib/plan-limits";
+import { teamVisibleWhere } from "@/lib/access";
+import { getEffectivePlan } from "@/lib/club";
 import { getAnthropicClient, CLAUDE_MODEL } from "@/engine/ai/providers";
 import { buildChatContext, type ChatFocus } from "@/engine/ai/chat-context";
 
@@ -49,18 +51,14 @@ export async function POST(req: Request) {
   }
 
   const team = await prisma.team.findFirst({
-    where: { id: parsed.data.teamId, coachId: userId },
+    where: { id: parsed.data.teamId, ...teamVisibleWhere(userId) },
     select: { id: true, name: true, season: true, ageGroup: true },
   });
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
-  // Plan gating - chat is Coach Pro and up.
-  const me = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true },
-  });
-  if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const check = canUserPerformAction(me.plan, "coach-chat");
+  // Plan gating - chat is Coach Pro and up (club members inherit the tier).
+  const effectivePlan = await getEffectivePlan(userId);
+  const check = canUserPerformAction(effectivePlan, "coach-chat");
   if (!check.allowed) {
     return NextResponse.json(
       {
@@ -73,7 +71,7 @@ export async function POST(req: Request) {
 
   // Daily rate limit - one atomic upsert+increment, then check. Decremented
   // below if the model call fails, so failed requests don't burn quota.
-  const limit = PLAN_LIMITS[me.plan].chatMessagesPerDay;
+  const limit = PLAN_LIMITS[effectivePlan].chatMessagesPerDay;
   const day = new Date().toISOString().slice(0, 10);
   const usage = await prisma.chatUsage.upsert({
     where: { userId_day: { userId, day } },

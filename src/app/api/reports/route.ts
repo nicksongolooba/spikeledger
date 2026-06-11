@@ -36,23 +36,22 @@ export async function POST(req: Request) {
     );
   }
 
-  // Confirm the player is on a team this coach owns.
+  // Confirm the player is on a team this user can see (own or club).
+  const { teamVisibleWhere } = await import("@/lib/access");
   const player = await prisma.player.findFirst({
-    where: { id: parsed.data.playerId, team: { coachId: userId } },
+    where: { id: parsed.data.playerId, team: teamVisibleWhere(userId) },
     include: { team: true },
   });
   if (!player) {
     return NextResponse.json({ error: "Player not found" }, { status: 404 });
   }
 
-  // Share-link creation is a paid feature.
-  const me = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true },
-  });
-  if (me) {
+  // Share-link creation is a paid feature (club members inherit the tier).
+  const { getEffectivePlan } = await import("@/lib/club");
+  const plan = await getEffectivePlan(userId);
+  {
     const { canUserPerformAction } = await import("@/lib/plan-limits");
-    const check = canUserPerformAction(me.plan, "share-link");
+    const check = canUserPerformAction(plan, "share-link");
     if (!check.allowed) {
       return NextResponse.json(
         {

@@ -45,16 +45,14 @@ export async function POST(
   }
 
   // Enforce per-team tournament limit at the API boundary.
-  const me = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true },
-  });
+  const { getEffectivePlan } = await import("@/lib/club");
+  const plan = await getEffectivePlan(userId);
   const tournamentCount = await prisma.tournament.count({
     where: { teamId: params.id },
   });
-  if (me) {
+  {
     const { canUserPerformAction } = await import("@/lib/plan-limits");
-    const check = canUserPerformAction(me.plan, "add-tournament", {
+    const check = canUserPerformAction(plan, "add-tournament", {
       currentTournamentCount: tournamentCount,
     });
     if (!check.allowed) {

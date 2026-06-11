@@ -11,13 +11,18 @@ export default async function MatchEntryPage({
   params: { id: string };
 }) {
   const user = await requireUser();
+  const { assertTeamStatsWrite } = await import("@/lib/access");
   const match = await prisma.match.findFirst({
-    where: { id: params.id, tournament: { team: { coachId: user.id } } },
+    where: { id: params.id },
     include: {
       tournament: { include: { team: true } },
     },
   });
   if (!match) notFound();
+  // Stat entry is a write surface: creating coach or a club ASSISTANT.
+  if (!(await assertTeamStatsWrite(match.tournament.teamId, user.id))) {
+    notFound();
+  }
 
   const [roster, statLines] = await Promise.all([
     prisma.player.findMany({

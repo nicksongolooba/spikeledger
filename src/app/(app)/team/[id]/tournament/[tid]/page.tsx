@@ -15,6 +15,7 @@ import { fmtNum, fmtSigned } from "@/engine/derived-stats";
 import { TeamIntelligenceCard } from "@/components/ai/TeamIntelligenceCard";
 import { CoachChat } from "@/components/ai/CoachChat";
 import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
+import { getEffectivePlan } from "@/lib/club";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function TournamentPage({
   params: { id: string; tid: string };
 }) {
   const user = await requireUser();
+  const effectivePlan = await getEffectivePlan(user.id);
   const team = await getTeamForCoach(params.id, user.id);
   const tournament = await prisma.tournament.findFirst({
     where: { id: params.tid, teamId: team.id },
@@ -241,8 +243,8 @@ export default async function TournamentPage({
 
       <CoachChat
         teamId={team.id}
-        canChat={hasFeature(user.plan, "coachChat")}
-        upgradeText={getUpgradeReason(user.plan, "coach-chat").reason}
+        canChat={hasFeature(effectivePlan, "coachChat")}
+        upgradeText={getUpgradeReason(effectivePlan, "coach-chat").reason}
         contextType="tournament"
         contextId={tournament.id}
         contextName={tournament.name}

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const search = useSearchParams();
+  const inviteCode = search.get("invite");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,10 +31,19 @@ export default function RegisterPage() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        inviteCode: inviteCode ?? undefined,
+      }),
     });
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      joinedClub?: string | null;
+      inviteError?: string | null;
+    };
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
       setError(data.error || "Registration failed.");
       setLoading(false);
       return;
@@ -44,7 +55,11 @@ export default function RegisterPage() {
       router.push("/login");
       return;
     }
-    router.push("/dashboard");
+    // Invited coaches land on their new club; the invite page handles any
+    // join failure (expired/full) with a clear message.
+    router.push(
+      data.joinedClub ? "/club" : inviteCode ? `/invite/${inviteCode}` : "/dashboard",
+    );
     router.refresh();
   }
 
@@ -52,7 +67,9 @@ export default function RegisterPage() {
     <div className="card p-7">
       <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
       <p className="mt-1 text-sm text-slate-400">
-        Free forever for one team. No credit card required.
+        {inviteCode
+          ? "Create your account to join your club on SpikeLedger."
+          : "Free forever for one team. No credit card required."}
       </p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
