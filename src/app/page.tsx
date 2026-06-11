@@ -332,10 +332,16 @@ export default function LandingPage() {
             <Link href="#pricing" className="hover:text-slate-200">Pricing</Link>
             <Link href="/login" className="hover:text-slate-200">Login</Link>
             <Link href="/register" className="hover:text-slate-200">Register</Link>
+            <Link href="/privacy" className="hover:text-slate-200">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-200">Terms of Service</Link>
+            <Link href="/contact" className="hover:text-slate-200">Contact</Link>
           </nav>
         </div>
         <div className="mx-auto mt-6 max-w-6xl px-6 text-center text-xs text-slate-600">
-          © {new Date().getFullYear()} SpikeLedger
+          © {new Date().getFullYear()} SpikeLedger ·{" "}
+          <a href="mailto:support@spikeledger.com" className="hover:text-slate-400">
+            support@spikeledger.com
+          </a>
         </div>
       </footer>
     </div>

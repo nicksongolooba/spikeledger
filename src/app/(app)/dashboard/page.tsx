@@ -27,6 +27,20 @@ export default async function DashboardPage() {
     },
   });
 
+  // Onboarding stage, judged on the coach's OWN teams (club owners may see
+  // others' teams, but their onboarding is about their own).
+  const ownTeams = teams.filter((t) => t.coach.id === user.id);
+  const ownPlayers = ownTeams.reduce((n, t) => n + t._count.players, 0);
+  const ownStatLines =
+    ownTeams.length > 0 && ownPlayers > 0
+      ? await prisma.statLine.count({
+          where: { match: { tournament: { team: { coachId: user.id } } } },
+        })
+      : 0;
+  const onboardingStep =
+    ownTeams.length === 0 ? 1 : ownPlayers === 0 ? 2 : ownStatLines === 0 ? 3 : null;
+  const firstOwnTeam = ownTeams[ownTeams.length - 1] ?? null;
+
   return (
     <div>
       {membership && membership.club.name.endsWith("'s Club") && (
@@ -52,33 +66,61 @@ export default async function DashboardPage() {
         <CreateTeamButton plan={user.plan} currentTeamCount={teams.length} />
       </div>
 
+      {onboardingStep !== null && (
+        <section className="card mt-8 p-6">
+          <h2 className="text-lg font-bold text-slate-100">
+            Welcome to SpikeLedger{user.name ? `, ${user.name.split(" ")[0]}` : ""}! 🏐
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Three steps and you&apos;ll have live stats at your next match.
+          </p>
+          <ol className="mt-5 grid gap-3 sm:grid-cols-3">
+            <OnboardingStep
+              n={1}
+              done={onboardingStep > 1}
+              active={onboardingStep === 1}
+              title="Create your team"
+              action={
+                onboardingStep === 1 ? (
+                  <CreateTeamButton plan={user.plan} currentTeamCount={teams.length} />
+                ) : null
+              }
+            />
+            <OnboardingStep
+              n={2}
+              done={onboardingStep > 2}
+              active={onboardingStep === 2}
+              title="Add your players"
+              action={
+                onboardingStep === 2 && firstOwnTeam ? (
+                  <Link href={`/team/${firstOwnTeam.id}/roster`} className="btn-primary">
+                    Add players
+                  </Link>
+                ) : null
+              }
+            />
+            <OnboardingStep
+              n={3}
+              done={false}
+              active={onboardingStep === 3}
+              title="Enter stats at your next match"
+              action={
+                onboardingStep === 3 && firstOwnTeam ? (
+                  <Link
+                    href={`/team/${firstOwnTeam.id}/tournament/new`}
+                    className="btn-primary"
+                  >
+                    Add a tournament
+                  </Link>
+                ) : null
+              }
+            />
+          </ol>
+        </section>
+      )}
+
       <div className="mt-8">
-        {teams.length === 0 ? (
-          <EmptyState
-            title="Create your first team to get started"
-            description="A team holds your roster, tournaments, and stats. You can always add more later."
-            icon={
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="h-12 w-12"
-              >
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-              </svg>
-            }
-            action={
-              <CreateTeamButton
-                variant="prominent"
-                plan={user.plan}
-                currentTeamCount={teams.length}
-              />
-            }
-          />
-        ) : (
+        {teams.length === 0 ? null : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {teams.map((team) => {
               const lastTournament = team.tournaments[0];
@@ -140,5 +182,51 @@ export default async function DashboardPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function OnboardingStep({
+  n,
+  done,
+  active,
+  title,
+  action,
+}: {
+  n: number;
+  done: boolean;
+  active: boolean;
+  title: string;
+  action: React.ReactNode;
+}) {
+  return (
+    <li
+      className={`rounded-xl border p-4 ${
+        active
+          ? "border-volt-400/50 bg-volt-400/5"
+          : "border-slate-800 bg-slate-900/50"
+      }`}
+    >
+      <div className="flex items-center gap-2.5">
+        <span
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+            done
+              ? "bg-emerald-400 text-emerald-950"
+              : active
+                ? "bg-volt-400 text-volt-950"
+                : "bg-slate-800 text-slate-400"
+          }`}
+        >
+          {done ? "✓" : n}
+        </span>
+        <span
+          className={`text-sm font-semibold ${
+            active ? "text-slate-100" : done ? "text-slate-300" : "text-slate-500"
+          }`}
+        >
+          {title}
+        </span>
+      </div>
+      {action && <div className="mt-3">{action}</div>}
+    </li>
   );
 }

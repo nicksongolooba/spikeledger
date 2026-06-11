@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,6 +25,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <main className="relative z-10 flex flex-1 items-start justify-center px-4 pb-12 pt-6 sm:items-center">
         <div className="w-full max-w-md">{children}</div>
       </main>
+      <div className="relative z-10">
+        <SiteFooter />
+      </div>
     </div>
   );
 }

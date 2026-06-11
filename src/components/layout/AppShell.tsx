@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 interface NavItem {
   href: string;
@@ -153,8 +154,11 @@ export function AppShell({
       </header>
 
       <main className="lg:pl-60">
-        <div className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6 lg:pb-10 lg:pt-8">
+        <div className="mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-6 lg:pt-8">
           {children}
+        </div>
+        <div className="mb-20 lg:mb-0">
+          <SiteFooter />
         </div>
       </main>
 

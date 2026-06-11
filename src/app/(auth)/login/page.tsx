@@ -36,6 +36,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showReset, setShowReset] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,6 +98,28 @@ function LoginForm() {
         <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
           {loading ? "Logging in…" : "Log in"}
         </button>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => setShowReset((v) => !v)}
+            className="text-xs text-slate-400 underline-offset-2 hover:text-slate-200 hover:underline"
+          >
+            Forgot password?
+          </button>
+          {showReset && (
+            <p className="mt-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
+              Email{" "}
+              <a
+                href="mailto:support@spikeledger.com"
+                className="font-semibold text-volt-300 hover:text-volt-200"
+              >
+                support@spikeledger.com
+              </a>{" "}
+              to reset your password.
+            </p>
+          )}
+        </div>
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-400">
