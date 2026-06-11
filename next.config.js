@@ -3,6 +3,15 @@
 
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
+  // Force HTTPS for two years after first visit (incl. subdomains) so typed
+  // http:// URLs never make an insecure hop before the redirect.
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  // Auto-upgrade any http:// subresource to https — mixed content can never
+  // render even if an insecure URL slips into content later.
+  { key: "Content-Security-Policy", value: "upgrade-insecure-requests" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "origin-when-cross-origin" },

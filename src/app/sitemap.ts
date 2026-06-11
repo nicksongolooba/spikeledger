@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+// Public-facing URLs must always be https - fall back to the production
+// domain, never localhost, so a missing env var can't emit http:// links.
+const BASE = process.env.NEXT_PUBLIC_APP_URL || "https://www.spikeledger.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
