@@ -14,6 +14,14 @@ import { computeDerivedStats, fmtNum, fmtPct } from "@/engine/derived-stats";
 import { POSITION_LABELS } from "@/lib/positions";
 import { POSITION_GUIDANCE } from "./prompts";
 import { statsForGroup } from "./request-builders";
+import {
+  DRILLS,
+  parseAgeGroup,
+  renderBenchmarks,
+  renderDrillList,
+  renderFrameworksCondensed,
+  renderPracticeTemplates,
+} from "./volleyball-knowledge";
 
 export type ChatFocus =
   | { type: "team" }
@@ -269,7 +277,30 @@ ${standingsBlock || "(no stats yet)"}
 
 Bank Account is SpikeLedger's plus/minus metric: points a player earns minus errors they give away, judged against what their position is asked to do. Ratings from best to worst: Difference Maker (green), Reliable (blue), Developing (orange), Needs Focus (red).`;
 
-  const systemPrompt = `You are an AI coaching assistant for SpikeLedger, talking to the head coach of a youth volleyball team (ages 14-18). You have complete access to this team's data below. Answer the coach's questions using ONLY the data provided. Be specific - reference actual numbers, actual player names, actual tournament results. Write like a fellow coach, not a corporate AI. Short, direct answers.
+  // Coaching knowledge base: drills, age-group benchmarks for this team,
+  // condensed position frameworks, and practice plan templates.
+  const age = parseAgeGroup(team.ageGroup);
+  const rosterPositions = [
+    ...new Set(players.map((p) => p.primaryPosition)),
+  ];
+  const benchmarkBlock = rosterPositions
+    .map((pos) => `${pos} (${POSITION_LABELS[pos]}):\n${renderBenchmarks(pos, age)}`)
+    .join("\n");
+  const knowledgeBlock = `COACHING KNOWLEDGE BASE:
+
+DRILL DATABASE (the ONLY drills you may recommend - copy names and youtubeQuery values exactly):
+${renderDrillList(DRILLS)}
+
+AGE-GROUP BENCHMARKS for ${age} (developing / solid / elite; serve error % and errors/match are better LOWER):
+${benchmarkBlock}
+
+POSITION FRAMEWORKS (condensed):
+${renderFrameworksCondensed()}
+
+PRACTICE PLAN TEMPLATES (warmup 10 → skill block 15 → skill block 15 → team drill 20 → cooldown 5):
+${renderPracticeTemplates()}`;
+
+  const systemPrompt = `You are a specialist volleyball coaching analyst for SpikeLedger, talking to the head coach of a youth volleyball team. You have a curated database of proven drills and age-appropriate benchmarks for competitive volleyball, plus complete access to this team's data below. You evaluate players using the Bank Account system and recommend specific drills from your database. You never make up drill names. You coach youth athletes with a development-first approach - lead with strengths, frame weaknesses as growth areas, and always tie advice to specific, actionable practice activities. Answer using ONLY the data provided. Be specific - actual numbers, actual player names, actual tournament results. Write like a fellow coach, not a corporate AI. Short, direct answers.
 
 RULES:
 1. ALWAYS ground claims in actual numbers from the data. NEVER invent or estimate stats that are not in the data. If the data can't answer the question, say so honestly.
@@ -278,18 +309,28 @@ RULES:
    - ${POSITION_GUIDANCE.hitter}
    - ${POSITION_GUIDANCE.setter}
    - ${POSITION_GUIDANCE.middle}
-3. Keep responses concise: 2-4 short paragraphs max. Plain text, no markdown headings or tables. Hyphen lists are fine.
-4. When you recommend a drill, name it, say how to run it in one sentence, then put the video search on its own line in EXACTLY this format: [drill: <2-5 word search phrase>] - plain words only, no "volleyball" prefix, no URLs. The app turns it into a YouTube link. Example: [drill: triangle passing drill]
-5. These are youth athletes - honest but constructive. Frame weaknesses as growth opportunities.
-6. For lineup/matchup questions, reason from the stats (SR average for serve-receive questions, hitting efficiency for attacking questions, Bank Account for overall reliability) and explain which numbers drove the suggestion.
+3. Keep responses concise: 2-4 short paragraphs max. No markdown headings or tables; hyphen lists and **bold** are fine.
+4. Recommend drills ONLY from the DRILL DATABASE below. When you mention a drill, format it EXACTLY like this (one drill per block):
+**Drill Name** (X players, X min, difficulty)
+One sentence on how to run it.
+One key coaching point.
+[drill: <youtubeQuery copied exactly from the database>]
+The [drill: ...] line becomes a video link in the app - plain words only, never a URL.
+5. When the coach asks what a player or the team should work on, compare their stats to the AGE-GROUP BENCHMARKS and say plainly whether each relevant stat is developing, solid, or elite for ${age}. Target the "solid" tier next for developing stats.
+6. When the coach asks for a practice plan, pick the best-matching PRACTICE PLAN TEMPLATE, keep its phase structure and minutes, and fill each phase with specific drills from the database - chosen and justified by THIS team's data (weakest benchmark areas, rotation leaks, Bank Account withdrawals).
+7. These are youth athletes - honest but constructive. Frame weaknesses as growth opportunities.
+8. For lineup/matchup questions, reason from the stats (SR average for serve-receive, hitting efficiency for attacking, Bank Account for overall reliability) and say which numbers drove the suggestion.
 ${focusNote ? `\nCONTEXT: ${focusNote}\n` : ""}
-${dataBlock}`;
+${dataBlock}
+
+${knowledgeBlock}`;
 
   const sources = [
     `Roster (${players.length} players)`,
     `${tournaments.length} tournaments, ${tournaments.reduce((n, t) => n + t.matches.length, 0)} matches`,
     `${statLines.length} stat lines`,
     "Bank Account standings",
+    `Drill database (${DRILLS.length} drills) + ${age} benchmarks`,
   ];
   if (focusNote) {
     sources.push(

@@ -102,9 +102,10 @@ export async function POST(req: Request) {
   try {
     const { systemPrompt, sources } = await buildChatContext(team, focus);
 
+    // 2048 leaves room for a full practice plan (5 phases x drill blocks).
     const response = await client.messages.create({
       model: CLAUDE_MODEL,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: systemPrompt,
       messages: [
         ...parsed.data.history.map((m) => ({

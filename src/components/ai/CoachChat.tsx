@@ -28,8 +28,27 @@ function Sparkle({ className }: { className?: string }) {
   );
 }
 
-// Render assistant text, converting [drill: search terms] tags into YouTube
-// search links - same no-URL-trust pattern as the coaching insights.
+// Render **bold** spans within a plain-text segment.
+function BoldText({ text }: { text: string }) {
+  const parts = text.split(/\*\*([^*]+)\*\*/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 === 1 ? (
+          <strong key={i} className="font-bold text-slate-100">
+            {p}
+          </strong>
+        ) : (
+          <span key={i}>{p}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+// Render assistant text: **bold** drill headers, and [drill: search terms]
+// tags converted into YouTube search links - same no-URL-trust pattern as
+// the coaching insights (the AI supplies words, the app builds the URL).
 function MessageBody({ content }: { content: string }) {
   const parts = content.split(/\[drill:\s*([^\]]+)\]/g);
   return (
@@ -46,10 +65,10 @@ function MessageBody({ content }: { content: string }) {
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3">
               <path d="M8 5v14l11-7z" />
             </svg>
-            Watch: {part.trim()}
+            Watch drill videos
           </a>
         ) : (
-          <span key={i}>{part}</span>
+          <BoldText key={i} text={part} />
         ),
       )}
     </div>

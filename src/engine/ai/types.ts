@@ -8,6 +8,7 @@ export interface PlayerInsightRequest {
   scope: "match" | "tournament" | "season";
   scopeId: string | null;       // matchId / tournamentId / null for season
   scopeLabel: string;           // human-readable, used in prompt
+  ageGroup?: string | null;     // team's age group ("16U") - drives benchmarks
   player: {
     id: string;
     name: string;
@@ -58,6 +59,7 @@ export interface TeamInsightRequest {
   scope: "tournament" | "season";
   scopeId: string | null;
   scopeLabel: string;
+  ageGroup?: string | null;     // team's age group ("16U") - drives benchmarks
   team: { id: string; name: string };
   record: string;
   tournamentTrend: Array<{

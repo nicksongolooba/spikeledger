@@ -111,6 +111,7 @@ export async function POST(req: Request) {
     scope: parsed.data.scope,
     scopeId: parsed.data.scopeId ?? null,
     scopeLabel,
+    ageGroup: player.team.ageGroup,
     playerLines,
     trendBuckets,
   });

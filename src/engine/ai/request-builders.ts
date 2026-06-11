@@ -75,6 +75,7 @@ export interface BuildPlayerInsightArgs {
   scope: "match" | "tournament" | "season";
   scopeId: string | null;
   scopeLabel: string;
+  ageGroup?: string | null;
   playerLines: StatLine[];
   trendBuckets?: Array<{ label: string; lines: StatLine[] }>;
   teamContext?: {
@@ -111,6 +112,7 @@ export function buildPlayerInsightRequest(
     scope: args.scope,
     scopeId: args.scopeId,
     scopeLabel: args.scopeLabel,
+    ageGroup: args.ageGroup ?? null,
     player: {
       id: args.player.id,
       name: args.player.name,
@@ -127,6 +129,7 @@ export function buildPlayerInsightRequest(
 
 export interface BuildTeamInsightArgs {
   team: { id: string; name: string };
+  ageGroup?: string | null;
   scope: "tournament" | "season";
   scopeId: string | null;
   scopeLabel: string;
@@ -201,6 +204,7 @@ export function buildTeamInsightRequest(args: BuildTeamInsightArgs): TeamInsight
     scope: args.scope,
     scopeId: args.scopeId,
     scopeLabel: args.scopeLabel,
+    ageGroup: args.ageGroup ?? null,
     team: args.team,
     record: `${totalWins}-${totalLosses}`,
     tournamentTrend: trend,

@@ -3,6 +3,13 @@ import type {
   PlayerInsightRequest,
   TeamInsightRequest,
 } from "./types";
+import {
+  drillsForPosition,
+  parseAgeGroup,
+  renderBenchmarks,
+  renderDrillList,
+  renderFrameworkFull,
+} from "./volleyball-knowledge";
 
 export const POSITION_GUIDANCE = {
   libero_ds:
@@ -15,18 +22,19 @@ export const POSITION_GUIDANCE = {
     "Middle Blocker (MB): focus on blocking presence (blocks/match), quick-attack efficiency (kills/match, hitting %), serve consistency, and transition attacking. Middle Blockers do NOT set - NEVER mention assists or distribution. They are not in serve receive - never mention SR.",
 };
 
-export const PLAYER_SYSTEM_PROMPT = `You are an experienced volleyball coach analyzing player statistics for a youth team (ages 14-18). You provide specific, data-driven coaching insights.
+export const PLAYER_SYSTEM_PROMPT = `You are a specialist volleyball coaching analyst. You have a curated database of proven drills and age-appropriate benchmarks for competitive volleyball. You evaluate players using the Bank Account system and recommend specific drills from your database. You never make up drill names. You coach youth athletes with a development-first approach - lead with strengths, frame weaknesses as growth areas, and always tie advice to specific, actionable practice activities.
 
 RULES - read each carefully and follow exactly:
 1. ALWAYS reference actual numbers from the data. Do not invent stats.
-2. Every improvement MUST prescribe a concrete, runnable drill. Fill EVERY drill field:
-   - drill: a named drill + one sentence on how it is run (e.g. "Triangle Passing: one player serves, one passes, one targets; rotate every 10 reps").
-   - duration: exact time per practice (e.g. "10 minutes per practice").
+2. Every improvement MUST prescribe a drill taken from the AVAILABLE DRILLS list in the user message - use the drill's exact name and copy its youtubeQuery verbatim. NEVER invent a drill or a search phrase. Fill EVERY drill field:
+   - drill: the database drill's exact name + one sentence on how it is run.
+   - duration: exact time per practice, based on the drill's listed minutes (e.g. "10 minutes per practice").
    - reps: number of reps or sets (e.g. "30 reps each" or "3 sets of 10").
-   - players: how many players are needed (e.g. "3 players" or "whole team").
+   - players: how many players are needed, based on the drill's listed count (e.g. "3 players" or "whole team").
    - equipment: gear needed, or "None" (e.g. "1 ball, net").
-   - youtubeQuery: 2-5 word search phrase for the drill, WITHOUT the word "volleyball" (the app prepends it). Plain words only - NO URLs, NO video IDs, NO links. Example: "triangle passing drill".
+   - youtubeQuery: copied EXACTLY from the chosen drill's youtubeQuery in the list. NO URLs, NO video IDs, NO links.
    Vague advice is unacceptable.
+2b. Compare the player's stats against the AGE-GROUP BENCHMARKS in the user message and say plainly whether each key stat is developing, solid, or elite for their age group (note: serve error % and errors/match are better when LOWER). Use the benchmark's "solid" tier as the targetValue when setting improvement targets.
 3. Be encouraging but honest. These are youth athletes. Frame weaknesses as growth opportunities, not failures.
 4. NEVER suggest improvements for stats inappropriate to the player's position. Setters and Middle Blockers are DIFFERENT positions with different jobs - do not give one the other's advice. Position guidance:
    - ${POSITION_GUIDANCE.libero_ds}
@@ -62,7 +70,7 @@ SCHEMA (exact field names and types):
 
 Provide 2-3 strengths and 2-3 improvements. Always exactly those counts.`;
 
-const TEAM_SYSTEM_PROMPT = `You are an experienced volleyball coach analyzing team performance for a youth team. You write 3-4 concise, data-grounded insights.
+const TEAM_SYSTEM_PROMPT = `You are a specialist volleyball coaching analyst with a curated database of age-appropriate benchmarks for competitive volleyball. You analyze team performance for a youth team and write 3-4 concise, data-grounded insights, comparing players to the benchmarks for their age group where relevant.
 
 RULES:
 1. Reference actual numbers from the data (specific players, exact stat changes, tournament results).
@@ -128,6 +136,19 @@ export function buildPlayerUserPrompt(req: PlayerInsightRequest): string {
     lines.push(statBlock(req.teamContext.avgStats));
   }
 
+  // Knowledge-base context: benchmarks + framework + the only drills the
+  // model is allowed to recommend (filtered to this player's position).
+  const age = parseAgeGroup(req.ageGroup);
+  lines.push(``);
+  lines.push(`AGE-GROUP BENCHMARKS (${age}, ${req.player.position}) - developing / solid / elite:`);
+  lines.push(renderBenchmarks(req.player.position, age));
+  lines.push(``);
+  lines.push(`POSITION COACHING FRAMEWORK (${POSITION_LABELS[req.player.position]}):`);
+  lines.push(renderFrameworkFull(req.player.position));
+  lines.push(``);
+  lines.push(`AVAILABLE DRILLS for this position (recommend ONLY these; copy name and youtubeQuery exactly):`);
+  lines.push(renderDrillList(drillsForPosition(req.player.position)));
+
   lines.push(``);
   lines.push(`Generate coaching insights as JSON matching the schema exactly.`);
   return lines.join("\n");
@@ -160,6 +181,19 @@ export function buildTeamUserPrompt(req: TeamInsightRequest): string {
       `  ${p.name} (${p.position}): ${p.balance >= 0 ? "+" : ""}${p.balance} ${p.rating}`,
     );
   }
+
+  // Benchmarks for the positions actually on this roster.
+  const age = parseAgeGroup(req.ageGroup);
+  const positions = [...new Set(req.playerBankAccounts.map((p) => p.position))];
+  if (positions.length > 0) {
+    lines.push(``);
+    lines.push(`AGE-GROUP BENCHMARKS (${age}) - developing / solid / elite:`);
+    for (const pos of positions) {
+      lines.push(`${pos}:`);
+      lines.push(renderBenchmarks(pos, age));
+    }
+  }
+
   lines.push(``);
   lines.push(
     `Produce 3-4 specific, data-grounded insights as a JSON array of strings.`,
