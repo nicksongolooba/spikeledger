@@ -108,8 +108,8 @@ export default function TermsPage() {
       <H2>Contact</H2>
       <P>
         Questions about these terms:{" "}
-        <a className="text-volt-300 hover:text-volt-200" href="mailto:support@spikeledger.com">
-          support@spikeledger.com
+        <a className="text-volt-300 hover:text-volt-200" href="mailto:spikeledger06@gmail.com">
+          spikeledger06@gmail.com
         </a>
         .
       </P>

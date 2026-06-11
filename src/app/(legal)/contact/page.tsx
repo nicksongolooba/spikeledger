@@ -13,9 +13,9 @@ export default function ContactPage() {
         Questions or feedback? Email us at{" "}
         <a
           className="font-semibold text-volt-300 hover:text-volt-200"
-          href="mailto:support@spikeledger.com"
+          href="mailto:spikeledger06@gmail.com"
         >
-          support@spikeledger.com
+          spikeledger06@gmail.com
         </a>
         .
       </p>

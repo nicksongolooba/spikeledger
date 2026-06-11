@@ -95,8 +95,8 @@ export default function PrivacyPage() {
         We keep your data while your account is active. Coaches can request
         deletion of their account, their teams, or specific player data at
         any time by emailing{" "}
-        <a className="text-volt-300 hover:text-volt-200" href="mailto:support@spikeledger.com">
-          support@spikeledger.com
+        <a className="text-volt-300 hover:text-volt-200" href="mailto:spikeledger06@gmail.com">
+          spikeledger06@gmail.com
         </a>
         . We will delete the requested data within 30 days, except where we
         must retain records for legal or billing-compliance reasons.
