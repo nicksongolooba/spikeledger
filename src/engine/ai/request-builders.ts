@@ -27,7 +27,7 @@ function mostPlayed(lines: StatLine[], fallback: Position): Position {
 
 // Pick the stat keys that matter for this group; pruning keeps the prompt
 // small and tells the model what to focus on.
-function statsForGroup(
+export function statsForGroup(
   group: PositionGroup,
   derived: ReturnType<typeof computeDerivedStats>,
 ): Record<string, number> {

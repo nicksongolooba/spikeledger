@@ -11,6 +11,8 @@ import {
 import { fmtNum, fmtSigned } from "@/engine/derived-stats";
 import { ReviewTable } from "./ReviewTable";
 import { BankAccountBars } from "@/components/charts/BankAccountBars";
+import { CoachChat } from "@/components/ai/CoachChat";
+import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
 
 export const dynamic = "force-dynamic";
 
@@ -246,6 +248,15 @@ export default async function MatchReviewPage({
           </Link>
         </div>
       </section>
+
+      <CoachChat
+        teamId={match.tournament.teamId}
+        canChat={hasFeature(user.plan, "coachChat")}
+        upgradeText={getUpgradeReason(user.plan, "coach-chat").reason}
+        contextType="match"
+        contextId={match.id}
+        contextName={match.opponent}
+      />
     </div>
   );
 }

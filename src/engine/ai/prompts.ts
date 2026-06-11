@@ -4,7 +4,7 @@ import type {
   TeamInsightRequest,
 } from "./types";
 
-const POSITION_GUIDANCE = {
+export const POSITION_GUIDANCE = {
   libero_ds:
     "Libero/DS: focus on passing (SR), defense (digs), serve consistency. NEVER mention hitting or blocking - liberos don't attack or play at the net.",
   hitter:

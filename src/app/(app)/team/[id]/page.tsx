@@ -14,6 +14,8 @@ import {
 } from "@/lib/team-analytics";
 import { fmtNum, fmtSigned } from "@/engine/derived-stats";
 import { TeamIntelligenceCard } from "@/components/ai/TeamIntelligenceCard";
+import { CoachChat } from "@/components/ai/CoachChat";
+import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
 
 export const dynamic = "force-dynamic";
 
@@ -289,6 +291,14 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
           <TeamIntelligenceCard teamId={team.id} scope="season" />
         </div>
       )}
+
+      <CoachChat
+        teamId={team.id}
+        canChat={hasFeature(user.plan, "coachChat")}
+        upgradeText={getUpgradeReason(user.plan, "coach-chat").reason}
+        contextType="team"
+        contextName={team.name}
+      />
     </div>
   );
 }

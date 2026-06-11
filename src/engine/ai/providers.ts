@@ -4,7 +4,11 @@
 //                     (any) or throw. JSON repair (markdown fence stripping
 //                     etc.) lives here so callers don't have to think about it.
 
+import Anthropic from "@anthropic-ai/sdk";
 import type { InsightProvider } from "./types";
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
+export const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-6";
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "gemma4";
@@ -170,15 +174,54 @@ class GoogleProvider implements Provider {
   }
 }
 
+// Lazily constructed so importing this module without a key never throws.
+let _anthropicClient: Anthropic | null = null;
+export function getAnthropicClient(): Anthropic | null {
+  if (!ANTHROPIC_API_KEY) return null;
+  if (!_anthropicClient) {
+    _anthropicClient = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+  }
+  return _anthropicClient;
+}
+
+class AnthropicProvider implements Provider {
+  name = "anthropic" as const;
+
+  async isAvailable(): Promise<boolean> {
+    return ANTHROPIC_API_KEY.length > 0;
+  }
+
+  async generateJson<T>(systemPrompt: string, userPrompt: string): Promise<T> {
+    const client = getAnthropicClient();
+    if (!client) throw new Error("Anthropic API key not configured");
+    const response = await client.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const text = response.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("");
+    if (!text) throw new Error("Anthropic returned no content");
+    return safeParse<T>(text);
+  }
+}
+
+const _anthropic = new AnthropicProvider();
 const _ollama = new OllamaProvider();
 const _google = new GoogleProvider();
 
-// Picks the first available provider per the env-configured preference, falling
-// back to the other LLM, then signaling unavailability for the rule-based fallback.
+// Picks the first available provider. Claude is always preferred when its key
+// is set (highest-quality coaching insights); AI_PROVIDER only orders the
+// Ollama/Google fallbacks. Returning null signals the rule-based fallback.
 export async function pickProvider(): Promise<Provider | null> {
   const preference = (process.env.AI_PROVIDER || "ollama").toLowerCase();
   const order: Provider[] =
-    preference === "google" ? [_google, _ollama] : [_ollama, _google];
+    preference === "google"
+      ? [_anthropic, _google, _ollama]
+      : [_anthropic, _ollama, _google];
   for (const p of order) {
     if (await p.isAvailable()) {
       console.info(`[ai] provider preference=${preference}, using=${p.name}`);
@@ -186,7 +229,7 @@ export async function pickProvider(): Promise<Provider | null> {
     }
   }
   console.warn(
-    `[ai] no provider available (preference=${preference}, googleKey=${GOOGLE_API_KEY ? "set" : "missing"}); falling back to rule-based`,
+    `[ai] no provider available (preference=${preference}, anthropicKey=${ANTHROPIC_API_KEY ? "set" : "missing"}, googleKey=${GOOGLE_API_KEY ? "set" : "missing"}); falling back to rule-based`,
   );
   return null;
 }

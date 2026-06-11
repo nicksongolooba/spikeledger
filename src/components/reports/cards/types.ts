@@ -1,6 +1,7 @@
 import type { Position } from "@prisma/client";
 import type { BankAccountResult } from "@/engine/bank-account";
 import type { DerivedStats } from "@/engine/derived-stats";
+import type { InsightProvider } from "@/engine/ai/types";
 import type { ImprovementArea } from "../utils/improvement-rules";
 
 export interface ReportCardData {
@@ -20,7 +21,7 @@ export interface ReportCardData {
   // Set when the user has enabled AI insights for this generation run.
   aiSummary?: string;            // 1-2 sentence overview shown on Performance Overview
   aiParentFriendly?: string;     // plain-English summary saved with the share link
-  aiProvider?: "ollama" | "google" | "rule-based";
+  aiProvider?: InsightProvider;
   // For team comparison - within-position-group cohort
   cohort: Array<{
     playerId: string;

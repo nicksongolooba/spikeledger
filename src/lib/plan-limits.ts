@@ -5,6 +5,7 @@ import type { Plan } from "@prisma/client";
 
 export type FeatureKey =
   | "aiInsights"
+  | "coachChat"
   | "shareLinks"
   | "pdfExport"
   | "csvImport"
@@ -16,6 +17,7 @@ export interface PlanLimits {
   maxTournamentsPerTeam: number;
   maxReportCardsPerTournament: number;    // # of players whose cards can be generated
   maxCoaches: number;                     // for club tier
+  chatMessagesPerDay: number;             // "Ask Coach AI" daily cap
   features: Record<FeatureKey, boolean>;
 }
 
@@ -24,8 +26,10 @@ const FREE: PlanLimits = {
   maxTournamentsPerTeam: 3,
   maxReportCardsPerTournament: 1,
   maxCoaches: 1,
+  chatMessagesPerDay: 0,
   features: {
     aiInsights: false,
+    coachChat: false,
     shareLinks: false,
     pdfExport: false,
     csvImport: false,
@@ -39,8 +43,10 @@ const PRO: PlanLimits = {
   maxTournamentsPerTeam: Number.POSITIVE_INFINITY,
   maxReportCardsPerTournament: Number.POSITIVE_INFINITY,
   maxCoaches: 1,
+  chatMessagesPerDay: 50,
   features: {
     aiInsights: true,
+    coachChat: true,
     shareLinks: true,
     pdfExport: true,
     csvImport: true,
@@ -52,6 +58,7 @@ const PRO: PlanLimits = {
 const CLUB: PlanLimits = {
   ...PRO,
   maxCoaches: 15,
+  chatMessagesPerDay: 200,
 };
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
@@ -115,6 +122,7 @@ export function getUpgradeReason(
     | "add-tournament"
     | "generate-report-card"
     | "ai-insights"
+    | "coach-chat"
     | "share-link"
     | "pdf-export"
     | "csv-import"
@@ -150,6 +158,13 @@ export function getUpgradeReason(
         feature: "AI coaching insights",
         reason:
           "Gemma 4 insights with specific drill recommendations. Coach Pro and up.",
+        recommendedPlan: "COACH_PRO",
+      };
+    case "coach-chat":
+      return {
+        feature: "Ask Coach AI",
+        reason:
+          "Chat with an AI assistant that knows your team's stats - lineups, matchups, practice plans. Coach Pro and up.",
         recommendedPlan: "COACH_PRO",
       };
     case "share-link":
@@ -210,6 +225,7 @@ export function canUserPerformAction(
     | "add-tournament"
     | "generate-report-card"
     | "ai-insights"
+    | "coach-chat"
     | "share-link"
     | "pdf-export"
     | "csv-import"
@@ -236,6 +252,10 @@ export function canUserPerformAction(
     }
     case "ai-insights":
       return limits.features.aiInsights
+        ? { allowed: true }
+        : { allowed: false, reason: getUpgradeReason(plan, action) };
+    case "coach-chat":
+      return limits.features.coachChat
         ? { allowed: true }
         : { allowed: false, reason: getUpgradeReason(plan, action) };
     case "share-link":
