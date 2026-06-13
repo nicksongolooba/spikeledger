@@ -87,14 +87,14 @@ const TOURNAMENTS = [
 ];
 
 const OPPONENTS = [
-  "Durham Attack",
-  "Pakmen",
-  "Ontario Volleyball",
-  "Halton Hurricanes",
-  "Niagara Rapids",
-  "Mississauga Pakmen",
-  "Leaside Storm",
-  "Toronto West",
+  "Central Thunder",
+  "West Coast Elite",
+  "Metro Volleyball",
+  "Storm Volleyball",
+  "Valley Vipers",
+  "Metro Tigers",
+  "Summit Spikers",
+  "Coastal Crush",
 ];
 
 // ---------------------------------------------------------------------------

@@ -44,7 +44,7 @@ const TIERS: Tier[] = [
       { label: "Unlimited tournaments", ok: true },
       { label: "Stat entry & Bank Account analysis", ok: true },
       { label: "Unlimited report cards", ok: true },
-      { label: "AI coaching insights (Gemma 4)", ok: true },
+      { label: "AI coaching insights", ok: true },
       { label: "Parent share links", ok: true },
       { label: "PDF + WhatsApp share", ok: true },
       { label: "CSV / Excel import", ok: true },

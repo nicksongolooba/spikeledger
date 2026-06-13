@@ -100,9 +100,9 @@ export default function TermsPage() {
 
       <H2>Governing law</H2>
       <P>
-        These terms are governed by the laws of the Province of Ontario and
-        the federal laws of Canada applicable in it. Disputes will be
-        resolved in the courts of Ontario.
+        These terms are governed by the federal laws of Canada and the laws
+        of the province or territory in which the operator is resident.
+        Disputes will be resolved in the courts of Canada.
       </P>
 
       <H2>Contact</H2>

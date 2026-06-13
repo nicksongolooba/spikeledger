@@ -67,7 +67,7 @@ const features = [
   },
   {
     title: "AI Coaching Insights",
-    body: "Powered by Gemma 4. Specific drill recommendations based on each player's actual numbers. Never generic, always position-aware.",
+    body: "Powered by advanced AI. Specific drill recommendations based on each player's actual numbers. Never generic, always position-aware.",
     accent: "from-amber-400/20 to-amber-400/5",
     iconColor: "text-amber-300",
     icon: (
@@ -89,7 +89,7 @@ const features = [
   },
   {
     title: "Works Globally",
-    body: "Volleyball stats are universal. The Bank Account math doesn't care what country or league. Built by a coach in Ontario, ready everywhere.",
+    body: "Volleyball stats are universal. The Bank Account math doesn't care what country or league. Built by a coach, ready everywhere.",
     accent: "from-emerald-400/20 to-emerald-400/5",
     iconColor: "text-emerald-300",
     icon: (
@@ -273,8 +273,8 @@ export default function LandingPage() {
             Built from a real season of coaching.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-slate-400">
-            The Bank Account system was calibrated over 9 tournaments with two
-            real teams - not invented in a boardroom. Every metric was
+            The Bank Account system was calibrated across multiple seasons of
+            competitive volleyball - not invented in a boardroom. Every metric was
             stress-tested against what actually helps youth players improve.
           </p>
           <div className="mt-8">

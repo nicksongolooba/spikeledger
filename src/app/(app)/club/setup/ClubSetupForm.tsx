@@ -77,7 +77,7 @@ export function ClubSetupForm({
           value={province}
           onChange={(e) => setProvince(e.target.value)}
           className="input"
-          placeholder="Ontario"
+          placeholder="Province / State"
         />
       </div>
 

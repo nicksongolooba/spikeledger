@@ -157,7 +157,7 @@ export function getUpgradeReason(
       return {
         feature: "AI coaching insights",
         reason:
-          "Gemma 4 insights with specific drill recommendations. Coach Pro and up.",
+          "AI insights with specific drill recommendations. Coach Pro and up.",
         recommendedPlan: "COACH_PRO",
       };
     case "coach-chat":
