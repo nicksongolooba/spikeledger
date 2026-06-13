@@ -89,6 +89,14 @@ export async function ensureClubForOwner(
       members: { create: { userId, role: "OWNER" } },
     },
   });
+
+  // Link every team the owner already coaches to the new club, not just teams
+  // created after setup. Without this, a coach's existing roster stays outside
+  // the club and never appears in owner oversight.
+  await prisma.team.updateMany({
+    where: { coachId: userId },
+    data: { clubId: club.id },
+  });
   return {
     membershipId: (await prisma.clubMember.findFirst({
       where: { userId, clubId: club.id },
