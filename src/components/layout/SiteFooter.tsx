@@ -9,6 +9,9 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-center text-xs text-slate-500 sm:flex-row sm:justify-between sm:text-left">
         <div>© {new Date().getFullYear()} SpikeLedger</div>
         <nav className="flex flex-wrap items-center justify-center gap-4">
+          <Link href="/blog" className="hover:text-slate-300">
+            Blog
+          </Link>
           <Link href="/privacy" className="hover:text-slate-300">
             Privacy Policy
           </Link>

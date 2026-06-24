@@ -9,7 +9,7 @@ Auth · Teams · Players · Tournaments · Matches      [Phase 1]
 Courtside stat entry (offline-capable)              [Phase 2]
 Bank Account engine + Recharts dashboards            [Phase 3]
 6-image WhatsApp report cards + share links          [Phase 4]
-AI coaching insights (Gemma 4 or rule-based)         [Phase 5]
+AI coaching insights (Claude or rule-based)          [Phase 5]
 Stripe subscriptions + landing + launch polish       [Phase 6]
 ```
 
@@ -35,11 +35,7 @@ docker compose -f docker-compose.prod.yml exec app npm run db:seed   # optional
 
 App at <http://localhost:3000>. Demo login: `demo@spikeledger.app` / `demo1234`.
 
-To enable AI:
-
-```bash
-docker compose -f docker-compose.prod.yml exec ollama ollama pull gemma4
-```
+To enable AI, set `ANTHROPIC_API_KEY` (see Environment variables below).
 
 ## Quick start (dev)
 
@@ -61,11 +57,8 @@ npm run dev                               # http://localhost:3000
 | `NEXTAUTH_SECRET` | yes | NextAuth JWT signing key (`openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | yes (prod) | Public app URL for OAuth callbacks |
 | `NEXT_PUBLIC_APP_URL` | yes (prod) | Same URL, exposed to client for Stripe redirects |
-| `AI_PROVIDER` | no | `ollama` (default) or `google` |
-| `OLLAMA_URL` | no | Default `http://localhost:11434` |
-| `OLLAMA_MODEL` | no | Default `gemma4` |
-| `GOOGLE_AI_API_KEY` | no | Hosted Gemma fallback |
-| `GOOGLE_AI_MODEL` | no | Default `gemma-4-31b-it` |
+| `ANTHROPIC_API_KEY` | no | Enables Claude for insights + coach chat (`sk-ant-...`) |
+| `CLAUDE_MODEL` | no | Default `claude-sonnet-4-6` |
 | `STRIPE_SECRET_KEY` | for billing | `sk_test_...` / `sk_live_...` |
 | `STRIPE_PUBLISHABLE_KEY` | for billing | `pk_test_...` / `pk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | for billing | `whsec_...` from Stripe Dashboard → webhooks |
@@ -76,7 +69,7 @@ npm run dev                               # http://localhost:3000
 
 If `STRIPE_SECRET_KEY` is missing, billing routes return `503` and the UI hides the upgrade buttons gracefully.
 
-If neither Ollama nor Google AI is configured, AI insight calls silently fall back to the rule-based engine. Coaches see a "Standard" badge instead of "✨ AI".
+If `ANTHROPIC_API_KEY` is not set, AI insight calls silently fall back to the rule-based engine (coaches see a "Standard" badge instead of "✨ AI"), and the coach chat returns a graceful "unavailable" message.
 
 ---
 
@@ -107,7 +100,7 @@ For local webhook testing: `stripe listen --forward-to localhost:3000/api/stripe
 | Derived stats | `src/engine/derived-stats.ts` |
 | Stat entry | `src/app/(app)/match/[id]/entry/` + localStorage WAL |
 | Reports + sharing | `src/components/reports/` |
-| AI insights | `src/engine/ai/` (Ollama / Google / rule-based fallback) |
+| AI insights | `src/engine/ai/` (Anthropic Claude / rule-based fallback) |
 | Plan limits | `src/lib/plan-limits.ts` |
 | Stripe | `src/app/api/stripe/` + `src/lib/stripe.ts` |
 

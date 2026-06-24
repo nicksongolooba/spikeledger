@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
@@ -49,6 +51,8 @@ export default function RootLayout({
         <OfflineIndicator />
         <AuthProvider>{children}</AuthProvider>
         <ServiceWorkerRegister />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

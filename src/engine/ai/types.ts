@@ -1,7 +1,7 @@
 import type { Position } from "@prisma/client";
 import type { BankAccountResult, PositionGroup } from "@/engine/bank-account";
 
-export type InsightProvider = "anthropic" | "ollama" | "google" | "rule-based";
+export type InsightProvider = "anthropic" | "rule-based";
 
 export interface PlayerInsightRequest {
   kind: "player";

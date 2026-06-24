@@ -18,9 +18,9 @@ export function checkEnv(): EnvHealth {
       "STRIPE_SECRET_KEY not set - billing routes will return 503 until configured.",
     );
   }
-  if (!process.env.OLLAMA_URL && !process.env.GOOGLE_AI_API_KEY) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     warnings.push(
-      "No AI provider configured - coaches will see rule-based insights only.",
+      "ANTHROPIC_API_KEY not set - coaches will see rule-based insights only.",
     );
   }
   return { ok: missing.length === 0, missing, warnings };

@@ -174,6 +174,9 @@ export default function LandingPage() {
             <Link href="#pricing" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100 sm:inline">
               Pricing
             </Link>
+            <Link href="/blog" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100">
+              Blog
+            </Link>
             <Link
               href="/login"
               className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100"
@@ -331,6 +334,7 @@ export default function LandingPage() {
           <nav className="flex flex-wrap gap-4 text-xs text-slate-400">
             <Link href="#features" className="hover:text-slate-200">Features</Link>
             <Link href="#pricing" className="hover:text-slate-200">Pricing</Link>
+            <Link href="/blog" className="hover:text-slate-200">Blog</Link>
             <Link href="/login" className="hover:text-slate-200">Login</Link>
             <Link href="/register" className="hover:text-slate-200">Register</Link>
             <Link href="/privacy" className="hover:text-slate-200">Privacy Policy</Link>
