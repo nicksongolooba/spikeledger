@@ -123,7 +123,7 @@ function parentFriendlyFor(req: PlayerInsightRequest): string {
           : ba.rating === "RED"
             ? `having a tough stretch in ${role} this ${req.scopeLabel} - every player has them.`
             : `still gathering stats in ${role}.`;
-  return `${req.player.name} is ${verdict} They&rsquo;re evaluated on what their position is supposed to do, not on everyone else&rsquo;s stats - that&rsquo;s the fair-comparison principle SpikeLedger is built on.`;
+  return `${req.player.name} is ${verdict} They’re evaluated on what their position is supposed to do, not on everyone else’s stats - that’s the fair-comparison principle SpikeLedger is built on.`;
 }
 
 export function generateRuleBasedPlayerInsight(
