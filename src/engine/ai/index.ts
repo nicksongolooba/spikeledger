@@ -1,7 +1,7 @@
 // Main entry points used by API routes + page server components.
-// Cache → Ollama → Google → rule-based fallback. Any thrown error in the LLM
-// path is swallowed and we fall through to the next provider; the rule-based
-// path can't throw (pure local computation), so callers never see a failure.
+// Cache → Anthropic (Claude) → rule-based fallback. Any thrown error in the
+// LLM path is swallowed and we fall through to the rule-based path, which can't
+// throw (pure local computation), so callers never see a failure.
 
 import {
   PLAYER_SYSTEM_PROMPT,

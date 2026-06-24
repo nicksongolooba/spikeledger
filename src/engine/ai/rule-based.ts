@@ -1,5 +1,5 @@
-// Always-available fallback when neither Ollama nor Google is reachable.
-// Same shape as the LLM responses so callers don't have to branch.
+// Always-available fallback when Claude (ANTHROPIC_API_KEY) isn't configured
+// or a call fails. Same shape as the LLM responses so callers don't branch.
 
 import { POSITION_GROUP, POSITION_LABELS } from "@/lib/positions";
 import { fmtNum, fmtPct } from "@/engine/derived-stats";

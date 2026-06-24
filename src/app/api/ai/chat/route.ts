@@ -93,10 +93,9 @@ export async function POST(req: Request) {
     : { type: "team" };
 
   try {
-    // Claude is preferred, then the configured Ollama/Google fallbacks - the
-    // same chain insights use. Unlike insights there's no rule-based fallback
-    // (open-ended chat can't be answered by templates), so if no provider is
-    // available we surface the graceful "unavailable" message below.
+    // Claude is the only chat provider. Unlike insights there's no rule-based
+    // fallback (open-ended chat can't be answered by templates), so if Claude
+    // isn't configured we surface the graceful "unavailable" message below.
     const provider = await pickProvider();
     if (!provider) throw new Error("No AI provider available");
 
