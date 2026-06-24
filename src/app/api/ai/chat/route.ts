@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { canUserPerformAction, PLAN_LIMITS } from "@/lib/plan-limits";
 import { teamVisibleWhere } from "@/lib/access";
 import { getEffectivePlan } from "@/lib/club";
-import { getAnthropicClient, CLAUDE_MODEL } from "@/engine/ai/providers";
+import { pickProvider } from "@/engine/ai/providers";
 import { buildChatContext, type ChatFocus } from "@/engine/ai/chat-context";
 
 const UNAVAILABLE = "AI chat is temporarily unavailable. Try again in a moment.";
@@ -88,38 +88,26 @@ export async function POST(req: Request) {
     );
   }
 
-  const client = getAnthropicClient();
-  if (!client) {
-    return NextResponse.json({ error: UNAVAILABLE }, { status: 503 });
-  }
-
   const focus: ChatFocus = parsed.data.context
     ? ({ type: parsed.data.context.type, id: parsed.data.context.id } as ChatFocus)
     : { type: "team" };
 
   try {
+    // Claude is preferred, then the configured Ollama/Google fallbacks - the
+    // same chain insights use. Unlike insights there's no rule-based fallback
+    // (open-ended chat can't be answered by templates), so if no provider is
+    // available we surface the graceful "unavailable" message below.
+    const provider = await pickProvider();
+    if (!provider) throw new Error("No AI provider available");
+
     const { systemPrompt, sources } = await buildChatContext(team, focus);
 
     // 2048 leaves room for a full practice plan (5 phases x drill blocks).
-    const response = await client.messages.create({
-      model: CLAUDE_MODEL,
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages: [
-        ...parsed.data.history.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-        { role: "user" as const, content: parsed.data.message },
-      ],
-    });
-
-    const text = response.content
-      .filter((b): b is Extract<typeof b, { type: "text" }> => b.type === "text")
-      .map((b) => b.text)
-      .join("")
-      .trim();
-    if (!text) throw new Error("Claude returned no content");
+    const text = await provider.generateChat(systemPrompt, [
+      ...parsed.data.history.map((m) => ({ role: m.role, content: m.content })),
+      { role: "user" as const, content: parsed.data.message },
+    ]);
+    if (!text) throw new Error("Provider returned no content");
 
     return NextResponse.json({
       response: text,

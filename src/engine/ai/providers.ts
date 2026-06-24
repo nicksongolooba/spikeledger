@@ -16,12 +16,22 @@ const GOOGLE_API_KEY = process.env.GOOGLE_AI_API_KEY || "";
 // Must be a real, currently-served model on the Generative Language API.
 // gemini-1.5-* was retired, so the default tracks a current Flash model.
 // Override with GOOGLE_AI_MODEL (e.g. gemini-2.5-flash, gemini-2.5-pro).
-const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemini-3.5-flash";
+const GOOGLE_MODEL = process.env.GOOGLE_AI_MODEL || "gemini-2.5-flash";
+
+// A single chat turn for the free-text (conversational) path.
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export interface Provider {
   name: InsightProvider;
   isAvailable(): Promise<boolean>;
   generateJson<T>(systemPrompt: string, userPrompt: string): Promise<T>;
+  // Free-text multi-turn chat (no JSON enforcement). Used by "Ask Coach AI"
+  // so the assistant degrades through the same provider chain as insights
+  // instead of being hard-wired to a single provider.
+  generateChat(systemPrompt: string, messages: ChatTurn[]): Promise<string>;
 }
 
 // Strip ```json fences, common LLM JSON-output mistake.
@@ -134,6 +144,24 @@ class OllamaProvider implements Provider {
     if (!content) throw new Error("Ollama returned no content");
     return safeParse<T>(content);
   }
+
+  async generateChat(systemPrompt: string, messages: ChatTurn[]): Promise<string> {
+    const res = await fetchWithTimeout(`${OLLAMA_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
+        stream: false,
+        options: { temperature: 0.5 },
+      }),
+    });
+    if (!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
+    const data = (await res.json()) as { message?: { content?: string } };
+    const content = data.message?.content?.trim() ?? "";
+    if (!content) throw new Error("Ollama returned no content");
+    return content;
+  }
 }
 
 class GoogleProvider implements Provider {
@@ -172,6 +200,40 @@ class GoogleProvider implements Provider {
     if (!text) throw new Error("Google AI returned no content");
     return safeParse<T>(text);
   }
+
+  async generateChat(systemPrompt: string, messages: ChatTurn[]): Promise<string> {
+    if (!GOOGLE_API_KEY) throw new Error("Google AI API key not configured");
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/` +
+      `${encodeURIComponent(GOOGLE_MODEL)}:generateContent?key=${GOOGLE_API_KEY}`;
+    const res = await fetchWithTimeout(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        // Gemini calls the assistant role "model".
+        contents: messages.map((m) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
+        generationConfig: { temperature: 0.5 },
+      }),
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      throw new Error(`Google AI HTTP ${res.status} ${errText.slice(0, 200)}`);
+    }
+    type Resp = {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const data = (await res.json()) as Resp;
+    const text = data.candidates?.[0]?.content?.parts
+      ?.map((p) => p.text ?? "")
+      .join("")
+      .trim();
+    if (!text) throw new Error("Google AI returned no content");
+    return text;
+  }
 }
 
 // Lazily constructed so importing this module without a key never throws.
@@ -206,6 +268,24 @@ class AnthropicProvider implements Provider {
       .join("");
     if (!text) throw new Error("Anthropic returned no content");
     return safeParse<T>(text);
+  }
+
+  async generateChat(systemPrompt: string, messages: ChatTurn[]): Promise<string> {
+    const client = getAnthropicClient();
+    if (!client) throw new Error("Anthropic API key not configured");
+    const response = await client.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    });
+    const text = response.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("")
+      .trim();
+    if (!text) throw new Error("Anthropic returned no content");
+    return text;
   }
 }
 

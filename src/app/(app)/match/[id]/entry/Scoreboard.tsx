@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScoreboardProps {
+  teamName: string;
   opponent: string;
   setIdx: number; // 0-based
   setCount: number;
@@ -28,6 +29,7 @@ interface ScoreboardProps {
 }
 
 export function Scoreboard({
+  teamName,
   opponent,
   setIdx,
   setCount,
@@ -159,8 +161,8 @@ export function Scoreboard({
           )}
           aria-label="Our score: tap to add, hold to subtract"
         >
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-volt-300">
-            Hawks
+          <span className="max-w-full truncate px-1 text-[10px] font-semibold uppercase tracking-wide text-volt-300">
+            {teamName}
           </span>
           <span className="stat-number text-4xl font-bold text-slate-50 sm:text-5xl">
             {us}

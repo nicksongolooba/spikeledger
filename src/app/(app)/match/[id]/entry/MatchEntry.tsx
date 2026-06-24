@@ -594,6 +594,7 @@ export function MatchEntry({
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div className="md:col-span-2">
           <Scoreboard
+            teamName={team.name}
             opponent={match.opponent}
             setIdx={setIdx}
             setCount={sets.length}

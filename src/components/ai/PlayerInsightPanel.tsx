@@ -159,10 +159,7 @@ export function PlayerInsightPanel({
           <h4 className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             For parents
           </h4>
-          <p
-            className="mt-1 text-xs text-slate-300"
-            dangerouslySetInnerHTML={{ __html: data.parentFriendly }}
-          />
+          <p className="mt-1 text-xs text-slate-300">{data.parentFriendly}</p>
         </div>
       </div>
 
