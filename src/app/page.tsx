@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PricingSection } from "./PricingSection";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 export const metadata: Metadata = {
   title: "SpikeLedger - Position-Fair Volleyball Analytics",
@@ -348,6 +349,8 @@ export default function LandingPage() {
           </a>
         </div>
       </footer>
+
+      <InstallPrompt />
     </div>
   );
 }

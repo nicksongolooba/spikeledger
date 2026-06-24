@@ -5,6 +5,7 @@ import { teamVisibleWhere } from "@/lib/access";
 import { ensureClubForOwner } from "@/lib/club";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CreateTeamButton } from "./CreateTeamButton";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { formatDate, pluralize } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -181,6 +182,7 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+      <InstallPrompt />
     </div>
   );
 }
