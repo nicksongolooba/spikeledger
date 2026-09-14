@@ -161,7 +161,7 @@ export function TeamComparison({ data }: { data: ReportCardData }) {
     }));
 
   return (
-    <ReportShell position={data.player.position} cardKey="06 TEAM COMPARISON">
+    <ReportShell position={data.player.position} neutral={!data.usesPositions} cardKey="06 TEAM COMPARISON">
       <PlayerHeader
         name={data.player.name}
         number={data.player.number}
@@ -169,6 +169,7 @@ export function TeamComparison({ data }: { data: ReportCardData }) {
         scopeLabel={data.scopeLabel}
         teamName={data.team.name}
         secondaryPosition={data.player.secondaryPosition}
+        neutral={!data.usesPositions}
       />
 
       <div
@@ -179,8 +180,9 @@ export function TeamComparison({ data }: { data: ReportCardData }) {
           lineHeight: 1.4,
         }}
       >
-        Compared only with teammates at the same position - a fair comparison
-        is the only kind that matters.
+        {data.usesPositions
+          ? "Compared only with teammates at the same position - a fair comparison is the only kind that matters."
+          : "Compared with every teammate - on this team everyone rotates through every position, so everyone is measured on the same all-around numbers."}
       </div>
 
       <div

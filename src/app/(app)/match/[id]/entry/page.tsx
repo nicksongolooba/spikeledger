@@ -46,6 +46,7 @@ export default async function MatchEntryPage({
       tournament={{ id: match.tournament.id, name: match.tournament.name }}
       roster={roster}
       initialStatLines={statLines}
+      usesPositions={match.tournament.team.usesPositions}
     />
   );
 }

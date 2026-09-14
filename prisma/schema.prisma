@@ -28,9 +28,10 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  clubs     ClubMember[]
-  teams     Team[]
-  chatUsage ChatUsage[]
+  clubs       ClubMember[]
+  teams       Team[]
+  chatUsage   ChatUsage[]
+  parentLinks ParentPlayerLink[] // players this PARENT user follows
 }
 
 enum UserRole {
@@ -93,6 +94,11 @@ model Team {
   clubId    String?
   coachId   String
   createdAt DateTime @default(now())
+  // false = "no positions" mode: everyone rotates through everything, the
+  // Bank Account uses the universal formula, and position UI is hidden.
+  usesPositions   Boolean @default(true)
+  // Coach can pause the parent live view for the whole team.
+  allowParentView Boolean @default(true)
 
   club        Club?        @relation(fields: [clubId], references: [id])
   coach       User         @relation(fields: [coachId], references: [id], onDelete: Cascade)
@@ -109,10 +115,30 @@ model Player {
   teamId            String
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
+  // Parent access: a short shareable code ("HAWK-7K2") the coach hands to a
+  // parent. Null until the coach issues one; cleared on revoke.
+  parentCode          String?   @unique
+  parentCodeCreatedAt DateTime?
 
   team              Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   statLines         StatLine[]
   attendanceRecords Attendance[]
+  parentLinks       ParentPlayerLink[]
+}
+
+// A PARENT user following one player. One parent can follow several players
+// (siblings on different teams); one player can have several parents.
+model ParentPlayerLink {
+  id       String   @id @default(cuid())
+  parentId String
+  playerId String
+  linkedAt DateTime @default(now())
+
+  parent User   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, playerId])
+  @@index([playerId])
 }
 
 enum Position {

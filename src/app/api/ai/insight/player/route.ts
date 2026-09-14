@@ -107,6 +107,7 @@ export async function POST(req: Request) {
 
   const request = buildPlayerInsightRequest({
     player,
+    usesPositions: player.team.usesPositions,
     scope: parsed.data.scope,
     scopeId: parsed.data.scopeId ?? null,
     scopeLabel,

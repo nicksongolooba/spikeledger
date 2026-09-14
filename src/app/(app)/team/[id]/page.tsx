@@ -5,6 +5,7 @@ import {
   Lock,
   MapPin,
   Plus,
+  Settings,
   Upload,
   Users,
 } from "lucide-react";
@@ -58,9 +59,14 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
   ]);
 
   const activePlayers = players.filter((p) => p.isActive);
+  const usesPositions = team.usesPositions;
 
   // Bank Account across the season for each player.
-  const bankAccountBars = buildPlayerBankAccountBars(players, statLines);
+  const bankAccountBars = buildPlayerBankAccountBars(
+    players,
+    statLines,
+    usesPositions ? "positions" : "universal",
+  );
 
   // Tournament net production for sparkline.
   const matchToTournament = new Map(matches.map((m) => [m.id, m.tournamentId]));
@@ -119,6 +125,11 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
               Shared club team - view only
             </div>
           )}
+          {!usesPositions && (
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600">
+              No set positions - everyone rotates through everything
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {canManage && (
@@ -140,6 +151,12 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
             <Link href={`/team/${team.id}/roster`} className="btn-secondary">
               <Users size={16} strokeWidth={2} aria-hidden />
               Manage roster
+            </Link>
+          )}
+          {canManage && (
+            <Link href={`/team/${team.id}/settings`} className="btn-secondary">
+              <Settings size={16} strokeWidth={2} aria-hidden />
+              Settings
             </Link>
           )}
           {canManage && (
@@ -347,8 +364,8 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
                         {p.name}
                       </span>
                       <span className="mt-0.5 flex flex-wrap gap-1">
-                        <PositionBadge position={p.primaryPosition} size="xs" />
-                        {p.secondaryPosition && (
+                        <PositionBadge position={p.primaryPosition} size="xs" neutral={!usesPositions} />
+                        {usesPositions && p.secondaryPosition && (
                           <PositionBadge position={p.secondaryPosition} size="xs" />
                         )}
                       </span>
@@ -368,11 +385,15 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
             Season Bank Account
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            Deposits against withdrawals for the whole season, grouped by
-            position so a libero is never lined up next to a hitter.
+            {usesPositions
+              ? "Deposits against withdrawals for the whole season, grouped by position so a libero is never lined up next to a hitter."
+              : "Deposits against withdrawals for the whole season. This team plays without set positions, so everyone is scored on the same all-around formula."}
           </p>
           <div className="mt-4">
-            <BankAccountBars data={bankAccountBars.map((p) => p.bar)} />
+            <BankAccountBars
+              data={bankAccountBars.map((p) => p.bar)}
+              grouped={usesPositions}
+            />
           </div>
         </section>
       )}

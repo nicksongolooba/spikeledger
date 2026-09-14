@@ -18,7 +18,7 @@ import {
 
 export function WhatToWorkOn({ data }: { data: ReportCardData }) {
   return (
-    <ReportShell position={data.player.position} cardKey="03 WHAT TO WORK ON">
+    <ReportShell position={data.player.position} neutral={!data.usesPositions} cardKey="03 WHAT TO WORK ON">
       <PlayerHeader
         name={data.player.name}
         number={data.player.number}
@@ -26,6 +26,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
         scopeLabel={data.scopeLabel}
         teamName={data.team.name}
         secondaryPosition={data.player.secondaryPosition}
+        neutral={!data.usesPositions}
       />
 
       <div

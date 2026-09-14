@@ -5,6 +5,7 @@
 import type { Position, StatLine } from "@prisma/client";
 import {
   calculateAggregateBankAccount,
+  type BankAccountMode,
   type BankAccountResult,
 } from "./bank-account";
 
@@ -85,6 +86,7 @@ function safeDiv(num: number, denom: number) {
 export function computeDerivedStats(
   lines: AggregatableLine[],
   fallbackPosition: Position,
+  mode: BankAccountMode = "positions",
 ): DerivedStats {
   let kills = 0;
   let attackErrors = 0;
@@ -160,7 +162,7 @@ export function computeDerivedStats(
     totalErrors,
     errorsPerMatch: safeDiv(totalErrors, matchesPlayed),
 
-    bankAccount: calculateAggregateBankAccount(lines, fallbackPosition),
+    bankAccount: calculateAggregateBankAccount(lines, fallbackPosition, mode),
 
     matchesPlayed,
     setsPlayed,

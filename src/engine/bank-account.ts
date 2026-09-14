@@ -21,6 +21,14 @@ import type { Position, StatLine } from "@prisma/client";
 
 export type PositionGroup = "libero_ds" | "hitter" | "setter_middle";
 
+// How a team is scored. "positions" is the default position-fair ledger.
+// "universal" is for teams that play without set positions (12U/13U, rec
+// leagues): everyone rotates through everything, so everyone is scored on
+// the same all-around formula:
+//   deposits    = kills, aces, blocks, assists, digs, SR 2s, SR 3s
+//   withdrawals = serve errors, attack errors, net errors, general errors, SR 0s
+export type BankAccountMode = "positions" | "universal";
+
 export const POSITION_GROUP_MAP: Record<Position, PositionGroup> = {
   L: "libero_ds",
   DS: "libero_ds",
@@ -80,6 +88,7 @@ export interface StatLineLike {
   sr2: number;
   sr3: number;
   generalErrors: number;
+  digs?: number; // only the universal formula reads it
 }
 
 function ratingFromRatio(deposits: number, withdrawals: number): {
@@ -114,7 +123,7 @@ function emptyResult(group: PositionGroup | null): BankAccountResult {
 // position group's rules. Both maps include only the keys that contribute.
 function contributionsFor(
   line: StatLineLike,
-  group: PositionGroup,
+  group: PositionGroup | "universal",
 ): { deposits: Record<string, number>; withdrawals: Record<string, number> } {
   const deposits: Record<string, number> = {
     kills: line.kills,
@@ -126,6 +135,18 @@ function contributionsFor(
     serveErrors: line.serveErrors,
     generalErrors: line.generalErrors,
   };
+
+  if (group === "universal") {
+    // No-positions teams: everyone passes, hits, blocks and digs, so every
+    // good action is a deposit and every error is a withdrawal.
+    deposits.sr2 = line.sr2;
+    deposits.sr3 = line.sr3;
+    deposits.digs = line.digs ?? 0;
+    withdrawals.sr0 = line.sr0;
+    withdrawals.attackErrors = line.attackErrors;
+    withdrawals.blockErrors = line.blockErrors;
+    return { deposits, withdrawals };
+  }
 
   if (group === "libero_ds") {
     // Liberos: passing IS the job, so SR 2 + SR 3 are deposits, SR 0 hurts.
@@ -170,9 +191,13 @@ function mergeInto(
 export function calculateBankAccount(
   line: StatLineLike,
   positionPlayed: Position,
+  mode: BankAccountMode = "positions",
 ): BankAccountResult {
   const group = positionGroupOf(positionPlayed);
-  const { deposits, withdrawals } = contributionsFor(line, group);
+  const { deposits, withdrawals } = contributionsFor(
+    line,
+    mode === "universal" ? "universal" : group,
+  );
   const depositTotal = sumValues(deposits);
   const withdrawalTotal = sumValues(withdrawals);
   const balance = depositTotal - withdrawalTotal;
@@ -192,7 +217,7 @@ export function calculateBankAccount(
     ratingColor: RATING_INFO[rating].color,
     depositBreakdown: trim(deposits),
     withdrawalBreakdown: trim(withdrawals),
-    positionGroup: group,
+    positionGroup: mode === "universal" ? null : group,
   };
 }
 
@@ -224,11 +249,12 @@ export function calculateAggregateBankAccount(
     | "sr3"
     | "generalErrors"
     | "positionPlayed"
-  >>,
+  > & { digs?: number }>,
   fallbackPosition: Position,
+  mode: BankAccountMode = "positions",
 ): BankAccountResult {
   if (lines.length === 0) {
-    return emptyResult(positionGroupOf(fallbackPosition));
+    return emptyResult(mode === "universal" ? null : positionGroupOf(fallbackPosition));
   }
 
   const aggDeposits: Record<string, number> = {};
@@ -239,7 +265,10 @@ export function calculateAggregateBankAccount(
     const pos = (line.positionPlayed ?? fallbackPosition) as Position;
     const group = positionGroupOf(pos);
     groupsSeen.add(group);
-    const { deposits, withdrawals } = contributionsFor(line, group);
+    const { deposits, withdrawals } = contributionsFor(
+      line,
+      mode === "universal" ? "universal" : group,
+    );
     mergeInto(aggDeposits, deposits);
     mergeInto(aggWithdrawals, withdrawals);
   }
@@ -258,12 +287,14 @@ export function calculateAggregateBankAccount(
     ratingColor: RATING_INFO[rating].color,
     depositBreakdown: aggDeposits,
     withdrawalBreakdown: aggWithdrawals,
-    positionGroup: groupsSeen.size === 1 ? [...groupsSeen][0] : null,
+    positionGroup:
+      mode === "universal" ? null : groupsSeen.size === 1 ? [...groupsSeen][0] : null,
   };
 }
 
 // Friendly labels for the breakdown chart keys.
 export const BREAKDOWN_LABELS: Record<string, string> = {
+  digs: "Digs",
   kills: "Kills",
   blocks: "Blocks",
   aces: "Aces",

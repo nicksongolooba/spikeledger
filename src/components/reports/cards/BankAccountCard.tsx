@@ -27,7 +27,7 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
   const withdrawalPct = (ba.withdrawals / total) * 100;
 
   return (
-    <ReportShell position={data.player.position} cardKey="04 BANK ACCOUNT">
+    <ReportShell position={data.player.position} neutral={!data.usesPositions} cardKey="04 BANK ACCOUNT">
       <PlayerHeader
         name={data.player.name}
         number={data.player.number}
@@ -35,6 +35,7 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
         scopeLabel={data.scopeLabel}
         teamName={data.team.name}
         secondaryPosition={data.player.secondaryPosition}
+        neutral={!data.usesPositions}
       />
 
       <div style={{ marginTop: "28px", display: "flex", alignItems: "center", gap: "32px" }}>

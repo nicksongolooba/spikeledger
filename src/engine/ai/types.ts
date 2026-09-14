@@ -9,6 +9,8 @@ export interface PlayerInsightRequest {
   scopeId: string | null;       // matchId / tournamentId / null for season
   scopeLabel: string;           // human-readable, used in prompt
   ageGroup?: string | null;     // team's age group ("16U") - drives benchmarks
+  // false = no-positions team: evaluate as a developing all-around player.
+  usesPositions?: boolean;
   player: {
     id: string;
     name: string;
@@ -60,6 +62,7 @@ export interface TeamInsightRequest {
   scopeId: string | null;
   scopeLabel: string;
   ageGroup?: string | null;     // team's age group ("16U") - drives benchmarks
+  usesPositions?: boolean;      // false = no-positions team
   team: { id: string; name: string };
   record: string;
   tournamentTrend: Array<{

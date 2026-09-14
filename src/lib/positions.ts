@@ -40,3 +40,19 @@ export const POSITION_BADGE_CLASS: Record<Position, string> = {
   L: "bg-emerald-600 text-white",
   DS: "bg-emerald-600 text-white",
 };
+
+// No-positions teams show every player as a plain "Player" instead of a
+// position. Use these helpers wherever a label or badge is rendered so the
+// choice is made in one place.
+export const NO_POSITION_LABEL = "Player";
+export function positionLabel(position: Position, usesPositions: boolean): string {
+  return usesPositions ? POSITION_LABELS[position] : NO_POSITION_LABEL;
+}
+
+// Suggested positions-mode default when a coach creates a team: younger age
+// groups usually rotate everyone through everything.
+export function suggestUsesPositions(ageGroup: string | null | undefined): boolean {
+  const n = parseInt(ageGroup?.match(/\d{1,2}/)?.[0] ?? "", 10);
+  if (!Number.isFinite(n)) return true;
+  return n >= 15;
+}

@@ -38,6 +38,7 @@ export function CourtFormation({
   selectedId,
   onSelect,
   compact = false,
+  neutral = false,
 }: {
   // ordered[i] is the player id at court position i+1 (index 0 = position 1).
   ordered: (string | undefined)[];
@@ -46,6 +47,8 @@ export function CourtFormation({
   selectedId?: string | null;
   onSelect?: (playerId: string) => void;
   compact?: boolean;
+  // No-positions teams: plain "Player" chips, no position-group tint.
+  neutral?: boolean;
 }) {
   const playerById = (id: string) => roster.find((p) => p.id === id) ?? null;
 
@@ -98,6 +101,7 @@ export function CourtFormation({
                 selected={selectedId === id}
                 interactive={!!onSelect}
                 compact={compact}
+                neutral={neutral}
                 onClick={onSelect ? () => onSelect(id) : undefined}
               />
             </div>
@@ -116,6 +120,7 @@ function CourtCard({
   selected,
   interactive,
   compact,
+  neutral,
   onClick,
 }: {
   player: RosterPlayer;
@@ -125,6 +130,7 @@ function CourtCard({
   selected: boolean;
   interactive: boolean;
   compact: boolean;
+  neutral: boolean;
   onClick?: () => void;
 }) {
   const group = POSITION_GROUP[positionPlayed];
@@ -137,7 +143,7 @@ function CourtCard({
         "relative flex h-full w-full flex-col items-center justify-center rounded-md border-2 bg-white px-1 text-center transition-all",
         interactive && "active:scale-[0.97]",
         "ring-1",
-        GROUP_RING[group],
+        neutral ? "ring-slate-200" : GROUP_RING[group],
         selected
           ? "border-orange-500 bg-orange-50 ring-2 ring-orange-500"
           : isServer
@@ -168,7 +174,7 @@ function CourtCard({
           {player.name}
         </div>
       )}
-      <PositionBadge position={positionPlayed} size="xs" className="mt-1" />
+      <PositionBadge position={positionPlayed} size="xs" className="mt-1" neutral={neutral} />
     </button>
   );
 }

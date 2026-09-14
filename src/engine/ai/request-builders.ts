@@ -70,8 +70,32 @@ export function statsForGroup(
   };
 }
 
+// Every stat that matters when a team plays without set positions.
+export function statsForUniversal(
+  derived: ReturnType<typeof computeDerivedStats>,
+): Record<string, number> {
+  return {
+    matchesPlayed: derived.matchesPlayed,
+    killsPerMatch: derived.killsPerMatch,
+    hittingEfficiency: derived.hittingEfficiency,
+    totalKills: derived.totalKills,
+    totalAttackErrors: derived.totalAttackErrors,
+    srAverage: derived.srAverage,
+    srTotal: derived.srTotal,
+    perfectPassPercentage: derived.perfectPassPercentage,
+    digsPerMatch: derived.digsPerMatch,
+    blocksPerMatch: derived.blocksPerMatch,
+    assistsPerMatch: derived.assistsPerMatch,
+    acesPerMatch: derived.acesPerMatch,
+    totalServeErrors: derived.totalServeErrors,
+    serveErrorPercentage: derived.serveErrorPercentage,
+    errorsPerMatch: derived.errorsPerMatch,
+  };
+}
+
 export interface BuildPlayerInsightArgs {
   player: Player;
+  usesPositions?: boolean;
   scope: "match" | "tournament" | "season";
   scopeId: string | null;
   scopeLabel: string;
@@ -88,17 +112,19 @@ export interface BuildPlayerInsightArgs {
 export function buildPlayerInsightRequest(
   args: BuildPlayerInsightArgs,
 ): PlayerInsightRequest {
+  const usesPositions = args.usesPositions ?? true;
+  const mode = usesPositions ? "positions" : "universal";
   const evaluatedAs = mostPlayed(args.playerLines, args.player.primaryPosition);
   const group = POSITION_GROUP_MAP[evaluatedAs];
-  const derived = computeDerivedStats(args.playerLines, args.player.primaryPosition);
-  const stats = statsForGroup(group, derived);
+  const derived = computeDerivedStats(args.playerLines, args.player.primaryPosition, mode);
+  const stats = usesPositions ? statsForGroup(group, derived) : statsForUniversal(derived);
   const bankAccount = derived.bankAccount;
 
   const trend = args.trendBuckets?.map((b) => {
-    const ds = computeDerivedStats(b.lines, args.player.primaryPosition);
+    const ds = computeDerivedStats(b.lines, args.player.primaryPosition, mode);
     return {
       scopeLabel: b.label,
-      stats: statsForGroup(group, ds),
+      stats: usesPositions ? statsForGroup(group, ds) : statsForUniversal(ds),
       bankAccount: {
         balance: ds.bankAccount.balance,
         rating: ds.bankAccount.rating,
@@ -113,6 +139,7 @@ export function buildPlayerInsightRequest(
     scopeId: args.scopeId,
     scopeLabel: args.scopeLabel,
     ageGroup: args.ageGroup ?? null,
+    usesPositions,
     player: {
       id: args.player.id,
       name: args.player.name,
@@ -129,6 +156,7 @@ export function buildPlayerInsightRequest(
 
 export interface BuildTeamInsightArgs {
   team: { id: string; name: string };
+  usesPositions?: boolean;
   ageGroup?: string | null;
   scope: "tournament" | "season";
   scopeId: string | null;
@@ -181,7 +209,11 @@ export function buildTeamInsightRequest(args: BuildTeamInsightArgs): TeamInsight
       const lines = args.scopedLinesByPlayer.get(p.id) ?? [];
       if (lines.length === 0) return null;
       const pos = mostPlayed(lines, p.primaryPosition);
-      const ba = calculateAggregateBankAccount(lines, p.primaryPosition);
+      const ba = calculateAggregateBankAccount(
+        lines,
+        p.primaryPosition,
+        args.usesPositions === false ? "universal" : "positions",
+      );
       return {
         name: p.name,
         position: pos,
@@ -205,6 +237,7 @@ export function buildTeamInsightRequest(args: BuildTeamInsightArgs): TeamInsight
     scopeId: args.scopeId,
     scopeLabel: args.scopeLabel,
     ageGroup: args.ageGroup ?? null,
+    usesPositions: args.usesPositions ?? true,
     team: args.team,
     record: `${totalWins}-${totalLosses}`,
     tournamentTrend: trend,
