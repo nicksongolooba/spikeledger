@@ -3,12 +3,16 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { acceptInvite, ClubError } from "@/lib/club";
+import { linkParentByCode, ParentError } from "@/lib/parent";
 
 const RegisterSchema = z.object({
   name: z.string().min(1, "Name is required").max(80),
   email: z.string().email("Invalid email"),
   password: z.string().min(8, "Password must be at least 8 characters").max(200),
+  role: z.enum(["COACH", "PARENT"]).default("COACH"),
   inviteCode: z.string().max(40).optional(),
+  // Parents can redeem their child's code during signup (or later in settings).
+  parentCode: z.string().max(20).optional(),
 });
 
 export async function POST(req: Request) {
@@ -42,6 +46,7 @@ export async function POST(req: Request) {
       email,
       name: parsed.data.name,
       passwordHash,
+      role: parsed.data.role,
     },
   });
 
@@ -50,7 +55,7 @@ export async function POST(req: Request) {
   // message is surfaced so the UI can show it after login.
   let joinedClub: string | null = null;
   let inviteError: string | null = null;
-  if (parsed.data.inviteCode) {
+  if (parsed.data.role === "COACH" && parsed.data.inviteCode) {
     try {
       const result = await acceptInvite(parsed.data.inviteCode, user.id);
       joinedClub = result.clubName;
@@ -59,5 +64,25 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, joinedClub, inviteError });
+  // Parent signing up with their child's code - link now; a bad code is a
+  // soft error (they can retry from settings).
+  let linkedPlayer: string | null = null;
+  let parentCodeError: string | null = null;
+  if (parsed.data.role === "PARENT" && parsed.data.parentCode?.trim()) {
+    try {
+      const { player } = await linkParentByCode(user.id, parsed.data.parentCode);
+      linkedPlayer = player.name;
+    } catch (err) {
+      parentCodeError = err instanceof ParentError ? err.message : "Could not link that code.";
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    role: user.role,
+    joinedClub,
+    inviteError,
+    linkedPlayer,
+    parentCodeError,
+  });
 }

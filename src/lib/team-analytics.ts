@@ -2,7 +2,10 @@
 // shapes used by the team / tournament / player pages.
 
 import type { Position, StatLine, Player, Tournament } from "@prisma/client";
-import { calculateAggregateBankAccount } from "@/engine/bank-account";
+import {
+  calculateAggregateBankAccount,
+  type BankAccountMode,
+} from "@/engine/bank-account";
 import type { BankAccountBarDatum } from "@/components/charts/BankAccountBars";
 
 export interface PlayerBankAccountAgg {
@@ -15,6 +18,7 @@ export interface PlayerBankAccountAgg {
 export function buildPlayerBankAccountBars(
   players: Player[],
   statLines: StatLine[],
+  mode: BankAccountMode = "positions",
 ): PlayerBankAccountAgg[] {
   const linesByPlayer = new Map<string, StatLine[]>();
   for (const s of statLines) {
@@ -25,7 +29,7 @@ export function buildPlayerBankAccountBars(
   for (const p of players) {
     const lines = linesByPlayer.get(p.id) ?? [];
     if (lines.length === 0) continue;
-    const ba = calculateAggregateBankAccount(lines, p.primaryPosition);
+    const ba = calculateAggregateBankAccount(lines, p.primaryPosition, mode);
     const matchesPlayed = lines.filter((l) => !l.didNotPlay).length;
     // For dual-role players we display the position they played MOST often.
     const counts: Partial<Record<Position, number>> = {};

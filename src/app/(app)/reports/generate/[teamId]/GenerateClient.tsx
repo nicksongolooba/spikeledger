@@ -43,6 +43,7 @@ interface ScopeOption {
 
 interface Props {
   teamName: string;
+  usesPositions?: boolean;
   scopeOptions: ScopeOption[];
   players: PlayerLite[];
   dataByPlayerByScope: Record<string, Record<string, ReportCardData>>;
@@ -52,6 +53,7 @@ interface Props {
 
 export function GenerateClient({
   teamName,
+  usesPositions = true,
   scopeOptions,
   players,
   dataByPlayerByScope,
@@ -287,8 +289,8 @@ export function GenerateClient({
                     {p.name}
                   </div>
                   <div className="mt-0.5 flex flex-wrap gap-1">
-                    <PositionBadge position={p.primaryPosition} size="xs" />
-                    {p.secondaryPosition && (
+                    <PositionBadge position={p.primaryPosition} size="xs" neutral={!usesPositions} />
+                    {usesPositions && p.secondaryPosition && (
                       <PositionBadge position={p.secondaryPosition} size="xs" />
                     )}
                     {!hasData && (

@@ -7,6 +7,8 @@ import { Plus } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { useUpgradePrompt } from "@/components/billing/UpgradePrompt";
 import { canUserPerformAction } from "@/lib/plan-limits";
+import { suggestUsesPositions } from "@/lib/positions";
+import { cn } from "@/lib/utils";
 
 export function CreateTeamButton({
   variant = "default",
@@ -23,7 +25,15 @@ export function CreateTeamButton({
   const [name, setName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [season, setSeason] = useState("");
+  // Suggested from the age group until the coach picks explicitly.
+  const [usesPositions, setUsesPositions] = useState<boolean>(true);
+  const [positionsTouched, setPositionsTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function onAgeGroupChange(value: string) {
+    setAgeGroup(value);
+    if (!positionsTouched) setUsesPositions(suggestUsesPositions(value));
+  }
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -33,7 +43,7 @@ export function CreateTeamButton({
     const res = await fetch("/api/teams", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, ageGroup, season }),
+      body: JSON.stringify({ name, ageGroup, season, usesPositions }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -89,7 +99,7 @@ export function CreateTeamButton({
               <input
                 id="age-group"
                 value={ageGroup}
-                onChange={(e) => setAgeGroup(e.target.value)}
+                onChange={(e) => onAgeGroupChange(e.target.value)}
                 className="input"
                 placeholder="16U"
               />
@@ -105,6 +115,29 @@ export function CreateTeamButton({
               />
             </div>
           </div>
+
+          <fieldset>
+            <legend className="label">Does your team play with set positions?</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <PositionsChoice
+                active={usesPositions}
+                onClick={() => { setUsesPositions(true); setPositionsTouched(true); }}
+                title="Yes"
+                body="We have setters, liberos, hitters, middles"
+              />
+              <PositionsChoice
+                active={!usesPositions}
+                onClick={() => { setUsesPositions(false); setPositionsTouched(true); }}
+                title="No"
+                body="Everyone rotates through all positions"
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500">
+              {ageGroup.trim()
+                ? `Suggested for ${ageGroup.trim()}: ${suggestUsesPositions(ageGroup) ? "set positions" : "no positions"}. You can change it later in team settings.`
+                : "12U to 14U teams usually pick no. You can change it later in team settings."}
+            </p>
+          </fieldset>
 
           {error && (
             <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -127,5 +160,32 @@ export function CreateTeamButton({
         </form>
       </Modal>
     </>
+  );
+}
+
+function PositionsChoice({
+  active,
+  onClick,
+  title,
+  body,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  body: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "rounded-md border-2 px-3 py-2.5 text-left transition-colors",
+        active ? "border-navy-900 bg-navy-50" : "border-slate-200 bg-white hover:border-slate-400",
+      )}
+    >
+      <span className="block font-semibold text-slate-900">{title}</span>
+      <span className="block text-xs text-slate-600">{body}</span>
+    </button>
   );
 }

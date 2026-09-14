@@ -224,13 +224,114 @@ const MAINTAIN_AREAS: Record<PositionGroup, ImprovementArea[]> = {
   ],
 };
 
+// No-positions teams: everyone rotates through everything, so the same
+// all-around rule set applies to every player. Passing and serving first
+// (they decide most rallies at this level), then attacking, ball control and
+// defence.
+const UNIVERSAL_RULES: Array<(s: DerivedStats) => ImprovementArea | null> = [
+  (s) => {
+    if (s.srTotal < 5 || s.srAverage >= 2.0) return null;
+    return {
+      metric: "Serve receive",
+      current: s.srAverage.toFixed(2),
+      target: "2.0+",
+      detail:
+        "Partner passing, 10 min/practice: platform out early, feet to the ball, pass to the setter's spot every time.",
+      youtubeQuery: "serve receive passing drill",
+      severity: ((2.0 - s.srAverage) / 2.0) * 1.2,
+    };
+  },
+  (s) => {
+    if (s.totalServeErrors + s.totalAces < 3 || s.serveErrorPercentage <= 0.25) return null;
+    return {
+      metric: "Serve consistency",
+      current: `${(s.serveErrorPercentage * 100).toFixed(0)}% errors`,
+      target: "<20%",
+      detail:
+        "Target serving: 20 serves per practice, aim deep to zones 1 and 5. Same toss, same contact, every time.",
+      youtubeQuery: "serving accuracy target drill",
+      severity: (s.serveErrorPercentage - 0.2) * 1.5,
+    };
+  },
+  (s) => {
+    if (s.totalKills + s.totalAttackErrors < 5 || s.hittingEfficiency >= 0.15) return null;
+    return {
+      metric: "Attacking",
+      current: `${(s.hittingEfficiency * 100).toFixed(0)}%`,
+      target: "20%+",
+      detail:
+        "Approach and swing reps off a toss: full 4-step approach, contact high and in front, aim cross-court first.",
+      youtubeQuery: "hitting approach footwork drill",
+      severity: Math.max(0, (0.2 - s.hittingEfficiency) / 0.2),
+    };
+  },
+  (s) => {
+    if (s.matchesPlayed === 0 || s.errorsPerMatch <= 3) return null;
+    return {
+      metric: "Ball control",
+      current: `${s.errorsPerMatch.toFixed(1)} errors/match`,
+      target: "<2",
+      detail:
+        "Pepper and controlled passing, 8 min/practice. Slow it down - accuracy first, then power.",
+      youtubeQuery: "pepper ball control drill",
+      severity: Math.min(1, (s.errorsPerMatch - 2) / 5),
+    };
+  },
+  (s) => {
+    if (s.matchesPlayed < 2 || s.digsPerMatch >= 3) return null;
+    return {
+      metric: "Defence",
+      current: `${s.digsPerMatch.toFixed(1)} digs/match`,
+      target: "4+",
+      detail:
+        "Coach-on-box digging: read the hitter's shoulder, get stopped and low before contact, platform to target.",
+      youtubeQuery: "digging defense drill",
+      severity: Math.max(0, (4 - s.digsPerMatch) / 4) * 0.7,
+    };
+  },
+];
+
+const UNIVERSAL_MAINTAIN: ImprovementArea[] = [
+  {
+    metric: "Keep building every skill",
+    current: "-",
+    target: "-",
+    detail:
+      "Numbers are solid across the board. Keep rotating through every spot - passing, serving, hitting and defence all count at this level.",
+    youtubeQuery: "all around volleyball skills drill",
+    severity: 0,
+  },
+  {
+    metric: "Serve tough late in sets",
+    current: "-",
+    target: "-",
+    detail:
+      "When the score gets tight, keep the same toss and the same routine. Aggressive, not careful.",
+    severity: 0,
+  },
+];
+
 export function computeImprovementAreas(
   stats: DerivedStats,
   position: Position,
   playerName: string,
+  opts: { universal?: boolean } = {},
 ): ImprovementArea[] {
-  const group = POSITION_GROUP[position];
   const areas: ImprovementArea[] = [];
+  if (opts.universal) {
+    for (const rule of UNIVERSAL_RULES) {
+      const result = rule(stats);
+      if (result) areas.push(result);
+    }
+    areas.sort((a, b) => b.severity - a.severity);
+    const top = areas.slice(0, 3);
+    for (const f of UNIVERSAL_MAINTAIN) {
+      if (top.length >= 3) break;
+      top.push(f);
+    }
+    return top;
+  }
+  const group = POSITION_GROUP[position];
   for (const rule of RULES) {
     if (!rule.appliesTo.includes(group)) continue;
     const result = rule.evaluate(stats, playerName);

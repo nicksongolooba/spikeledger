@@ -22,6 +22,15 @@ interface Callout {
 
 function calloutsFor(data: ReportCardData): Callout[] {
   const s = data.stats;
+  if (!data.usesPositions) {
+    return [
+      { label: "Kills / Match", value: fmtNum(s.killsPerMatch, 1) },
+      { label: "SR Avg", value: s.srTotal > 0 ? fmtNum(s.srAverage, 2) : "-" },
+      { label: "Aces / Match", value: fmtNum(s.acesPerMatch, 1) },
+      { label: "Digs / Match", value: fmtNum(s.digsPerMatch, 1) },
+      { label: "Errors / Match", value: fmtNum(s.errorsPerMatch, 1) },
+    ];
+  }
   const group = POSITION_GROUP_MAP[data.player.position];
   if (group === "libero_ds") {
     return [
@@ -62,6 +71,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
   return (
     <ReportShell
       position={data.player.position}
+      neutral={!data.usesPositions}
       accentOverride={ba.ratingColor}
       cardKey="01 OVERVIEW"
     >
@@ -72,6 +82,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
         scopeLabel={data.scopeLabel}
         teamName={data.team.name}
         secondaryPosition={data.player.secondaryPosition}
+        neutral={!data.usesPositions}
       />
 
       {/* Bank Account hero - the rating color carries the top rule, the big number and the pill */}
@@ -256,7 +267,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
         <span>
           {data.stats.matchesPlayed} matches · {data.stats.setsPlayed} sets
         </span>
-        <span>Position-fair evaluation</span>
+        <span>{data.usesPositions ? "Position-fair evaluation" : "All-around evaluation"}</span>
       </div>
     </ReportShell>
   );

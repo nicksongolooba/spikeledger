@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "How SpikeLedger collects, uses, and protects your data.",
 };
 
-const UPDATED = "June 11, 2026";
+const UPDATED = "September 14, 2026";
 
 function H2({ children }: { children: React.ReactNode }) {
   return (
@@ -88,6 +88,26 @@ export default function PrivacyPage() {
         the club owner can additionally view the club&apos;s teams for
         oversight. Public share links you create (for example, parent report
         cards) are viewable by anyone with the link - share them carefully.
+      </P>
+
+      <H2>Parent access</H2>
+      <P>
+        Coaches can give a parent or guardian a short access code for one
+        player. A parent who redeems the code on a free parent account can see
+        that player&apos;s statistics only: their own child&apos;s stat lines,
+        Bank Account rating, season trend, report cards and coaching focus
+        areas, plus team-wide averages for context. Parents never see another
+        player&apos;s name or statistics, the roster, lineups, position-group
+        comparisons, or the coach&apos;s tactical notes. Live updates during
+        a match show the same child-only numbers.
+      </P>
+      <P>
+        Access follows the coach: a coach can revoke a parent code at any time
+        (which unlinks every parent using it), pause the parent view for a
+        whole team, or remove the player from the roster - each ends the
+        parent&apos;s access immediately. A parent can also unlink a player
+        from their own settings. Parent accounts collect only a name, email
+        address and password.
       </P>
 
       <H2>Data retention and deletion</H2>

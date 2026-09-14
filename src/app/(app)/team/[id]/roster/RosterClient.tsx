@@ -2,24 +2,42 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Player, Position } from "@prisma/client";
+import type { Position } from "@prisma/client";
 import {
   AlertTriangle,
   Archive,
   ArchiveRestore,
+  Check,
+  Copy,
+  Heart,
   Pencil,
   Plus,
+  RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { POSITIONS, POSITION_LABELS } from "@/lib/positions";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
-type EditingPlayer = Pick<
-  Player,
-  "id" | "name" | "number" | "primaryPosition" | "secondaryPosition" | "isActive"
->;
+export interface RosterParentLink {
+  id: string;
+  linkedAt: string;
+  parentName: string | null;
+  parentEmail: string;
+}
+
+export interface RosterPlayerRow {
+  id: string;
+  name: string;
+  number: number | null;
+  primaryPosition: Position;
+  secondaryPosition: Position | null;
+  isActive: boolean;
+  parentCode: string | null;
+  parentLinks: RosterParentLink[];
+}
 
 interface PlayerFormState {
   name: string;
@@ -37,10 +55,12 @@ const EMPTY_FORM: PlayerFormState = {
 
 export function RosterClient({
   teamId,
+  usesPositions,
   initialPlayers,
 }: {
   teamId: string;
-  initialPlayers: EditingPlayer[];
+  usesPositions: boolean;
+  initialPlayers: RosterPlayerRow[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -48,15 +68,16 @@ export function RosterClient({
   const [form, setForm] = useState<PlayerFormState>(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [parentFor, setParentFor] = useState<RosterPlayerRow | null>(null);
 
   function openAdd() {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm(usesPositions ? EMPTY_FORM : { ...EMPTY_FORM, primaryPosition: "UTIL" });
     setError(null);
     setOpen(true);
   }
 
-  function openEdit(p: EditingPlayer) {
+  function openEdit(p: RosterPlayerRow) {
     setEditingId(p.id);
     setForm({
       name: p.name,
@@ -76,8 +97,11 @@ export function RosterClient({
     const body = {
       name: form.name.trim(),
       number: form.number ? Number(form.number) : null,
-      primaryPosition: form.primaryPosition,
-      secondaryPosition: form.secondaryPosition === "" ? null : form.secondaryPosition,
+      // No-positions teams store every player as Utility; positions are
+      // hidden in the UI but kept so switching modes later loses nothing.
+      primaryPosition: usesPositions ? form.primaryPosition : editingId ? form.primaryPosition : "UTIL",
+      secondaryPosition:
+        usesPositions && form.secondaryPosition !== "" ? form.secondaryPosition : null,
     };
 
     const res = await fetch(
@@ -101,7 +125,7 @@ export function RosterClient({
     router.refresh();
   }
 
-  async function toggleActive(p: EditingPlayer) {
+  async function toggleActive(p: RosterPlayerRow) {
     const res = await fetch(`/api/teams/${teamId}/players/${p.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -112,26 +136,23 @@ export function RosterClient({
 
   const activePlayers = initialPlayers.filter((p) => p.isActive);
   const inactivePlayers = initialPlayers.filter((p) => !p.isActive);
+  const linkedCount = initialPlayers.reduce((n, p) => n + (p.parentLinks.length > 0 ? 1 : 0), 0);
 
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         {initialPlayers.length > 0 && (
           <p className="text-sm text-slate-500">
-            <span className="font-semibold text-slate-900">
-              {activePlayers.length}
-            </span>{" "}
-            active
+            <span className="font-semibold text-slate-900">{activePlayers.length}</span> active
             {inactivePlayers.length > 0 && (
               <>
-                {" "}
-                ·{" "}
-                <span className="font-semibold text-slate-900">
-                  {inactivePlayers.length}
-                </span>{" "}
-                inactive
+                {" "}·{" "}
+                <span className="font-semibold text-slate-900">{inactivePlayers.length}</span> inactive
               </>
             )}
+            {" "}·{" "}
+            <span className="font-semibold text-slate-900">{linkedCount}</span>{" "}
+            with parents linked
           </p>
         )}
         <button onClick={openAdd} className="btn-primary ml-auto">
@@ -153,7 +174,13 @@ export function RosterClient({
         />
       ) : (
         <>
-          <PlayerTable players={activePlayers} onEdit={openEdit} onToggle={toggleActive} />
+          <PlayerTable
+            players={activePlayers}
+            usesPositions={usesPositions}
+            onEdit={openEdit}
+            onToggle={toggleActive}
+            onParent={setParentFor}
+          />
           {inactivePlayers.length > 0 && (
             <div className="mt-10">
               <div className="mb-3 flex items-center gap-2">
@@ -162,8 +189,10 @@ export function RosterClient({
               </div>
               <PlayerTable
                 players={inactivePlayers}
+                usesPositions={usesPositions}
                 onEdit={openEdit}
                 onToggle={toggleActive}
+                onParent={setParentFor}
                 dim
               />
             </div>
@@ -204,71 +233,71 @@ export function RosterClient({
                 placeholder="7"
               />
             </div>
+            {usesPositions && (
+              <div>
+                <label htmlFor="p-pos" className="label">Primary position</label>
+                <select
+                  id="p-pos"
+                  required
+                  value={form.primaryPosition}
+                  onChange={(e) =>
+                    setForm({ ...form, primaryPosition: e.target.value as Position })
+                  }
+                  className="input"
+                >
+                  {POSITIONS.map((p) => (
+                    <option key={p} value={p}>
+                      {p} - {POSITION_LABELS[p]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+          {usesPositions ? (
             <div>
-              <label htmlFor="p-pos" className="label">Primary position</label>
+              <label htmlFor="p-pos2" className="label">
+                Secondary position{" "}
+                <span className="font-normal text-slate-500">(optional)</span>
+              </label>
               <select
-                id="p-pos"
-                required
-                value={form.primaryPosition}
+                id="p-pos2"
+                value={form.secondaryPosition}
                 onChange={(e) =>
-                  setForm({ ...form, primaryPosition: e.target.value as Position })
+                  setForm({
+                    ...form,
+                    secondaryPosition: e.target.value as Position | "",
+                  })
                 }
                 className="input"
               >
+                <option value="">- None -</option>
                 {POSITIONS.map((p) => (
                   <option key={p} value={p}>
                     {p} - {POSITION_LABELS[p]}
                   </option>
                 ))}
               </select>
+              <p className="mt-1.5 text-xs text-slate-500">
+                For dual-role players who play one position some matches and another in others.
+              </p>
             </div>
-          </div>
-          <div>
-            <label htmlFor="p-pos2" className="label">
-              Secondary position{" "}
-              <span className="font-normal text-slate-500">(optional)</span>
-            </label>
-            <select
-              id="p-pos2"
-              value={form.secondaryPosition}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  secondaryPosition: e.target.value as Position | "",
-                })
-              }
-              className="input"
-            >
-              <option value="">- None -</option>
-              {POSITIONS.map((p) => (
-                <option key={p} value={p}>
-                  {p} - {POSITION_LABELS[p]}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1.5 text-xs text-slate-500">
-              For dual-role players who play one position some matches and another in others.
+          ) : (
+            <p className="text-xs text-slate-500">
+              No positions on this team - everyone rotates through every spot.
+              Turn positions on in team settings if that changes.
             </p>
-          </div>
+          )}
 
           {error && (
             <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              <AlertTriangle
-                size={16}
-                strokeWidth={2}
-                className="mt-0.5 shrink-0"
-                aria-hidden
-              />
+              <AlertTriangle size={16} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden />
               <span>{error}</span>
             </div>
           )}
 
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="btn-secondary"
-            >
+            <button type="button" onClick={() => setOpen(false)} className="btn-secondary">
               Cancel
             </button>
             <button type="submit" disabled={busy} className="btn-primary">
@@ -277,17 +306,213 @@ export function RosterClient({
           </div>
         </form>
       </Modal>
+
+      <ParentAccessModal
+        teamId={teamId}
+        player={parentFor}
+        onClose={() => setParentFor(null)}
+      />
     </>
   );
 }
 
-function Th({
-  children,
-  className,
+// ---------------------------------------------------------------------------
+// Parent access: issue / copy / regenerate / revoke a player's parent code.
+// ---------------------------------------------------------------------------
+function ParentAccessModal({
+  teamId,
+  player,
+  onClose,
 }: {
-  children: React.ReactNode;
-  className?: string;
+  teamId: string;
+  player: RosterPlayerRow | null;
+  onClose: () => void;
 }) {
+  const router = useRouter();
+  const [code, setCode] = useState<string | null>(null);
+  const [busy, setBusy] = useState<"issue" | "revoke" | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
+
+  // The modal is remounted per player via `key` below, so state resets.
+  const current = code ?? player?.parentCode ?? null;
+
+  async function issue() {
+    if (!player) return;
+    setBusy("issue");
+    setError(null);
+    const res = await fetch(`/api/teams/${teamId}/players/${player.id}/parent-code`, {
+      method: "POST",
+    });
+    const data = (await res.json().catch(() => ({}))) as { code?: string; error?: string };
+    setBusy(null);
+    if (!res.ok || !data.code) {
+      setError(data.error || "Could not create a code.");
+      return;
+    }
+    setCode(data.code);
+    router.refresh();
+  }
+
+  async function revoke() {
+    if (!player) return;
+    setBusy("revoke");
+    setError(null);
+    const res = await fetch(`/api/teams/${teamId}/players/${player.id}/parent-code`, {
+      method: "DELETE",
+    });
+    setBusy(null);
+    if (!res.ok) {
+      setError("Could not revoke access.");
+      return;
+    }
+    setCode(null);
+    setConfirmRevoke(false);
+    router.refresh();
+    onClose();
+  }
+
+  async function copy() {
+    if (!current) return;
+    try {
+      await navigator.clipboard.writeText(current);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard blocked - the code is still visible to copy by hand.
+    }
+  }
+
+  return (
+    <Modal
+      key={player?.id ?? "none"}
+      open={!!player}
+      onClose={onClose}
+      title={player ? `Parent access - ${player.name}` : "Parent access"}
+    >
+      {player && (
+        <div className="space-y-5">
+          <p className="text-sm text-slate-600">
+            Give this code to {player.name}&apos;s parent. They enter it when
+            they create a SpikeLedger account (choosing &ldquo;I&apos;m a
+            parent&rdquo;) or later in their settings. They will see only{" "}
+            {player.name}&apos;s stats, compared to team averages - never
+            another player&apos;s numbers.
+          </p>
+
+          {current ? (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="eyebrow text-slate-500">Parent code</div>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="stat-number text-4xl font-bold tracking-wide text-navy-900">
+                  {current}
+                </span>
+                <button type="button" onClick={copy} className="btn-secondary">
+                  {copied ? (
+                    <Check size={16} strokeWidth={2.5} aria-hidden />
+                  ) : (
+                    <Copy size={16} strokeWidth={2} aria-hidden />
+                  )}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+                <button
+                  type="button"
+                  onClick={issue}
+                  disabled={busy !== null}
+                  className="btn-ghost"
+                  title="Make a new code - parents already linked stay linked"
+                >
+                  <RefreshCw size={16} strokeWidth={2} aria-hidden />
+                  New code
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                Text it, WhatsApp it, or read it out at pickup. A new code
+                replaces this one for future parents; anyone already linked
+                keeps access.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center">
+              <p className="text-sm text-slate-600">No parent code yet.</p>
+              <button
+                type="button"
+                onClick={issue}
+                disabled={busy !== null}
+                className="btn-primary mt-3"
+              >
+                {busy === "issue" ? "Creating…" : "Create parent code"}
+              </button>
+            </div>
+          )}
+
+          <div>
+            <div className="eyebrow text-slate-500">Linked parents</div>
+            {player.parentLinks.length === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">Nobody has linked yet.</p>
+            ) : (
+              <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200">
+                {player.parentLinks.map((l) => (
+                  <li key={l.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                    <div className="min-w-0">
+                      <div className="truncate font-semibold text-slate-900">
+                        {l.parentName ?? "Parent"}
+                      </div>
+                      <div className="truncate text-xs text-slate-500">{l.parentEmail}</div>
+                    </div>
+                    <div className="shrink-0 text-xs text-slate-500">
+                      since {formatDate(l.linkedAt)}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {error && (
+            <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <AlertTriangle size={16} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {(current || player.parentLinks.length > 0) && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+              {confirmRevoke ? (
+                <>
+                  <span className="text-sm text-slate-700">
+                    Unlink every parent and cancel the code?
+                  </span>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setConfirmRevoke(false)} className="btn-secondary">
+                      Keep
+                    </button>
+                    <button type="button" onClick={revoke} disabled={busy !== null} className="btn-danger">
+                      {busy === "revoke" ? "Revoking…" : "Revoke access"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs text-slate-500">
+                    Revoking removes every linked parent and cancels the code.
+                  </span>
+                  <button type="button" onClick={() => setConfirmRevoke(true)} className="btn-danger">
+                    <Trash2 size={16} strokeWidth={2} aria-hidden />
+                    Revoke access
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function Th({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <th className={cn("eyebrow px-4 py-2.5 text-left text-slate-500", className)}>
       {children}
@@ -295,15 +520,32 @@ function Th({
   );
 }
 
+function ParentBadge({ count }: { count: number }) {
+  if (count === 0) return null;
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded bg-navy-50 px-1.5 py-0.5 text-[11px] font-semibold text-navy-800"
+      title={`${count} parent${count === 1 ? "" : "s"} linked`}
+    >
+      <Heart size={11} strokeWidth={2.5} aria-hidden />
+      {count}
+    </span>
+  );
+}
+
 function PlayerTable({
   players,
+  usesPositions,
   onEdit,
   onToggle,
+  onParent,
   dim,
 }: {
-  players: EditingPlayer[];
-  onEdit: (p: EditingPlayer) => void;
-  onToggle: (p: EditingPlayer) => void;
+  players: RosterPlayerRow[];
+  usesPositions: boolean;
+  onEdit: (p: RosterPlayerRow) => void;
+  onToggle: (p: RosterPlayerRow) => void;
+  onParent: (p: RosterPlayerRow) => void;
   dim?: boolean;
 }) {
   return (
@@ -314,8 +556,15 @@ function PlayerTable({
           <tr>
             <Th className="w-16">#</Th>
             <Th>Name</Th>
-            <Th>Primary</Th>
-            <Th>Secondary</Th>
+            {usesPositions ? (
+              <>
+                <Th>Primary</Th>
+                <Th>Secondary</Th>
+              </>
+            ) : (
+              <Th>Role</Th>
+            )}
+            <Th>Parents</Th>
             <Th className="text-right">Actions</Th>
           </tr>
         </thead>
@@ -326,29 +575,43 @@ function PlayerTable({
                 {p.number ?? "-"}
               </td>
               <td className="px-4 py-3 font-semibold text-slate-900">{p.name}</td>
+              {usesPositions ? (
+                <>
+                  <td className="px-4 py-3">
+                    <PositionBadge position={p.primaryPosition} />
+                  </td>
+                  <td className="px-4 py-3">
+                    {p.secondaryPosition ? (
+                      <PositionBadge position={p.secondaryPosition} />
+                    ) : (
+                      <span className="text-slate-400">-</span>
+                    )}
+                  </td>
+                </>
+              ) : (
+                <td className="px-4 py-3">
+                  <PositionBadge position={p.primaryPosition} neutral />
+                </td>
+              )}
               <td className="px-4 py-3">
-                <PositionBadge position={p.primaryPosition} />
-              </td>
-              <td className="px-4 py-3">
-                {p.secondaryPosition ? (
-                  <PositionBadge position={p.secondaryPosition} />
-                ) : (
-                  <span className="text-slate-400">-</span>
-                )}
+                <div className="flex items-center gap-2">
+                  <ParentBadge count={p.parentLinks.length} />
+                  <button
+                    onClick={() => onParent(p)}
+                    className="btn-ghost px-2 py-1 text-xs"
+                  >
+                    <Heart size={14} strokeWidth={2} aria-hidden />
+                    Parent access
+                  </button>
+                </div>
               </td>
               <td className="px-4 py-3 text-right">
                 <div className="inline-flex gap-1">
-                  <button
-                    onClick={() => onEdit(p)}
-                    className="btn-ghost px-2.5 py-1 text-xs"
-                  >
+                  <button onClick={() => onEdit(p)} className="btn-ghost px-2.5 py-1 text-xs">
                     <Pencil size={14} strokeWidth={2} aria-hidden />
                     Edit
                   </button>
-                  <button
-                    onClick={() => onToggle(p)}
-                    className="btn-ghost px-2.5 py-1 text-xs"
-                  >
+                  <button onClick={() => onToggle(p)} className="btn-ghost px-2.5 py-1 text-xs">
                     {p.isActive ? (
                       <Archive size={14} strokeWidth={2} aria-hidden />
                     ) : (
@@ -366,37 +629,40 @@ function PlayerTable({
       {/* Mobile cards */}
       <ul className="divide-y divide-slate-100 sm:hidden">
         {players.map((p) => (
-          <li key={p.id} className="flex items-center gap-3 px-4 py-3">
-            <div className="stat-number flex h-10 w-10 shrink-0 items-center justify-center rounded bg-navy-900 text-base font-bold text-white">
-              {p.number ?? "-"}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-semibold text-slate-900">{p.name}</div>
-              <div className="mt-0.5 flex flex-wrap gap-1">
-                <PositionBadge position={p.primaryPosition} size="xs" />
-                {p.secondaryPosition && (
-                  <PositionBadge position={p.secondaryPosition} size="xs" />
-                )}
+          <li key={p.id} className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="stat-number flex h-10 w-10 shrink-0 items-center justify-center rounded bg-navy-900 text-base font-bold text-white">
+                {p.number ?? "-"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate font-semibold text-slate-900">{p.name}</span>
+                  <ParentBadge count={p.parentLinks.length} />
+                </div>
+                <div className="mt-0.5 flex flex-wrap gap-1">
+                  <PositionBadge position={p.primaryPosition} size="xs" neutral={!usesPositions} />
+                  {usesPositions && p.secondaryPosition && (
+                    <PositionBadge position={p.secondaryPosition} size="xs" />
+                  )}
+                </div>
               </div>
             </div>
-            <div className="flex shrink-0 gap-1">
-              <button
-                onClick={() => onEdit(p)}
-                className="btn-ghost px-2 py-1 text-xs"
-              >
+            <div className="mt-2 flex flex-wrap gap-1">
+              <button onClick={() => onParent(p)} className="btn-ghost px-2 py-1 text-xs">
+                <Heart size={14} strokeWidth={2} aria-hidden />
+                Parent access
+              </button>
+              <button onClick={() => onEdit(p)} className="btn-ghost px-2 py-1 text-xs">
                 <Pencil size={14} strokeWidth={2} aria-hidden />
                 Edit
               </button>
-              <button
-                onClick={() => onToggle(p)}
-                className="btn-ghost px-2 py-1 text-xs"
-              >
+              <button onClick={() => onToggle(p)} className="btn-ghost px-2 py-1 text-xs">
                 {p.isActive ? (
                   <Archive size={14} strokeWidth={2} aria-hidden />
                 ) : (
                   <ArchiveRestore size={14} strokeWidth={2} aria-hidden />
                 )}
-                {p.isActive ? "Off" : "On"}
+                {p.isActive ? "Deactivate" : "Reactivate"}
               </button>
             </div>
           </li>

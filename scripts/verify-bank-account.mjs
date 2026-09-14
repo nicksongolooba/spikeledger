@@ -182,6 +182,29 @@ function baseLine(overrides = {}) {
   eq(r.deposits, 10, "Setter: assists still counted");
 }
 
+// === 8. Universal formula (no-positions teams) ==============================
+{
+  const u = calculateBankAccount(
+    baseLine({ kills: 4, attackErrors: 2, aces: 1, serveErrors: 1, blocks: 1, blockErrors: 1, assists: 3, sr0: 1, sr1: 2, sr2: 3, sr3: 2, generalErrors: 1, digs: 5 }),
+    "L",
+    "universal",
+  );
+  // Deposits: kills 4 + aces 1 + blocks 1 + assists 3 + digs 5 + sr2 3 + sr3 2 = 19
+  // Withdrawals: serveErrors 1 + attackErrors 2 + blockErrors 1 + generalErrors 1 + sr0 1 = 6
+  eq(u.deposits, 19, "Universal: every good action is a deposit (incl. digs, SR 2)");
+  eq(u.withdrawals, 6, "Universal: every error is a withdrawal, even for a libero");
+  eq(u.balance, 13, "Universal: balance = 19-6");
+  eq(u.positionGroup, null, "Universal: no position group on the result");
+  const p = calculateBankAccount(baseLine({ kills: 4, attackErrors: 2, digs: 5 }), "L");
+  eq(p.withdrawals, 0, "Positions mode unchanged: libero still ignores attack errors");
+  const agg = calculateAggregateBankAccount(
+    [{ ...baseLine({ kills: 2, sr2: 1 }), positionPlayed: "UTIL" }, { ...baseLine({ digs: 3, sr0: 1 }), positionPlayed: "UTIL" }],
+    "UTIL",
+    "universal",
+  );
+  eq(agg.balance, 5, "Universal aggregate: (2+1) + 3 - 1 = 5");
+}
+
 // === Report ================================================================
 let pass = 0;
 for (const c of cases) {

@@ -133,7 +133,7 @@ export function BreakdownPie({ data }: { data: ReportCardData }) {
   const withdrawalTotal = withdrawalValues.reduce((s, v) => s + v, 0);
 
   return (
-    <ReportShell position={data.player.position} cardKey="05 BREAKDOWN">
+    <ReportShell position={data.player.position} neutral={!data.usesPositions} cardKey="05 BREAKDOWN">
       <PlayerHeader
         name={data.player.name}
         number={data.player.number}
@@ -141,6 +141,7 @@ export function BreakdownPie({ data }: { data: ReportCardData }) {
         scopeLabel={data.scopeLabel}
         teamName={data.team.name}
         secondaryPosition={data.player.secondaryPosition}
+        neutral={!data.usesPositions}
       />
 
       <div

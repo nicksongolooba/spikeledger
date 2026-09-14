@@ -36,6 +36,9 @@ interface Props {
   tournament: { id: string; name: string };
   roster: RosterPlayer[];
   initialStatLines: StatLine[];
+  // false = no-positions team: no libero swap, no dimmed buttons, no
+  // position pickers. Rotation and serve receive tracking work as usual.
+  usesPositions?: boolean;
 }
 
 const LS_PREFIX = "spikeledger:entry:";
@@ -84,6 +87,7 @@ export function MatchEntry({
   tournament,
   roster,
   initialStatLines,
+  usesPositions = true,
 }: Props) {
   const router = useRouter();
   const matchId = match.id;
@@ -620,6 +624,7 @@ export function MatchEntry({
 
         <PlayerGrid
           roster={roster}
+          usesPositions={usesPositions}
           onCourt={onCourt}
           bench={bench}
           selectedId={selectedId}
@@ -637,6 +642,7 @@ export function MatchEntry({
         <ActionPanel
           player={selectedPlayer}
           positionPlayed={selectedPosition}
+          restrictByPosition={usesPositions}
           onAction={handleAction}
           onOpponentError={handleOpponentError}
           opponentErrors={opponentErrors}
@@ -649,6 +655,7 @@ export function MatchEntry({
       <LineupModal
         open={showLineup}
         roster={roster}
+        usesPositions={usesPositions}
         initialOnCourt={onCourt}
         initialPositions={positions}
         onClose={() => setShowLineup(false)}

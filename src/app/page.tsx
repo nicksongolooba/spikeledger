@@ -101,6 +101,7 @@ const BANK_POINTS = [
   "Serve errors and ball-handling errors are withdrawals for everyone.",
   "Attack and net errors never count against a libero. Passing does, and a good pass is a deposit.",
   "A rating from Helping Team Win to Hurting Team, set by the deposit ratio, not by who the coach likes.",
+  "Works for every age group - from 12U rotation-only teams to 18U specialized positions. Flip a team to no-positions mode and everyone is scored on the same all-around formula.",
 ];
 
 const COURTSIDE = [
@@ -155,6 +156,14 @@ const FAQS = [
   {
     q: "Do I need to install anything?",
     a: "No. SpikeLedger runs in the browser on your phone and your laptop. The courtside page is built to be used one-handed at the scorer's table.",
+  },
+  {
+    q: "My 12U team doesn't play positions yet. Does this still work?",
+    a: "Yes. Set the team to no-positions mode (the default for 12U to 14U) and every player gets the same all-around evaluation: kills, aces, blocks, assists, digs and good passes all count as deposits, every error is a withdrawal. Switch to positions later with one setting.",
+  },
+  {
+    q: "Can parents see their kid's stats?",
+    a: "Yes, on their own login. You hand a parent a short code from the roster page; they see only their child's numbers, compared to team averages, updating live during matches. Never another player's stats, never the roster, never your coaching notes.",
   },
   {
     q: "Can I import stats from a spreadsheet?",

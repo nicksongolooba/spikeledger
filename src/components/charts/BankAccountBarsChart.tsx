@@ -61,9 +61,12 @@ function ChartTooltip({ active, payload }: {
 export default function BankAccountBars({
   data,
   height,
+  grouped = true,
 }: {
   data: BankAccountBarDatum[];
   height?: number;
+  // false on no-positions teams: one chart for the whole roster.
+  grouped?: boolean;
 }) {
   if (data.length === 0) {
     return (
@@ -78,7 +81,7 @@ export default function BankAccountBars({
     setter_middle: [],
     libero_ds: [],
   };
-  for (const d of data) byGroup[POSITION_GROUP_MAP[d.position]].push(d);
+  for (const d of data) byGroup[grouped ? POSITION_GROUP_MAP[d.position] : "hitter"].push(d);
   // Sort within each group: highest balance first.
   for (const g of GROUP_ORDER) byGroup[g].sort((a, b) => b.balance - a.balance);
 
@@ -87,6 +90,7 @@ export default function BankAccountBars({
       {GROUP_ORDER.map((g) => {
         const players = byGroup[g];
         if (players.length === 0) return null;
+        const title = grouped ? GROUP_TITLES[g] : "All players";
         const rowHeight = 36;
         const chartHeight = Math.max(
           110,
@@ -95,7 +99,7 @@ export default function BankAccountBars({
         return (
           <div key={g} className="card p-4">
             <h3 className="mb-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-              {GROUP_TITLES[g]}
+              {title}
             </h3>
             <div style={{ width: "100%", height: height ?? chartHeight }}>
               <ResponsiveContainer>

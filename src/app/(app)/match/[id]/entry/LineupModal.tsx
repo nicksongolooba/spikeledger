@@ -14,6 +14,7 @@ const COURT_SIZE = 6;
 export function LineupModal({
   open,
   roster,
+  usesPositions = true,
   initialOnCourt,
   initialPositions,
   onClose,
@@ -21,6 +22,7 @@ export function LineupModal({
 }: {
   open: boolean;
   roster: RosterPlayer[];
+  usesPositions?: boolean;
   initialOnCourt: string[];
   initialPositions: PositionByPlayer;
   onClose: () => void;
@@ -94,14 +96,16 @@ export function LineupModal({
     >
       <p className="mb-4 text-sm text-slate-600">
         Tap players in rotation order. The first player tapped is the server
-        (position 1, back-right); the rest fill 2-6 clockwise. Dual-role players
-        will ask which position they&apos;re playing this match.
+        (position 1, back-right); the rest fill 2-6 clockwise.
+        {usesPositions
+          ? " Dual-role players will ask which position they're playing this match."
+          : " No set positions on this team - everyone rotates through every spot."}
       </p>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {roster.map((p) => {
           const isSelected = selectedSet.has(p.id);
-          const isDual = !!p.secondaryPosition;
+          const isDual = usesPositions && !!p.secondaryPosition;
           const chosen = positions[p.id] ?? p.primaryPosition;
           const isServer = isSelected && selected[0] === p.id;
           return (
@@ -124,8 +128,8 @@ export function LineupModal({
                   {p.name}
                 </div>
                 <div className="mt-0.5 flex flex-wrap gap-1">
-                  <PositionBadge position={p.primaryPosition} size="xs" />
-                  {p.secondaryPosition && (
+                  <PositionBadge position={p.primaryPosition} size="xs" neutral={!usesPositions} />
+                  {usesPositions && p.secondaryPosition && (
                     <PositionBadge position={p.secondaryPosition} size="xs" />
                   )}
                 </div>
@@ -184,6 +188,7 @@ export function LineupModal({
             roster={roster}
             positions={positions}
             compact
+            neutral={!usesPositions}
           />
         </div>
       )}
@@ -218,8 +223,8 @@ export function LineupModal({
                     )}
                   </span>
                   <span className="flex items-center gap-2 text-slate-500">
-                    {POSITION_LABELS[pos]}
-                    <PositionBadge position={pos} size="xs" />
+                    {usesPositions ? POSITION_LABELS[pos] : "Player"}
+                    <PositionBadge position={pos} size="xs" neutral={!usesPositions} />
                   </span>
                 </div>
               );

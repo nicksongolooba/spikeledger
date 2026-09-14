@@ -98,6 +98,7 @@ export async function POST(req: Request) {
 
   const request = buildTeamInsightRequest({
     team: { id: team.id, name: team.name },
+    usesPositions: team.usesPositions,
     ageGroup: team.ageGroup,
     scope: parsed.data.scope,
     scopeId: parsed.data.scopeId ?? null,

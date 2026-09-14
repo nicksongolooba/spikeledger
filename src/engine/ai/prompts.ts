@@ -4,11 +4,15 @@ import type {
   TeamInsightRequest,
 } from "./types";
 import {
+  UNIVERSAL_GUIDANCE,
   drillsForPosition,
+  drillsForUniversal,
   parseAgeGroup,
   renderBenchmarks,
   renderDrillList,
   renderFrameworkFull,
+  renderUniversalBenchmarks,
+  renderUniversalFramework,
 } from "./volleyball-knowledge";
 
 export const POSITION_GUIDANCE = {
@@ -92,11 +96,19 @@ export function buildPlayerUserPrompt(req: PlayerInsightRequest): string {
   const lines: string[] = [];
   lines.push(`Analyze this player's performance.`);
   lines.push(``);
+  const universal = req.usesPositions === false;
   lines.push(`Player: ${req.player.name}`);
-  lines.push(`Position: ${POSITION_LABELS[req.player.position]}`);
+  if (universal) {
+    lines.push(`Position: none - ${UNIVERSAL_GUIDANCE}`);
+    lines.push(
+      `NOTE: Rule 4 (position restrictions) does NOT apply to this player. Treat them as a developing all-around player and recommend whichever skill the numbers say needs work.`,
+    );
+  } else {
+    lines.push(`Position: ${POSITION_LABELS[req.player.position]}`);
+  }
   lines.push(`Scope: ${req.scopeLabel}`);
   lines.push(``);
-  lines.push(`Stats (position-appropriate):`);
+  lines.push(universal ? `Stats (all-around):` : `Stats (position-appropriate):`);
   lines.push(statBlock(req.stats));
   lines.push(``);
   lines.push(
@@ -140,14 +152,25 @@ export function buildPlayerUserPrompt(req: PlayerInsightRequest): string {
   // model is allowed to recommend (filtered to this player's position).
   const age = parseAgeGroup(req.ageGroup);
   lines.push(``);
-  lines.push(`AGE-GROUP BENCHMARKS (${age}, ${req.player.position}) - developing / solid / elite:`);
-  lines.push(renderBenchmarks(req.player.position, age));
-  lines.push(``);
-  lines.push(`POSITION COACHING FRAMEWORK (${POSITION_LABELS[req.player.position]}):`);
-  lines.push(renderFrameworkFull(req.player.position));
-  lines.push(``);
-  lines.push(`AVAILABLE DRILLS for this position (recommend ONLY these; copy name and youtubeQuery exactly):`);
-  lines.push(renderDrillList(drillsForPosition(req.player.position)));
+  if (universal) {
+    lines.push(`AGE-GROUP BENCHMARKS (${age}, all-around) - developing / solid / elite:`);
+    lines.push(renderUniversalBenchmarks(age));
+    lines.push(``);
+    lines.push(`ALL-AROUND COACHING FRAMEWORK (no set positions):`);
+    lines.push(renderUniversalFramework());
+    lines.push(``);
+    lines.push(`AVAILABLE DRILLS (recommend ONLY these; copy name and youtubeQuery exactly):`);
+    lines.push(renderDrillList(drillsForUniversal(age)));
+  } else {
+    lines.push(`AGE-GROUP BENCHMARKS (${age}, ${req.player.position}) - developing / solid / elite:`);
+    lines.push(renderBenchmarks(req.player.position, age));
+    lines.push(``);
+    lines.push(`POSITION COACHING FRAMEWORK (${POSITION_LABELS[req.player.position]}):`);
+    lines.push(renderFrameworkFull(req.player.position));
+    lines.push(``);
+    lines.push(`AVAILABLE DRILLS for this position (recommend ONLY these; copy name and youtubeQuery exactly):`);
+    lines.push(renderDrillList(drillsForPosition(req.player.position)));
+  }
 
   lines.push(``);
   lines.push(`Generate coaching insights as JSON matching the schema exactly.`);
@@ -162,9 +185,13 @@ export function buildTeamUserPrompt(req: TeamInsightRequest): string {
   const lines: string[] = [];
   lines.push(`Analyze this volleyball team's performance.`);
   lines.push(``);
+  const universal = req.usesPositions === false;
   lines.push(`Team: ${req.team.name}`);
   lines.push(`Record: ${req.record}`);
   lines.push(`Scope: ${req.scopeLabel}`);
+  if (universal) {
+    lines.push(`Positions: none - ${UNIVERSAL_GUIDANCE} Rule 4 (position-fair grouping) does not apply; compare all players on the same all-around metrics.`);
+  }
   lines.push(``);
   if (req.tournamentTrend.length > 0) {
     lines.push(`Tournament-by-tournament:`);
@@ -178,14 +205,18 @@ export function buildTeamUserPrompt(req: TeamInsightRequest): string {
   lines.push(`Player Bank Accounts (this scope):`);
   for (const p of req.playerBankAccounts) {
     lines.push(
-      `  ${p.name} (${p.position}): ${p.balance >= 0 ? "+" : ""}${p.balance} ${p.rating}`,
+      `  ${p.name}${universal ? "" : ` (${p.position})`}: ${p.balance >= 0 ? "+" : ""}${p.balance} ${p.rating}`,
     );
   }
 
   // Benchmarks for the positions actually on this roster.
   const age = parseAgeGroup(req.ageGroup);
   const positions = [...new Set(req.playerBankAccounts.map((p) => p.position))];
-  if (positions.length > 0) {
+  if (universal) {
+    lines.push(``);
+    lines.push(`AGE-GROUP BENCHMARKS (${age}, all-around) - developing / solid / elite:`);
+    lines.push(renderUniversalBenchmarks(age));
+  } else if (positions.length > 0) {
     lines.push(``);
     lines.push(`AGE-GROUP BENCHMARKS (${age}) - developing / solid / elite:`);
     for (const pos of positions) {

@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { GenerateClient } from "./GenerateClient";
 import {
-  buildCohorts,
   buildReportCardData,
+  cohortFor,
   seasonScope,
   tournamentScope,
 } from "@/lib/report-data";
@@ -81,45 +81,18 @@ export default async function GeneratePage({
       );
       if (filtered.length > 0) scopedLinesByPlayer.set(pid, filtered);
     }
-    const cohorts = buildCohorts(players, scopedLinesByPlayer);
-
     dataByPlayerByScope[scope.key] = {};
     for (const player of players) {
       const lines = scopedLinesByPlayer.get(player.id) ?? [];
       if (lines.length === 0) continue;
-      // Cohort = same group, all players (we'll filter to those with data when rendering)
-      const cohort = (
-        cohorts.get(
-          (() => {
-            // resolve player's group same way build does
-            const mp = lines.reduce<Partial<Record<string, number>>>(
-              (acc, l) => {
-                const pos = l.positionPlayed ?? player.primaryPosition;
-                acc[pos] = (acc[pos] ?? 0) + 1;
-                return acc;
-              },
-              {},
-            );
-            const sorted = Object.entries(mp).sort(
-              ([, a], [, b]) => (b as number) - (a as number),
-            );
-            const most = (sorted[0]?.[0] ?? player.primaryPosition) as never;
-            // map most-played → group via same map the engine uses (re-import would
-            // be cleaner; this stays self-contained though)
-            const groupMap: Record<string, "hitter" | "setter_middle" | "libero_ds"> = {
-              L: "libero_ds",
-              DS: "libero_ds",
-              OH: "hitter",
-              RS: "hitter",
-              OPP: "hitter",
-              UTIL: "hitter",
-              MB: "setter_middle",
-              S: "setter_middle",
-            };
-            return groupMap[most as string] ?? "hitter";
-          })(),
-        ) ?? []
-      ).filter(({ lines: l }) => l.length > 0);
+      // Same position group on positions teams; every teammate otherwise.
+      const cohort = cohortFor(
+        player,
+        lines,
+        players,
+        scopedLinesByPlayer,
+        team.usesPositions,
+      );
 
       dataByPlayerByScope[scope.key][player.id] = buildReportCardData({
         team: { id: team.id, name: team.name },
@@ -127,6 +100,7 @@ export default async function GeneratePage({
         player,
         playerLines: lines,
         cohort,
+        usesPositions: team.usesPositions,
       });
     }
   }
@@ -155,6 +129,7 @@ export default async function GeneratePage({
       <div className="mt-8">
         <GenerateClient
           teamName={team.name}
+          usesPositions={team.usesPositions}
           scopeOptions={scopeOptions}
           players={players.map((p) => ({
             id: p.id,

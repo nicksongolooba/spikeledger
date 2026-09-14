@@ -29,7 +29,8 @@ interface Section {
 
 function sectionsFor(data: ReportCardData): Section[] {
   const s = data.stats;
-  const group = POSITION_GROUP_MAP[data.player.position];
+  // No-positions teams: every section applies to every player.
+  const group = data.usesPositions ? POSITION_GROUP_MAP[data.player.position] : null;
   const passing: Section | null =
     s.srTotal > 0
       ? {
@@ -116,7 +117,7 @@ function sectionsFor(data: ReportCardData): Section[] {
               label: "Assists",
               total: `${s.totalAssists}`,
               perMatch:
-                group === "setter_middle"
+                group === "setter_middle" || group === null
                   ? `${fmtNum(s.assistsPerMatch, 1)}/match`
                   : "",
             },
@@ -154,7 +155,7 @@ function valueColor(emphasis: Row["emphasis"]) {
 export function YourNumbers({ data }: { data: ReportCardData }) {
   const sections = sectionsFor(data);
   return (
-    <ReportShell position={data.player.position} cardKey="02 YOUR NUMBERS">
+    <ReportShell position={data.player.position} neutral={!data.usesPositions} cardKey="02 YOUR NUMBERS">
       <PlayerHeader
         name={data.player.name}
         number={data.player.number}
@@ -162,6 +163,7 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
         scopeLabel={data.scopeLabel}
         teamName={data.team.name}
         secondaryPosition={data.player.secondaryPosition}
+        neutral={!data.usesPositions}
       />
 
       <div

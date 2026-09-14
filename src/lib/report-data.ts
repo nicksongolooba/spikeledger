@@ -4,6 +4,7 @@
 import type { Player, StatLine, Tournament, Position } from "@prisma/client";
 import {
   POSITION_GROUP_MAP,
+  type BankAccountMode,
   type PositionGroup,
 } from "@/engine/bank-account";
 import { computeDerivedStats } from "@/engine/derived-stats";
@@ -79,23 +80,32 @@ interface BuildArgs {
   scopeLabel: string;
   player: Player;
   playerLines: StatLine[];
-  // Cohort = teammates we'll compare against. Pass only same-position-group
-  // players from the caller.
+  // Cohort = teammates we'll compare against. Same-position-group players on
+  // positions teams; every teammate with stats on no-positions teams.
   cohort: { player: Player; lines: StatLine[] }[];
+  // Team.usesPositions - defaults to the classic position-fair evaluation.
+  usesPositions?: boolean;
 }
 
 export function buildReportCardData(args: BuildArgs): ReportCardData {
   const { player, playerLines, team, scopeLabel, cohort } = args;
+  const usesPositions = args.usesPositions ?? true;
+  const mode: BankAccountMode = usesPositions ? "positions" : "universal";
   const evaluatedAs = mostPlayedPosition(playerLines, player.primaryPosition);
-  const group = POSITION_GROUP_MAP[evaluatedAs];
-  const stats = computeDerivedStats(playerLines, player.primaryPosition);
+  const stats = computeDerivedStats(playerLines, player.primaryPosition, mode);
 
   const cohortRows = cohort.map(({ player: p, lines }) => {
-    const ds = computeDerivedStats(lines, p.primaryPosition);
+    const ds = computeDerivedStats(lines, p.primaryPosition, mode);
     const pos = mostPlayedPosition(lines, p.primaryPosition);
     const pg = POSITION_GROUP_MAP[pos];
-    const { primary, primaryLabel, secondary, secondaryLabel } =
-      primaryAndSecondaryFor(pg, pos, ds);
+    const { primary, primaryLabel, secondary, secondaryLabel } = usesPositions
+      ? primaryAndSecondaryFor(pg, pos, ds)
+      : {
+          primary: ds.killsPerMatch,
+          primaryLabel: "Kills / Match",
+          secondary: ds.srAverage,
+          secondaryLabel: "SR Avg",
+        };
     return {
       playerId: p.id,
       name: `${p.name}${p.number !== null ? ` #${p.number}` : ""}`,
@@ -118,12 +128,35 @@ export function buildReportCardData(args: BuildArgs): ReportCardData {
       secondaryPosition: player.secondaryPosition,
     },
     team,
+    usesPositions,
     scopeLabel,
     stats,
     bankAccount: stats.bankAccount,
-    improvementAreas: computeImprovementAreas(stats, evaluatedAs, player.name),
+    improvementAreas: computeImprovementAreas(stats, evaluatedAs, player.name, {
+      universal: !usesPositions,
+    }),
     cohort: cohortRows,
   };
+}
+
+// Cohort for one player: same position group on positions teams, every
+// teammate with stats on no-positions teams (everyone does everything).
+export function cohortFor(
+  player: Player,
+  playerLines: StatLine[],
+  players: Player[],
+  linesByPlayer: Map<string, StatLine[]>,
+  usesPositions: boolean,
+): { player: Player; lines: StatLine[] }[] {
+  const all = players
+    .map((p) => ({ player: p, lines: linesByPlayer.get(p.id) ?? [] }))
+    .filter((x) => x.lines.length > 0);
+  if (!usesPositions) return all;
+  const group = POSITION_GROUP_MAP[mostPlayedPosition(playerLines, player.primaryPosition)];
+  return all.filter(
+    ({ player: p, lines }) =>
+      POSITION_GROUP_MAP[mostPlayedPosition(lines, p.primaryPosition)] === group,
+  );
 }
 
 // Group players in a roster by their (most-played) position group, so we know

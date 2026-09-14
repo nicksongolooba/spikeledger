@@ -8,5 +8,6 @@ export const config = {
     "/match/:path*",
     "/reports/:path*",
     "/settings/:path*",
+    "/parent/:path*",
   ],
 };

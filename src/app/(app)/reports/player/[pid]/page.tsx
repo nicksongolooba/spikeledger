@@ -119,9 +119,12 @@ export default async function PlayerReportPage({
     (a, b) => a.date.getTime() - b.date.getTime(),
   );
 
+  const usesPositions = player.team.usesPositions;
+  const mode = usesPositions ? "positions" : "universal";
   const overall = computeDerivedStats(
     statLines.map((s) => s),
     player.primaryPosition,
+    mode,
   );
 
   // Decide which position group to evaluate against. For dual-role players,
@@ -139,7 +142,7 @@ export default async function PlayerReportPage({
 
   // Per-tournament breakdown
   const breakdown: BreakdownRow[] = tournaments.map((t) => {
-    const ds = computeDerivedStats(t.lines, player.primaryPosition);
+    const ds = computeDerivedStats(t.lines, player.primaryPosition, mode);
     // Position played most often in this tournament:
     const tPosCounts: Partial<Record<Position, number>> = {};
     for (const sl of t.lines) {
@@ -170,9 +173,10 @@ export default async function PlayerReportPage({
 
   // Trend data: per tournament. Primary metric depends on group.
   const trendData: TrendPoint[] = tournaments.map((t) => {
-    const ds = computeDerivedStats(t.lines, player.primaryPosition);
+    const ds = computeDerivedStats(t.lines, player.primaryPosition, mode);
     let primary = 0;
-    if (group === "libero_ds") primary = ds.srAverage;
+    if (!usesPositions) primary = ds.srAverage;
+    else if (group === "libero_ds") primary = ds.srAverage;
     else if (group === "setter_middle") {
       // Setters → assists/match; Middles → blocks/match
       if (mostPlayed === "S") primary = ds.assistsPerMatch;
@@ -185,8 +189,9 @@ export default async function PlayerReportPage({
     };
   });
 
-  const primaryLabel =
-    group === "libero_ds"
+  const primaryLabel = !usesPositions
+    ? "SR Avg"
+    : group === "libero_ds"
       ? "SR Avg"
       : group === "setter_middle"
         ? mostPlayed === "S"
@@ -202,7 +207,14 @@ export default async function PlayerReportPage({
           : "#e4520b"
         : "#e4520b";
 
-  const tiles = statTilesFor(group, overall);
+  const tiles = usesPositions
+    ? statTilesFor(group, overall)
+    : [
+        { label: "Kills / Match", value: fmtNum(overall.killsPerMatch, 1), accent: "emerald" as const },
+        { label: "SR Avg", value: overall.srTotal > 0 ? fmtNum(overall.srAverage, 2) : "-", accent: "cyan" as const },
+        { label: "Digs / Match", value: fmtNum(overall.digsPerMatch, 1) },
+        { label: "Errors / Match", value: fmtNum(overall.errorsPerMatch, 1), accent: "red" as const },
+      ];
 
   return (
     <div>
@@ -225,8 +237,8 @@ export default async function PlayerReportPage({
               {player.name}
             </h1>
             <div className="mt-1.5 flex flex-wrap gap-1.5 text-sm">
-              <PositionBadge position={player.primaryPosition} />
-              {player.secondaryPosition && (
+              <PositionBadge position={player.primaryPosition} neutral={!usesPositions} />
+              {usesPositions && player.secondaryPosition && (
                 <PositionBadge position={player.secondaryPosition} />
               )}
               <span className="text-slate-600">
@@ -282,7 +294,12 @@ export default async function PlayerReportPage({
                 </div>
               </div>
               <div className="text-right text-xs text-slate-600">
-                <div>Evaluated as: <span className="text-slate-800">{POSITION_LABELS[mostPlayed]}</span></div>
+                <div>
+                  Evaluated as:{" "}
+                  <span className="text-slate-800">
+                    {usesPositions ? POSITION_LABELS[mostPlayed] : "All-around player"}
+                  </span>
+                </div>
                 <div>{overall.matchesPlayed} matches · {overall.setsPlayed} sets</div>
               </div>
             </div>
@@ -349,7 +366,7 @@ export default async function PlayerReportPage({
                       </td>
                       <td className="px-3 py-2.5">
                         {b.positionPlayed && (
-                          <PositionBadge position={b.positionPlayed} size="xs" />
+                          <PositionBadge position={b.positionPlayed} size="xs" neutral={!usesPositions} />
                         )}
                       </td>
                       <td className="stat-number px-3 py-2.5 text-right">{b.matchesPlayed}</td>
