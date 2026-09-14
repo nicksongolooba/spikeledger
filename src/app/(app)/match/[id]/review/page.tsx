@@ -57,9 +57,12 @@ export default async function MatchReviewPage({
   }
   const srAtt = sr0 + sr1 + sr2 + sr3;
   const teamSr = srAtt > 0 ? (sr1 + 2 * sr2 + 3 * sr3) / srAtt : 0;
+  const usesPositions = match.tournament.team.usesPositions;
+  const mode = usesPositions ? "positions" : "universal";
   const teamBA = calculateAggregateBankAccount(
     statLines,
     statLines[0]?.player.primaryPosition ?? "OH",
+    mode,
   );
 
   // Per-player rows for the table + chart
@@ -68,7 +71,7 @@ export default async function MatchReviewPage({
     .map((s) => {
       const positionPlayed = (s.positionPlayed ??
         s.player.primaryPosition) as Position;
-      const ba = calculateBankAccount(s, positionPlayed);
+      const ba = calculateBankAccount(s, positionPlayed, mode);
       return {
         playerId: s.player.id,
         name: s.player.name,
@@ -265,11 +268,12 @@ export default async function MatchReviewPage({
           Player stats
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Click a column to sort. Greyed numbers are stats that position
-          doesn&apos;t get judged on.
+          {usesPositions
+            ? "Click a column to sort. Greyed numbers are stats that position doesn't get judged on."
+            : "Click a column to sort. No set positions on this team, so every stat counts for everyone."}
         </p>
         <div className="mt-4">
-          <ReviewTable rows={rows} />
+          <ReviewTable rows={rows} usesPositions={usesPositions} />
         </div>
       </section>
 
@@ -279,11 +283,12 @@ export default async function MatchReviewPage({
           Bank Account leaderboard
         </h2>
         <p className="mt-1 max-w-2xl text-sm text-slate-600">
-          Players grouped by position so comparisons are fair - a libero&apos;s
-          number isn&apos;t lined up next to a hitter&apos;s.
+          {usesPositions
+            ? "Players grouped by position so comparisons are fair - a libero's number isn't lined up next to a hitter's."
+            : "Everyone on the same all-around formula - kills, aces, blocks, assists, digs and good passes are deposits; every error is a withdrawal."}
         </p>
         <div className="mt-4">
-          <BankAccountBars data={barData} />
+          <BankAccountBars data={barData} grouped={usesPositions} />
         </div>
       </section>
 

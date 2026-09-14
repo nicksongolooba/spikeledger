@@ -57,7 +57,8 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
 ];
 
 // Greying-out rules: position-inappropriate columns get muted.
-function isMuted(row: ReviewRow, col: SortKey): boolean {
+function isMuted(row: ReviewRow, col: SortKey, usesPositions: boolean): boolean {
+  if (!usesPositions) return false; // no-positions teams: every stat counts
   const group = POSITION_GROUP_MAP[row.position];
   if (col === "srAvg") return group === "setter_middle"; // setters/middles aren't in SR
   if (col === "assists") return group !== "setter_middle"; // only setters/middles set
@@ -66,7 +67,13 @@ function isMuted(row: ReviewRow, col: SortKey): boolean {
   return false;
 }
 
-export function ReviewTable({ rows }: { rows: ReviewRow[] }) {
+export function ReviewTable({
+  rows,
+  usesPositions = true,
+}: {
+  rows: ReviewRow[];
+  usesPositions?: boolean;
+}) {
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({
     key: "balance",
     dir: "desc",
@@ -132,11 +139,11 @@ export function ReviewTable({ rows }: { rows: ReviewRow[] }) {
                     {r.number !== null ? `#${r.number}` : "-"}
                   </span>
                   <span className="font-semibold text-slate-900">{r.name}</span>
-                  <PositionBadge position={r.position} size="xs" />
+                  <PositionBadge position={r.position} size="xs" neutral={!usesPositions} />
                 </div>
               </td>
               {COLUMNS.slice(1).map((c) => {
-                const muted = isMuted(r, c.key);
+                const muted = isMuted(r, c.key, usesPositions);
                 if (c.key === "balance") {
                   return (
                     <td key={c.key} className="px-3 py-2.5 text-right">

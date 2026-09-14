@@ -20,7 +20,33 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
   // Use the four-way split (hitter/middle/setter/libero) so setters and
   // middles never trade strengths - middles don't set, setters don't get
   // credited for a middle's job.
+  const universal = req.usesPositions === false;
   const group = POSITION_GROUP[req.player.position];
+
+  if (universal) {
+    if (ba.rating === "GREEN" || ba.rating === "BLUE") {
+      out.push(
+        `Bank Account ${ba.balance >= 0 ? "+" : ""}${ba.balance} (${ba.ratingLabel}) - ${(ba.ratio * 100).toFixed(0)}% of contributions are deposits.`,
+      );
+    }
+    if (s.srAverage !== undefined && s.srTotal !== undefined && s.srTotal >= 5 && s.srAverage >= 1.8) {
+      out.push(`Reliable passer - SR average ${s.srAverage.toFixed(2)} keeps the team in system.`);
+    }
+    if (s.hittingEfficiency !== undefined && s.totalKills !== undefined && s.totalKills >= 3 && s.hittingEfficiency >= 0.15) {
+      out.push(`Efficient attacker - hitting ${fmtPct(s.hittingEfficiency, 1)} this scope.`);
+    }
+    if (s.acesPerMatch !== undefined && s.acesPerMatch >= 1.5) {
+      out.push(`Tough server: ${fmtNum(s.acesPerMatch, 1)} aces/match.`);
+    }
+    if (s.digsPerMatch !== undefined && s.digsPerMatch >= 4) {
+      out.push(`Active on defence - ${fmtNum(s.digsPerMatch, 1)} digs per match.`);
+    }
+    if (s.blocksPerMatch !== undefined && s.blocksPerMatch >= 1) {
+      out.push(`Presence at the net - ${fmtNum(s.blocksPerMatch, 1)} blocks per match.`);
+    }
+    if (out.length === 0) out.push(`Showing up in every rotation - this is the floor to build from.`);
+    return out.slice(0, 3);
+  }
 
   if (ba.rating === "GREEN") {
     out.push(
@@ -96,6 +122,7 @@ function buildImprovements(req: PlayerInsightRequest): ImprovementInsight[] {
     } as never,
     req.player.position as Position,
     req.player.name,
+    { universal: req.usesPositions === false },
   );
   return areas.slice(0, 3).map((a) => ({
     area: a.metric,
@@ -110,9 +137,13 @@ function buildImprovements(req: PlayerInsightRequest): ImprovementInsight[] {
 
 function parentFriendlyFor(req: PlayerInsightRequest): string {
   const ba = req.bankAccount;
+  const universal = req.usesPositions === false;
   // Speak to the player's actual position, never the internal Bank Account
   // group - a Setter is "their setter role", not "their setting / middle role".
-  const role = `their ${POSITION_LABELS[req.player.position].toLowerCase()} role`;
+  // No-positions teams get "their all-around game" instead.
+  const role = universal
+    ? "their all-around game"
+    : `their ${POSITION_LABELS[req.player.position].toLowerCase()} role`;
   const verdict =
     ba.rating === "GREEN"
       ? `having a strong run in ${role} this ${req.scopeLabel}.`
@@ -123,6 +154,9 @@ function parentFriendlyFor(req: PlayerInsightRequest): string {
           : ba.rating === "RED"
             ? `having a tough stretch in ${role} this ${req.scopeLabel} - every player has them.`
             : `still gathering stats in ${role}.`;
+  if (universal) {
+    return `${req.player.name} is ${verdict} On this team everyone rotates through every position, so ${req.player.name} is evaluated on all-around skills - passing, serving, hitting and defence all count.`;
+  }
   return `${req.player.name} is ${verdict} They’re evaluated on what their position is supposed to do, not on everyone else’s stats - that’s the fair-comparison principle SpikeLedger is built on.`;
 }
 
@@ -136,8 +170,9 @@ export function generateRuleBasedPlayerInsight(
   } deposits vs ${req.bankAccount.withdrawals} withdrawals.`;
 
   const group = POSITION_GROUP[req.player.position];
-  const coachingNote =
-    group === "libero"
+  const coachingNote = req.usesPositions === false
+    ? "Keep rotating this player through serve receive and the front row - at this level reps in every spot beat specializing early."
+    : group === "libero"
       ? "Lean on this player as the floor anchor - get them more reps in serve receive rotations 1 and 6."
       : group === "setter"
         ? "Reward clean first balls by speeding up tempo - run your middle on a quick when this setter is in system."
@@ -179,15 +214,17 @@ export function generateRuleBasedTeamInsight(
   const sorted = [...req.playerBankAccounts].sort((a, b) => b.balance - a.balance);
   if (sorted.length > 0) {
     const top = sorted[0];
+    const tag = req.usesPositions === false ? "" : ` (${top.position})`;
     insights.push(
-      `${top.name} (${top.position}) leads the Bank Account at ${top.balance >= 0 ? "+" : ""}${top.balance} (${top.rating}) - give them the high-pressure rotations.`,
+      `${top.name}${tag} leads the Bank Account at ${top.balance >= 0 ? "+" : ""}${top.balance} (${top.rating}) - give them the high-pressure rotations.`,
     );
   }
   if (sorted.length >= 4) {
     const bottom = sorted[sorted.length - 1];
     if (bottom.balance < 0) {
+      const btag = req.usesPositions === false ? "" : ` (${bottom.position})`;
       insights.push(
-        `${bottom.name} (${bottom.position}) sits at ${bottom.balance} this scope - a focused one-on-one this week could move the team total fast.`,
+        `${bottom.name}${btag} sits at ${bottom.balance} this scope - a focused one-on-one this week could move the team total fast.`,
       );
     }
   }

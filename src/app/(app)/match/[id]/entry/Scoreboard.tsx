@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, WifiOff } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Info, Plus, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { SetWinChance } from "@/engine/win-probability";
+import { WinChanceSparkline } from "@/components/charts/WinChanceSparkline";
 
 interface ScoreboardProps {
   teamName: string;
@@ -21,6 +23,8 @@ interface ScoreboardProps {
   rotationFlash: number;
   // Bumps each time the serve switches so the "Serving" pill pulses briefly.
   servingFlash: number;
+  // Live set win probability for the current set.
+  winChance: SetWinChance;
   onSetChange: (idx: number) => void;
   onAddSet: () => void;
   onScore: (who: "us" | "them", delta: 1 | -1) => void;
@@ -43,6 +47,7 @@ export function Scoreboard({
   flash,
   rotationFlash,
   servingFlash,
+  winChance,
   onSetChange,
   onAddSet,
   onScore,
@@ -76,6 +81,9 @@ export function Scoreboard({
     const t = setTimeout(() => setServeLit(false), 1000);
     return () => clearTimeout(t);
   }, [servingFlash]);
+
+  // Tap the win-chance pill to expand the sparkline.
+  const [chanceOpen, setChanceOpen] = useState(false);
 
   const usHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const themHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -139,12 +147,55 @@ export function Scoreboard({
           </button>
         )}
         {offline && (
-          <span className="ml-auto inline-flex items-center gap-1.5 rounded bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">
+          <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">
             <WifiOff size={12} strokeWidth={2} aria-hidden />
             Offline {syncQueueSize > 0 && `· ${syncQueueSize} queued`}
           </span>
         )}
+        <button
+          type="button"
+          onClick={() => setChanceOpen((v) => !v)}
+          aria-expanded={chanceOpen}
+          aria-label={`Set win chance ${winChance.pct === null ? "not available yet" : `${winChance.pct} percent`}. Tap for the trend.`}
+          className={cn(
+            "ml-auto inline-flex min-h-[32px] shrink-0 items-center gap-1.5 rounded-md border px-2 py-0.5 transition-colors",
+            winChance.pct === null
+              ? "border-slate-200 bg-white text-slate-500"
+              : winChance.pct >= 50
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border-red-200 bg-red-50 text-red-800",
+          )}
+        >
+          <span className="font-display text-[10px] font-bold uppercase tracking-wider">Set win chance</span>
+          <span className="stat-number text-base font-bold leading-none">
+            {winChance.pct === null ? "—" : `${winChance.pct}%`}
+          </span>
+          <ChevronDown
+            size={14}
+            strokeWidth={2.5}
+            className={cn("transition-transform", chanceOpen && "rotate-180")}
+            aria-hidden
+          />
+        </button>
       </div>
+      {chanceOpen && (
+        <div className="mx-3 mt-2 flex flex-wrap items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 sm:mx-4">
+          <WinChanceSparkline history={winChance.history} width={180} height={44} />
+          <div className="min-w-0 flex-1 text-xs text-slate-600">
+            <div className="flex items-center gap-1 font-semibold text-slate-800">
+              <Info size={12} strokeWidth={2} aria-hidden />
+              Set win chance
+            </div>
+            <div
+              className="mt-0.5"
+              title="Based on the current score and how many rallies your team has been winning this set"
+            >
+              Based on the current score and how many rallies your team has been
+              winning this set. {winChance.rallies < 3 ? "Shows after 3 rallies." : `${winChance.rallies} rallies so far.`}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Score - the scoreboard band */}
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-stretch bg-navy-950 text-white">

@@ -8,6 +8,7 @@ const CreateTeamSchema = z.object({
   name: z.string().min(1).max(100),
   ageGroup: z.string().max(20).optional().or(z.literal("")),
   season: z.string().max(20).optional().or(z.literal("")),
+  usesPositions: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
       season: parsed.data.season?.trim() || null,
       coachId: userId,
       clubId: membership?.club.id ?? null,
+      usesPositions: parsed.data.usesPositions ?? true,
     },
   });
 

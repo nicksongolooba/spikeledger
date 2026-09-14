@@ -5,7 +5,20 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertCoachOwnsMatch } from "@/lib/match-access";
 
-const ScoreSchema = z.object({
+// Two payloads share this route:
+//   - the match total { setsWon, setsLost } (kept for older clients), and
+//   - a live per-set score { setNumber, us, them, history } that the
+//     courtside page sends after every point so the parent view and the set
+//     win probability can follow along. Absolute values, so resends after a
+//     dropped connection are harmless.
+const Point = z.tuple([z.number().int().min(0).max(60), z.number().int().min(0).max(60)]);
+const LiveSetSchema = z.object({
+  setNumber: z.number().int().min(1).max(5),
+  us: z.number().int().min(0).max(60),
+  them: z.number().int().min(0).max(60),
+  history: z.array(Point).max(150).default([]),
+});
+const TotalsSchema = z.object({
   setsWon: z.number().int().min(0).max(5),
   setsLost: z.number().int().min(0).max(5),
 });
@@ -19,18 +32,25 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   if (!owns) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json().catch(() => null);
-  const parsed = ScoreSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
-      { status: 400 },
-    );
+
+  const live = LiveSetSchema.safeParse(body);
+  if (live.success) {
+    const { setNumber, us, them, history } = live.data;
+    const row = await prisma.matchSetScore.upsert({
+      where: { matchId_setNumber: { matchId: params.id, setNumber } },
+      create: { matchId: params.id, setNumber, us, them, history },
+      update: { us, them, history },
+    });
+    return NextResponse.json(row);
   }
 
+  const totals = TotalsSchema.safeParse(body);
+  if (!totals.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
   const updated = await prisma.match.update({
     where: { id: params.id },
-    data: { setsWon: parsed.data.setsWon, setsLost: parsed.data.setsLost },
+    data: { setsWon: totals.data.setsWon, setsLost: totals.data.setsLost },
   });
-
   return NextResponse.json(updated);
 }

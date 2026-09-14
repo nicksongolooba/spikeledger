@@ -34,11 +34,14 @@ interface Props {
   // Performance Overview card which is mostly about the rating.
   accentOverride?: string;
   cardKey: string; // header label, e.g. "01 OVERVIEW"
+  // No-positions teams: navy stripe instead of a position-group color.
+  neutral?: boolean;
   children: React.ReactNode;
 }
 
-export function ReportShell({ position, accentOverride, cardKey, children }: Props) {
-  const accent = accentOverride ?? GROUP_ACCENT[POSITION_GROUP_MAP[position]];
+export function ReportShell({ position, accentOverride, cardKey, neutral, children }: Props) {
+  const accent =
+    accentOverride ?? (neutral ? REPORT_NAVY : GROUP_ACCENT[POSITION_GROUP_MAP[position]]);
 
   return (
     <div

@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { STAT_ACTION_LABELS, type StatActionId } from "@/lib/stat-actions";
 import { applyRally, rotateLineup, servingAssertionFor } from "@/lib/rotation";
 import { POSITION_GROUP } from "@/lib/positions";
+import { computeSetWinChance } from "@/engine/win-probability";
 import { Scoreboard } from "./Scoreboard";
 import { PlayerGrid } from "./PlayerGrid";
 import { ActionPanel } from "./ActionPanel";
@@ -36,7 +37,16 @@ interface Props {
   tournament: { id: string; name: string };
   roster: RosterPlayer[];
   initialStatLines: StatLine[];
+  // false = no-positions team: no libero swap, no dimmed buttons, no
+  // position pickers. Rotation and serve receive tracking work as usual.
+  usesPositions?: boolean;
+  // Team's per-rally win rate from past set results (null = no history);
+  // seeds the live set win probability.
+  historicalRallyRate?: number | null;
 }
+
+// [us, them] after every point, per set index.
+type PointLog = Record<number, [number, number][]>;
 
 const LS_PREFIX = "spikeledger:entry:";
 
@@ -59,6 +69,9 @@ interface PersistedState {
   // Indices of sets whose serve/rotation start the coach has already set, so we
   // don't re-prompt on reload or when flipping back to an earlier set tab.
   configuredSets: number[];
+  // Score after every point in each set - drives the set win probability
+  // sparkline and is synced to the server for the parent view.
+  pointLog?: PointLog;
 }
 
 function lsKey(matchId: string) {
@@ -84,6 +97,8 @@ export function MatchEntry({
   tournament,
   roster,
   initialStatLines,
+  usesPositions = true,
+  historicalRallyRate = null,
 }: Props) {
   const router = useRouter();
   const matchId = match.id;
@@ -120,6 +135,7 @@ export function MatchEntry({
   // Sets whose serve/rotation start has been set by the coach.
   const [configuredSets, setConfiguredSets] = useState<number[]>([]);
   const [showSetStart, setShowSetStart] = useState<boolean>(false);
+  const [pointLog, setPointLog] = useState<PointLog>({});
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -160,6 +176,7 @@ export function MatchEntry({
         setLiberoSwap(persisted.liberoSwap);
       }
       if (persisted.configuredSets) setConfiguredSets(persisted.configuredSets);
+      if (persisted.pointLog) setPointLog(persisted.pointLog);
       // Keep the lineup modal up only if there's still no lineup set.
       const hasLineup = (persisted.onCourt?.length ?? 0) > 0;
       setShowLineup(!hasLineup);
@@ -192,8 +209,54 @@ export function MatchEntry({
       opponentErrors,
       liberoSwap,
       configuredSets,
+      pointLog,
     });
-  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors, liberoSwap, configuredSets]);
+  }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors, liberoSwap, configuredSets, pointLog]);
+
+  // ---- Point log + live score sync ----
+  // Every time the current set's score changes, append it to that set's log
+  // (manual corrections included - the log is the sequence of states, not
+  // of rallies). Then push the whole set to the server, debounced, so the
+  // parent view and the set win probability follow point by point.
+  const currentUs = sets[setIdx]?.us ?? 0;
+  const currentThem = sets[setIdx]?.them ?? 0;
+  useEffect(() => {
+    if (!hydrated) return;
+    setPointLog((prev) => {
+      const log = prev[setIdx] ?? [];
+      const last = log[log.length - 1];
+      if (last && last[0] === currentUs && last[1] === currentThem) return prev;
+      const next = [...log, [currentUs, currentThem] as [number, number]];
+      return { ...prev, [setIdx]: next.length > 150 ? next.slice(next.length - 150) : next };
+    });
+  }, [hydrated, setIdx, currentUs, currentThem]);
+
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    const history = pointLog[setIdx] ?? [];
+    syncTimer.current = setTimeout(() => {
+      void fetch(`/api/matches/${matchId}/score`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ setNumber: setIdx + 1, us: currentUs, them: currentThem, history }),
+      }).catch(() => undefined);
+    }, 400);
+    return () => {
+      if (syncTimer.current) clearTimeout(syncTimer.current);
+    };
+  }, [hydrated, matchId, setIdx, currentUs, currentThem, pointLog]);
+
+  // Set win probability for the current set, recomputed on every point.
+  const winChance = useMemo(
+    () =>
+      computeSetWinChance(pointLog[setIdx] ?? [[currentUs, currentThem]], {
+        setNumber: setIdx + 1,
+        historicalRate: historicalRallyRate,
+      }),
+    [pointLog, setIdx, currentUs, currentThem, historicalRallyRate],
+  );
 
   // Track online/offline transitions to drive the WAL replay.
   const refreshQueueSize = useCallback(() => {
@@ -609,6 +672,7 @@ export function MatchEntry({
             flash={scoreFlash}
             rotationFlash={rotationFlash}
             servingFlash={servingFlash}
+            winChance={winChance}
             onSetChange={handleSetChange}
             onAddSet={handleAddSet}
             onScore={handleManualScore}
@@ -620,6 +684,7 @@ export function MatchEntry({
 
         <PlayerGrid
           roster={roster}
+          usesPositions={usesPositions}
           onCourt={onCourt}
           bench={bench}
           selectedId={selectedId}
@@ -637,6 +702,7 @@ export function MatchEntry({
         <ActionPanel
           player={selectedPlayer}
           positionPlayed={selectedPosition}
+          restrictByPosition={usesPositions}
           onAction={handleAction}
           onOpponentError={handleOpponentError}
           opponentErrors={opponentErrors}
@@ -649,6 +715,7 @@ export function MatchEntry({
       <LineupModal
         open={showLineup}
         roster={roster}
+        usesPositions={usesPositions}
         initialOnCourt={onCourt}
         initialPositions={positions}
         onClose={() => setShowLineup(false)}

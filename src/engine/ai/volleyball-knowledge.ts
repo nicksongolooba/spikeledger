@@ -1768,3 +1768,69 @@ export function renderPracticeTemplates(): string {
         .join("\n"),
   ).join("\n\n");
 }
+
+// ---------------------------------------------------------------------------
+// No-positions teams (12U/13U, rec leagues): one all-around framework,
+// general benchmarks and an age-appropriate drill list instead of the
+// position-specific sets above.
+// ---------------------------------------------------------------------------
+
+export const UNIVERSAL_GUIDANCE =
+  "This team plays without set positions - all players rotate through every position. Evaluate everyone on all-around skills: passing, serving, attacking, blocking and defence all count for every player. Never say a skill is 'not their job'.";
+
+const UNIVERSAL_FRAMEWORK = {
+  eliteProfile:
+    "A strong all-around player at this level passes a clean ball to target, serves in with purpose, takes a full approach and swings at every set, blocks with hands over the net, and moves early on defence. Nobody specializes yet - the goal is a complete player who can play every rotation.",
+  developmentPriorities: [
+    "Serve receive platform and footwork - passing decides most rallies at this level",
+    "Serve consistency first, then serving to zones",
+    "Full four-step approach and a real arm swing on every attack",
+    "Ready position and early movement on defence",
+    "Rotational awareness - knowing where to be in every spot",
+  ],
+  bankAccountNotes:
+    "Every good action is a deposit (kills, aces, blocks, assists, digs, 2- and 3-passes) and every error is a withdrawal, the same for everyone. Volume matters: a player who touches more balls will have bigger swings in both directions.",
+  mentalGame:
+    "Effort and next-ball focus over outcomes. Celebrate good process (a full approach, a platform to target) even when the point is lost.",
+};
+
+export function renderUniversalFramework(): string {
+  const f = UNIVERSAL_FRAMEWORK;
+  return [
+    `Elite profile: ${f.eliteProfile}`,
+    `Development priorities (in order): ${f.developmentPriorities.join("; ")}`,
+    `Bank Account lens: ${f.bankAccountNotes}`,
+    `Mental game: ${f.mentalGame}`,
+  ].join("\n");
+}
+
+const UNIVERSAL_KEYS: (keyof Targets)[] = [
+  "srAverage",
+  "acesPerMatch",
+  "serveErrorRate",
+  "hittingEfficiency",
+  "blocksPerMatch",
+  "digsPerMatch",
+  "errorsPerMatch",
+];
+
+// General all-around targets: the outside-hitter table already spans every
+// skill (pass, serve, hit, block, dig), so it doubles as the all-around set.
+export function renderUniversalBenchmarks(ageGroup: BenchmarkAgeGroup): string {
+  const b = benchmarksFor("OH", ageGroup);
+  if (!b) return "";
+  return UNIVERSAL_KEYS.map((k) => {
+    const tier = b.targets[k];
+    return `  ${KEY_LABELS[k]}: developing ${tier.developing} / solid ${tier.solid} / elite ${tier.elite}`;
+  }).join("\n");
+}
+
+const AGE_ORDER: AgeGroupMin[] = ["12U", "14U", "16U", "18U", "adult"];
+
+// Age-appropriate drills across every skill for a no-positions team.
+export function drillsForUniversal(ageGroup: BenchmarkAgeGroup): Drill[] {
+  const maxIdx = AGE_ORDER.indexOf(ageGroup);
+  return DRILLS.filter(
+    (d) => AGE_ORDER.indexOf(d.ageGroupMin) <= maxIdx && d.difficulty !== "advanced",
+  );
+}

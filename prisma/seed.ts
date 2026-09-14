@@ -314,6 +314,75 @@ function makeStatLineForPlayer(
 }
 
 // ---------------------------------------------------------------------------
+// Second demo team: Thunder Hawks 13U plays WITHOUT set positions - every
+// player is stored as UTIL and the team is scored on the universal formula.
+// ---------------------------------------------------------------------------
+const ROSTER_13U: SeedPlayer[] = [
+  { name: "Ava", number: 2, primaryPosition: "UTIL" },
+  { name: "Chloe", number: 4, primaryPosition: "UTIL" },
+  { name: "Sofia", number: 5, primaryPosition: "UTIL" },
+  { name: "Emma", number: 7, primaryPosition: "UTIL" },
+  { name: "Harper", number: 8, primaryPosition: "UTIL" },
+  { name: "Lily", number: 9, primaryPosition: "UTIL" },
+  { name: "Grace", number: 10, primaryPosition: "UTIL" },
+  { name: "Zoe", number: 11, primaryPosition: "UTIL" },
+  { name: "Ella", number: 12, primaryPosition: "UTIL" },
+  { name: "Nora", number: 14, primaryPosition: "UTIL" },
+];
+
+const TOURNAMENTS_13U = [
+  {
+    name: "13U Fall Jamboree",
+    startDate: new Date("2025-11-22"),
+    endDate: new Date("2025-11-22"),
+    location: "Central Sports Complex",
+    results: [MatchResult.LOSS, MatchResult.WIN, MatchResult.LOSS],
+    errorBias: 1,
+    killBias: -1,
+  },
+  {
+    name: "13U Winter Round Robin",
+    startDate: new Date("2026-01-17"),
+    endDate: new Date("2026-01-17"),
+    location: "Eastside Fieldhouse",
+    results: [MatchResult.WIN, MatchResult.WIN, MatchResult.LOSS],
+    errorBias: 0,
+    killBias: 0,
+  },
+];
+
+// Everyone does a bit of everything at 13U: some swings, some passes, a few
+// blocks, a dig or two, and plenty of errors.
+function makeAllAround(b: Bias): StatLineSeed {
+  const kills = clamp(ri(0, 4) + b.killBias);
+  const attackErrors = clamp(ri(0, 3) + b.errorBias);
+  const sr0 = clamp(ri(0, 2) + b.errorBias);
+  const sr1 = ri(1, 3);
+  const sr2 = ri(1, 4);
+  const sr3 = ri(0, 2);
+  return {
+    kills,
+    attackErrors,
+    attackAttempts: kills + attackErrors + ri(2, 6),
+    aces: ri(0, 2),
+    serveErrors: clamp(ri(0, 3) + b.errorBias),
+    serveAttempts: ri(6, 12),
+    blocks: ri(0, 1),
+    blockErrors: ri(0, 1),
+    assists: ri(0, 3),
+    settingErrors: ri(0, 1),
+    sr0,
+    sr1,
+    sr2,
+    sr3,
+    generalErrors: clamp(ri(0, 2) + b.errorBias),
+    digs: ri(1, 6),
+    setsPlayed: setsForMatch(),
+    positionPlayed: "UTIL",
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main seeding routine - wiped on each run for idempotency.
 // ---------------------------------------------------------------------------
 async function main() {
@@ -411,12 +480,73 @@ async function main() {
     }
   }
 
+  console.log("Creating Thunder Hawks 13U (no positions)…");
+  const team13 = await prisma.team.create({
+    data: {
+      name: "Thunder Hawks 13U",
+      ageGroup: "13U",
+      season: "2025-2026",
+      coachId: coach.id,
+      usesPositions: false,
+    },
+  });
+  const players13 = await Promise.all(
+    ROSTER_13U.map((p) =>
+      prisma.player.create({
+        data: {
+          teamId: team13.id,
+          name: p.name,
+          number: p.number,
+          primaryPosition: p.primaryPosition,
+          secondaryPosition: null,
+        },
+      }),
+    ),
+  );
+  const player13ByName = new Map(players13.map((p) => [p.name, p]));
+  for (const t of TOURNAMENTS_13U) {
+    const tournament = await prisma.tournament.create({
+      data: {
+        teamId: team13.id,
+        name: t.name,
+        startDate: t.startDate,
+        endDate: t.endDate,
+        location: t.location,
+      },
+    });
+    for (let i = 0; i < t.results.length; i++) {
+      const result = t.results[i];
+      const setsWon = result === "WIN" ? 2 : ri(0, 1);
+      const setsLost = result === "WIN" ? ri(0, 1) : 2;
+      const opponent = OPPONENTS[(i + 3 + TOURNAMENTS_13U.indexOf(t)) % OPPONENTS.length];
+      const match = await prisma.match.create({
+        data: {
+          tournamentId: tournament.id,
+          opponent,
+          matchNumber: i + 1,
+          setsWon,
+          setsLost,
+          result,
+        },
+      });
+      const bias: Bias = { errorBias: t.errorBias, killBias: t.killBias };
+      await prisma.statLine.createMany({
+        data: ROSTER_13U.map((seedPlayer) => ({
+          matchId: match.id,
+          playerId: player13ByName.get(seedPlayer.name)!.id,
+          ...makeAllAround(bias),
+        })),
+      });
+    }
+  }
+
   console.log("\nSeed complete.");
   console.log(
     `  Demo login: demo@spikeledger.app / ${demoPassword}` +
       (process.env.DEMO_PASSWORD ? "" : " (random - save it now or reseed)"),
   );
   console.log(`  ${players.length} players · ${TOURNAMENTS.length} tournaments · ${TOURNAMENTS.length * 4} matches · ${TOURNAMENTS.length * 4 * ROSTER.length} stat lines`);
+  console.log(`  Thunder Hawks 13U (no positions): ${players13.length} players · ${TOURNAMENTS_13U.length} tournaments · ${TOURNAMENTS_13U.length * 3} matches`);
 }
 
 main()

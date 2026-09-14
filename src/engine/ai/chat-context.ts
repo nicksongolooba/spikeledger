@@ -13,14 +13,17 @@ import {
 import { computeDerivedStats, fmtNum, fmtPct } from "@/engine/derived-stats";
 import { POSITION_LABELS } from "@/lib/positions";
 import { POSITION_GUIDANCE } from "./prompts";
-import { statsForGroup } from "./request-builders";
+import { statsForGroup, statsForUniversal } from "./request-builders";
 import {
   DRILLS,
+  UNIVERSAL_GUIDANCE,
   parseAgeGroup,
   renderBenchmarks,
   renderDrillList,
   renderFrameworksCondensed,
   renderPracticeTemplates,
+  renderUniversalBenchmarks,
+  renderUniversalFramework,
 } from "./volleyball-knowledge";
 
 export type ChatFocus =
@@ -79,11 +82,11 @@ function teamTotals(lines: StatLine[]) {
 
 // One compact stat row per player per match. The legend in the prompt
 // explains the abbreviations once so the rows stay short.
-function statRow(p: Player, s: StatLine): string {
+function statRow(p: Player, s: StatLine, withPositions = true): string {
   if (s.didNotPlay) return `  ${p.name}: DNP`;
   const pos = (s.positionPlayed ?? p.primaryPosition) as Position;
   return (
-    `  ${p.name} (${pos}): ` +
+    `  ${p.name}${withPositions ? ` (${pos})` : ""}: ` +
     `K${s.kills}/${s.attackErrors}e/${s.attackAttempts}att, ` +
     `serve A${s.aces}/${s.serveErrors}e/${s.serveAttempts}att, ` +
     `B${s.blocks}/${s.blockErrors}e, ` +
@@ -103,9 +106,17 @@ function fmtStats(stats: Record<string, number>): string {
 }
 
 export async function buildChatContext(
-  team: { id: string; name: string; season: string | null; ageGroup: string | null },
+  team: {
+    id: string;
+    name: string;
+    season: string | null;
+    ageGroup: string | null;
+    usesPositions?: boolean;
+  },
   focus: ChatFocus,
 ): Promise<ChatContext> {
+  const usesPositions = team.usesPositions ?? true;
+  const mode = usesPositions ? "positions" : "universal";
   const [players, tournaments, statLines] = await Promise.all([
     prisma.player.findMany({
       where: { teamId: team.id },
@@ -158,6 +169,7 @@ export async function buildChatContext(
         ? ` / secondary ${POSITION_LABELS[p.secondaryPosition]}`
         : "";
       const inactive = p.isActive ? "" : " (inactive)";
+      if (!usesPositions) return `- ${num}${p.name}${inactive}`;
       return `- ${num}${p.name} - ${POSITION_LABELS[p.primaryPosition]} (${p.primaryPosition})${secondary}${inactive}`;
     })
     .join("\n");
@@ -175,7 +187,7 @@ export async function buildChatContext(
       const rows = mLines
         .map((s) => {
           const p = playerById.get(s.playerId);
-          return p ? statRow(p, s) : null;
+          return p ? statRow(p, s, usesPositions) : null;
         })
         .filter(Boolean)
         .join("\n");
@@ -202,8 +214,8 @@ export async function buildChatContext(
     if (lines.length === 0) continue;
     const evaluatedAs = mostPlayed(lines, p.primaryPosition);
     const group = POSITION_GROUP_MAP[evaluatedAs];
-    const derived = computeDerivedStats(lines, p.primaryPosition);
-    const stats = statsForGroup(group, derived);
+    const derived = computeDerivedStats(lines, p.primaryPosition, mode);
+    const stats = usesPositions ? statsForGroup(group, derived) : statsForUniversal(derived);
     const ba = derived.bankAccount;
     standings.push({
       name: p.name,
@@ -215,13 +227,16 @@ export async function buildChatContext(
       .map((t) => {
         const tl = lines.filter((l) => l.match.tournamentId === t.id);
         if (tl.length === 0) return null;
-        const tba = calculateAggregateBankAccount(tl, p.primaryPosition);
+        const tba = calculateAggregateBankAccount(tl, p.primaryPosition, mode);
         return `    ${t.name}: bank ${tba.balance >= 0 ? "+" : ""}${tba.balance} (${tba.ratingLabel})`;
       })
       .filter(Boolean)
       .join("\n");
+    const who = usesPositions
+      ? `${p.name} (${evaluatedAs}, plays as ${POSITION_LABELS[evaluatedAs]})`
+      : `${p.name} (all-around)`;
     playerBlocks.push(
-      `- ${p.name} (${evaluatedAs}, plays as ${POSITION_LABELS[evaluatedAs]}): ${fmtStats(stats)}\n` +
+      `- ${who}: ${fmtStats(stats)}\n` +
         `    Season Bank Account: ${ba.balance >= 0 ? "+" : ""}${ba.balance} (${ba.ratingLabel})` +
         (perTournament ? `\n${perTournament}` : ""),
     );
@@ -232,7 +247,7 @@ export async function buildChatContext(
   const standingsBlock = standings
     .map(
       (s, i) =>
-        `${i + 1}. ${s.name} (${s.pos}): ${s.balance >= 0 ? "+" : ""}${s.balance} - ${s.rating}`,
+        `${i + 1}. ${s.name}${usesPositions ? ` (${s.pos})` : ""}: ${s.balance >= 0 ? "+" : ""}${s.balance} - ${s.rating}`,
     )
     .join("\n");
 
@@ -261,6 +276,7 @@ export async function buildChatContext(
 Team: ${team.name}${team.ageGroup ? ` (${team.ageGroup})` : ""}
 Season: ${team.season ?? "current"}
 Record: ${wins}-${losses}
+Positions: ${usesPositions ? "set positions (position-fair Bank Account)" : "none - everyone rotates through every position (universal Bank Account formula)"}
 
 ROSTER (${players.length} players):
 ${rosterBlock || "(no players yet)"}
@@ -283,9 +299,14 @@ Bank Account is SpikeLedger's plus/minus metric: points a player earns minus err
   const rosterPositions = [
     ...new Set(players.map((p) => p.primaryPosition)),
   ];
-  const benchmarkBlock = rosterPositions
-    .map((pos) => `${pos} (${POSITION_LABELS[pos]}):\n${renderBenchmarks(pos, age)}`)
-    .join("\n");
+  const benchmarkBlock = usesPositions
+    ? rosterPositions
+        .map((pos) => `${pos} (${POSITION_LABELS[pos]}):\n${renderBenchmarks(pos, age)}`)
+        .join("\n")
+    : `All-around (no set positions):\n${renderUniversalBenchmarks(age)}`;
+  const frameworkBlock = usesPositions
+    ? renderFrameworksCondensed()
+    : renderUniversalFramework();
   const knowledgeBlock = `COACHING KNOWLEDGE BASE:
 
 DRILL DATABASE (the ONLY drills you may recommend - copy names and youtubeQuery values exactly):
@@ -294,8 +315,8 @@ ${renderDrillList(DRILLS)}
 AGE-GROUP BENCHMARKS for ${age} (developing / solid / elite; serve error % and errors/match are better LOWER):
 ${benchmarkBlock}
 
-POSITION FRAMEWORKS (condensed):
-${renderFrameworksCondensed()}
+${usesPositions ? "POSITION FRAMEWORKS (condensed):" : "ALL-AROUND COACHING FRAMEWORK (this team has no set positions):"}
+${frameworkBlock}
 
 PRACTICE PLAN TEMPLATES (warmup 10 → skill block 15 → skill block 15 → team drill 20 → cooldown 5):
 ${renderPracticeTemplates()}`;
@@ -304,11 +325,11 @@ ${renderPracticeTemplates()}`;
 
 RULES:
 1. ALWAYS ground claims in actual numbers from the data. NEVER invent or estimate stats that are not in the data. If the data can't answer the question, say so honestly.
-2. Be position-aware. Never suggest a player work on a skill their position doesn't use:
+2. ${usesPositions ? `Be position-aware. Never suggest a player work on a skill their position doesn't use:
    - ${POSITION_GUIDANCE.libero_ds}
    - ${POSITION_GUIDANCE.hitter}
    - ${POSITION_GUIDANCE.setter}
-   - ${POSITION_GUIDANCE.middle}
+   - ${POSITION_GUIDANCE.middle}` : UNIVERSAL_GUIDANCE}
 3. Keep responses concise: 2-4 short paragraphs max. No markdown headings or tables; hyphen lists and **bold** are fine.
 4. Recommend drills ONLY from the DRILL DATABASE below. When you mention a drill, format it EXACTLY like this (one drill per block):
 **Drill Name** (X players, X min, difficulty)

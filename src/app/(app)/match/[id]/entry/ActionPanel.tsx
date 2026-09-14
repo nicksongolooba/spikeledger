@@ -48,18 +48,21 @@ export function ActionPanel({
   onAction,
   onOpponentError,
   opponentErrors,
+  restrictByPosition = true,
 }: {
   player: RosterPlayer | null;
   positionPlayed: Position | null;
   onAction: (action: StatActionId) => void;
   onOpponentError: () => void;
   opponentErrors: number;
+  // false on no-positions teams: every button is live for every player.
+  restrictByPosition?: boolean;
 }) {
   const group = player
     ? POSITION_GROUP[positionPlayed ?? player.primaryPosition]
     : null;
   const restrict = (id: StatActionId) =>
-    group === "libero" && LIBERO_RESTRICTED.has(id);
+    restrictByPosition && group === "libero" && LIBERO_RESTRICTED.has(id);
 
   return (
     <div className="card p-3 sm:p-4">
@@ -96,8 +99,8 @@ export function ActionPanel({
               <div className="font-display text-2xl font-bold leading-none text-slate-900">
                 {player.name}{" "}
                 <span className="text-lg font-medium text-slate-500">
-                  #{player.number ?? "-"} ·{" "}
-                  {positionPlayed ?? player.primaryPosition}
+                  #{player.number ?? "-"}
+                  {restrictByPosition ? ` · ${positionPlayed ?? player.primaryPosition}` : ""}
                 </span>
               </div>
             </div>

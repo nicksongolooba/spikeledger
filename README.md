@@ -118,7 +118,9 @@ For local webhook testing: `stripe listen --forward-to localhost:3000/api/stripe
 ## Verification scripts
 
 ```bash
-node --import tsx scripts/verify-bank-account.mjs    # 26 unit tests of the Bank Account engine
+node --import tsx scripts/verify-bank-account.mjs    # 32 unit tests of the Bank Account engine
+node --import tsx scripts/verify-win-probability.mjs  # 39 unit tests of the live set win probability engine
+node --import tsx scripts/verify-parent-flow.mts      # 74 DB-backed checks: parent codes, limits, live view (creates + deletes test rows)
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
 ```
 

@@ -28,6 +28,7 @@ export function PlayerHeader({
   scopeLabel,
   teamName,
   secondaryPosition,
+  neutral = false,
 }: {
   name: string;
   number: number | null;
@@ -35,8 +36,10 @@ export function PlayerHeader({
   scopeLabel: string;
   teamName: string;
   secondaryPosition: Position | null;
+  // No-positions teams: a plain "Player · All-around" badge, no secondary.
+  neutral?: boolean;
 }) {
-  const colors = badgeColors(position);
+  const colors = neutral ? { bg: "#e2e8f0", fg: "#334155" } : badgeColors(position);
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: "24px" }}>
       {number !== null && (
@@ -99,9 +102,9 @@ export function PlayerHeader({
               textTransform: "uppercase",
             }}
           >
-            {position} · {POSITION_LABELS[position]}
+            {neutral ? "Player · All-around" : `${position} · ${POSITION_LABELS[position]}`}
           </span>
-          {secondaryPosition && (
+          {!neutral && secondaryPosition && (
             <span
               style={{
                 background: REPORT_BG,

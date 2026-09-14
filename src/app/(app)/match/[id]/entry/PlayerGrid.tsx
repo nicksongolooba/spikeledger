@@ -20,6 +20,7 @@ const GROUP_RING: Record<PositionGroup, string> = {
 
 export function PlayerGrid({
   roster,
+  usesPositions = true,
   onCourt,
   bench,
   selectedId,
@@ -32,6 +33,7 @@ export function PlayerGrid({
   onLiberoOut,
 }: {
   roster: RosterPlayer[];
+  usesPositions?: boolean;
   onCourt: string[];
   bench: string[];
   selectedId: string | null;
@@ -57,7 +59,9 @@ export function PlayerGrid({
   const liberos = roster.filter(
     (p) => POSITION_GROUP[p.primaryPosition] === "libero",
   );
-  const hasLibero = liberos.length > 0;
+  // No libero rules on no-positions teams - everyone is just a player.
+  const hasLibero = usesPositions && liberos.length > 0;
+  const neutral = !usesPositions;
   // Liberos available to come in = those not already on court.
   const benchLiberos = liberos.filter((p) => !onCourt.includes(p.id));
   // Court players a libero can replace (anyone on court who isn't a libero).
@@ -129,6 +133,7 @@ export function PlayerGrid({
         positions={positions}
         selectedId={selectedId}
         onSelect={onSelect}
+        neutral={neutral}
       />
 
       {bench.length > 0 && (
@@ -150,6 +155,7 @@ export function PlayerGrid({
                   positionPlayed={pos}
                   dim
                   selected={false}
+                  neutral={neutral}
                   onClick={() => setSubFor(p)}
                 />
               );
@@ -166,6 +172,7 @@ export function PlayerGrid({
         {subFor && (
           <SubFor
             benchPlayer={subFor}
+            usesPositions={usesPositions}
             onCourtPlayers={onCourt
               .map(playerById)
               .filter((p): p is RosterPlayer => !!p)}
@@ -242,10 +249,12 @@ function PickTile({
   player,
   positionPlayed,
   onClick,
+  neutral = false,
 }: {
   player: RosterPlayer;
   positionPlayed: Position;
   onClick: () => void;
+  neutral?: boolean;
 }) {
   return (
     <button
@@ -259,7 +268,7 @@ function PickTile({
       <div className="mt-1 max-w-full truncate px-1 text-xs font-semibold text-slate-700">
         {player.name}
       </div>
-      <PositionBadge position={positionPlayed} size="xs" className="mt-1" />
+      <PositionBadge position={positionPlayed} size="xs" className="mt-1" neutral={neutral} />
     </button>
   );
 }
@@ -270,12 +279,14 @@ function PlayerCard({
   dim,
   selected,
   onClick,
+  neutral = false,
 }: {
   player: RosterPlayer;
   positionPlayed: Position;
   dim: boolean;
   selected: boolean;
   onClick: () => void;
+  neutral?: boolean;
 }) {
   const group = POSITION_GROUP[positionPlayed];
   return (
@@ -285,7 +296,7 @@ function PlayerCard({
       className={cn(
         "flex min-h-[64px] flex-col items-center justify-center rounded-md border-2 bg-white px-2 py-2 text-center transition-all active:scale-[0.98]",
         "ring-1",
-        GROUP_RING[group],
+        neutral ? "ring-slate-200" : GROUP_RING[group],
         selected
           ? "border-orange-500 bg-orange-50 ring-2 ring-orange-500"
           : "border-slate-200",
@@ -298,26 +309,28 @@ function PlayerCard({
       <div className="mt-1 max-w-full truncate text-xs font-semibold text-slate-700">
         {player.name}
       </div>
-      <PositionBadge position={positionPlayed} size="xs" className="mt-1" />
+      <PositionBadge position={positionPlayed} size="xs" className="mt-1" neutral={neutral} />
     </button>
   );
 }
 
 function SubFor({
   benchPlayer,
+  usesPositions,
   onCourtPlayers,
   positions,
   onPick,
   onCancel,
 }: {
   benchPlayer: RosterPlayer;
+  usesPositions: boolean;
   onCourtPlayers: RosterPlayer[];
   positions: PositionByPlayer;
   onPick: (courtId: string, position: Position) => void;
   onCancel: () => void;
 }) {
   // For dual-role bench player, ask which position they're checking in as.
-  const isDual = !!benchPlayer.secondaryPosition;
+  const isDual = usesPositions && !!benchPlayer.secondaryPosition;
   const positionChoices: Position[] = isDual
     ? [benchPlayer.primaryPosition, benchPlayer.secondaryPosition!]
     : [benchPlayer.primaryPosition];
@@ -358,6 +371,7 @@ function SubFor({
                 key={p.id}
                 player={p}
                 positionPlayed={pos}
+                neutral={!usesPositions}
                 onClick={() => onPick(p.id, chosenPos)}
               />
             );

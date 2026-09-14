@@ -28,9 +28,10 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  clubs     ClubMember[]
-  teams     Team[]
-  chatUsage ChatUsage[]
+  clubs       ClubMember[]
+  teams       Team[]
+  chatUsage   ChatUsage[]
+  parentLinks ParentPlayerLink[] // players this PARENT user follows
 }
 
 enum UserRole {
@@ -93,6 +94,11 @@ model Team {
   clubId    String?
   coachId   String
   createdAt DateTime @default(now())
+  // false = "no positions" mode: everyone rotates through everything, the
+  // Bank Account uses the universal formula, and position UI is hidden.
+  usesPositions   Boolean @default(true)
+  // Coach can pause the parent live view for the whole team.
+  allowParentView Boolean @default(true)
 
   club        Club?        @relation(fields: [clubId], references: [id])
   coach       User         @relation(fields: [coachId], references: [id], onDelete: Cascade)
@@ -109,10 +115,36 @@ model Player {
   teamId            String
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
+  // Parent access: a short shareable code ("HAWK-7K2") the coach hands to a
+  // parent. Null until the coach issues one; cleared on revoke.
+  parentCode            String?   @unique
+  parentCodeCreatedAt   DateTime?
+  // A code can be redeemed 3 times (parents, aunts, uncles) within 30 days
+  // of being issued; both reset when the coach issues a fresh code.
+  parentCodeRedemptions Int       @default(0)
+  parentCodeExpiresAt   DateTime?
 
   team              Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   statLines         StatLine[]
   attendanceRecords Attendance[]
+  parentLinks       ParentPlayerLink[]
+}
+
+// A PARENT user following one player. One parent can follow several players
+// (siblings on different teams); one player can have several parents.
+model ParentPlayerLink {
+  id          String    @id @default(cuid())
+  parentId    String
+  playerId    String
+  linkedAt    DateTime  @default(now())
+  // Null until the coach dismisses the "X's parent linked" notice on the roster.
+  coachSeenAt DateTime?
+
+  parent User   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, playerId])
+  @@index([playerId])
 }
 
 enum Position {
@@ -156,6 +188,24 @@ model Match {
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   statLines  StatLine[]
+  setScores  MatchSetScore[]
+}
+
+// Live per-set score synced from the courtside page so the parent view (and
+// the set win probability) can follow the match point by point. `history`
+// is the sequence of [us, them] scores after each point in that set.
+model MatchSetScore {
+  id        String   @id @default(cuid())
+  matchId   String
+  setNumber Int
+  us        Int      @default(0)
+  them      Int      @default(0)
+  history   Json     @default("[]")
+  updatedAt DateTime @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, setNumber])
 }
 
 enum MatchResult {

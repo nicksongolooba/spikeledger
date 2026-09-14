@@ -14,6 +14,9 @@ export interface ReportCardData {
     secondaryPosition: Position | null;
   };
   team: { id: string; name: string };
+  // false on no-positions teams: cards show every stat, the universal Bank
+  // Account formula, all-around drills, and compare against all teammates.
+  usesPositions: boolean;
   scopeLabel: string;            // "16U Tournament 3" or "Full Season"
   stats: DerivedStats;
   bankAccount: BankAccountResult;
