@@ -27,8 +27,8 @@ export async function POST(
   const auth = await authorize(params);
   if ("error" in auth) return auth.error;
   try {
-    const code = await issueParentCode(auth.player.id);
-    return NextResponse.json({ code });
+    const issued = await issueParentCode(auth.player.id);
+    return NextResponse.json(issued);
   } catch (err) {
     if (err instanceof ParentError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

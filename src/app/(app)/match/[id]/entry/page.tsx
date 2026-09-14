@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { MatchEntry } from "./MatchEntry";
+import { teamHistoricalRallyRate } from "@/lib/win-probability-data";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function MatchEntryPage({
     notFound();
   }
 
-  const [roster, statLines] = await Promise.all([
+  const [roster, statLines, historicalRallyRate] = await Promise.all([
     prisma.player.findMany({
       where: { teamId: match.tournament.teamId, isActive: true },
       orderBy: [{ number: "asc" }, { name: "asc" }],
@@ -37,6 +38,7 @@ export default async function MatchEntryPage({
       },
     }),
     prisma.statLine.findMany({ where: { matchId: match.id } }),
+    teamHistoricalRallyRate(match.tournament.teamId, match.id),
   ]);
 
   return (
@@ -47,6 +49,7 @@ export default async function MatchEntryPage({
       roster={roster}
       initialStatLines={statLines}
       usesPositions={match.tournament.team.usesPositions}
+      historicalRallyRate={historicalRallyRate}
     />
   );
 }

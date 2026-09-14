@@ -14,12 +14,14 @@ import {
   Plus,
   RefreshCw,
   Trash2,
+  X,
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { POSITIONS, POSITION_LABELS } from "@/lib/positions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn, formatDate } from "@/lib/utils";
+import { parentCodeStatus, type ParentCodeStatus } from "@/lib/parent-constants";
 
 export interface RosterParentLink {
   id: string;
@@ -36,7 +38,17 @@ export interface RosterPlayerRow {
   secondaryPosition: Position | null;
   isActive: boolean;
   parentCode: string | null;
+  parentCodeRedemptions: number;
+  parentCodeExpiresAt: string | null;
   parentLinks: RosterParentLink[];
+}
+
+export interface ParentLinkNotice {
+  id: string;
+  playerName: string;
+  parentName: string | null;
+  parentEmail: string;
+  linkedAt: string;
 }
 
 interface PlayerFormState {
@@ -57,12 +69,28 @@ export function RosterClient({
   teamId,
   usesPositions,
   initialPlayers,
+  notices,
 }: {
   teamId: string;
   usesPositions: boolean;
   initialPlayers: RosterPlayerRow[];
+  notices: ParentLinkNotice[];
 }) {
   const router = useRouter();
+
+  // Remove ONE parent's link (wrong person redeemed the code).
+  async function removeLink(linkId: string) {
+    const res = await fetch(`/api/teams/${teamId}/parent-links/${linkId}`, { method: "DELETE" });
+    if (res.ok) router.refresh();
+  }
+  async function dismissNotice(linkId: string) {
+    await fetch(`/api/teams/${teamId}/parent-links/${linkId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seen: true }),
+    });
+    router.refresh();
+  }
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<PlayerFormState>(EMPTY_FORM);
@@ -140,6 +168,34 @@ export function RosterClient({
 
   return (
     <>
+      {notices.length > 0 && (
+        <ul className="mb-6 space-y-2" aria-label="New parent links">
+          {notices.map((n) => (
+            <li
+              key={n.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-navy-200 bg-navy-50 px-4 py-2.5 text-sm text-navy-900"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Heart size={16} strokeWidth={2} className="shrink-0 text-navy-700" aria-hidden />
+                <span>
+                  <span className="font-semibold">{n.playerName}&apos;s parent</span>{" "}
+                  <span className="text-navy-700">({n.parentEmail})</span> linked{" "}
+                  <span className="text-navy-600">· {formatDate(n.linkedAt)}</span>
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => dismissNotice(n.id)}
+                className="btn-ghost px-2 py-1 text-xs"
+                aria-label={`Dismiss notice about ${n.playerName}'s parent`}
+              >
+                <X size={14} strokeWidth={2} aria-hidden />
+                Dismiss
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         {initialPlayers.length > 0 && (
           <p className="text-sm text-slate-500">
@@ -180,6 +236,7 @@ export function RosterClient({
             onEdit={openEdit}
             onToggle={toggleActive}
             onParent={setParentFor}
+            onRemoveLink={removeLink}
           />
           {inactivePlayers.length > 0 && (
             <div className="mt-10">
@@ -193,6 +250,7 @@ export function RosterClient({
                 onEdit={openEdit}
                 onToggle={toggleActive}
                 onParent={setParentFor}
+                onRemoveLink={removeLink}
                 dim
               />
             </div>
@@ -311,6 +369,7 @@ export function RosterClient({
         teamId={teamId}
         player={parentFor}
         onClose={() => setParentFor(null)}
+        onRemoveLink={removeLink}
       />
     </>
   );
@@ -323,20 +382,28 @@ function ParentAccessModal({
   teamId,
   player,
   onClose,
+  onRemoveLink,
 }: {
   teamId: string;
   player: RosterPlayerRow | null;
   onClose: () => void;
+  onRemoveLink: (linkId: string) => Promise<void>;
 }) {
   const router = useRouter();
-  const [code, setCode] = useState<string | null>(null);
+  const [issued, setIssued] = useState<{ code: string; expiresAt: string } | null>(null);
+  const [removingLink, setRemovingLink] = useState<string | null>(null);
   const [busy, setBusy] = useState<"issue" | "revoke" | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
 
   // The modal is remounted per player via `key` below, so state resets.
-  const current = code ?? player?.parentCode ?? null;
+  const status: ParentCodeStatus | null = player
+    ? issued
+      ? { state: "active", code: issued.code, redemptions: 0, max: 3, expiresAt: new Date(issued.expiresAt) }
+      : parentCodeStatus(player)
+    : null;
+  const current = status?.code ?? null;
 
   async function issue() {
     if (!player) return;
@@ -345,13 +412,13 @@ function ParentAccessModal({
     const res = await fetch(`/api/teams/${teamId}/players/${player.id}/parent-code`, {
       method: "POST",
     });
-    const data = (await res.json().catch(() => ({}))) as { code?: string; error?: string };
+    const data = (await res.json().catch(() => ({}))) as { code?: string; expiresAt?: string; error?: string };
     setBusy(null);
-    if (!res.ok || !data.code) {
+    if (!res.ok || !data.code || !data.expiresAt) {
       setError(data.error || "Could not create a code.");
       return;
     }
-    setCode(data.code);
+    setIssued({ code: data.code, expiresAt: data.expiresAt });
     router.refresh();
   }
 
@@ -367,7 +434,7 @@ function ParentAccessModal({
       setError("Could not revoke access.");
       return;
     }
-    setCode(null);
+    setIssued(null);
     setConfirmRevoke(false);
     router.refresh();
     onClose();
@@ -398,12 +465,21 @@ function ParentAccessModal({
             they create a SpikeLedger account (choosing &ldquo;I&apos;m a
             parent&rdquo;) or later in their settings. They will see only{" "}
             {player.name}&apos;s stats, compared to team averages - never
-            another player&apos;s numbers.
+            another player&apos;s numbers. A code works 3 times (parents,
+            aunts, uncles) for 30 days.
           </p>
 
-          {current ? (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <div className="eyebrow text-slate-500">Parent code</div>
+          {current && status ? (
+            <div
+              className={cn(
+                "rounded-lg border p-4",
+                status.state === "active" ? "border-slate-200 bg-slate-50" : "border-amber-300 bg-amber-50",
+              )}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="eyebrow text-slate-500">Parent code</div>
+                <CodeUsageChip status={status} />
+              </div>
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <span className="stat-number text-4xl font-bold tracking-wide text-navy-900">
                   {current}
@@ -428,9 +504,13 @@ function ParentAccessModal({
                 </button>
               </div>
               <p className="mt-2 text-xs text-slate-500">
-                Text it, WhatsApp it, or read it out at pickup. A new code
-                replaces this one for future parents; anyone already linked
-                keeps access.
+                {status.state === "expired"
+                  ? "This code has expired. Create a new one to let more family members link."
+                  : status.state === "exhausted"
+                    ? "This code has been used 3 times. Create a new one to let more family members link."
+                    : `Valid until ${status.expiresAt ? formatDate(status.expiresAt) : "-"}. Text it, WhatsApp it, or read it out at pickup.`}{" "}
+                A new code replaces this one for future parents; anyone
+                already linked keeps access.
               </p>
             </div>
           ) : (
@@ -459,11 +539,37 @@ function ParentAccessModal({
                       <div className="truncate font-semibold text-slate-900">
                         {l.parentName ?? "Parent"}
                       </div>
-                      <div className="truncate text-xs text-slate-500">{l.parentEmail}</div>
+                      <div className="truncate text-xs text-slate-500">
+                        {l.parentEmail} · since {formatDate(l.linkedAt)}
+                      </div>
                     </div>
-                    <div className="shrink-0 text-xs text-slate-500">
-                      since {formatDate(l.linkedAt)}
-                    </div>
+                    {removingLink === l.id ? (
+                      <span className="flex shrink-0 items-center gap-1">
+                        <button type="button" onClick={() => setRemovingLink(null)} className="btn-ghost px-2 py-1 text-xs">
+                          Keep
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await onRemoveLink(l.id);
+                            setRemovingLink(null);
+                          }}
+                          className="btn-danger px-2 py-1 text-xs"
+                        >
+                          Remove
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setRemovingLink(l.id)}
+                        className="btn-ghost shrink-0 px-2 py-1 text-xs"
+                        aria-label={`Remove ${l.parentEmail}`}
+                      >
+                        <X size={14} strokeWidth={2} aria-hidden />
+                        Remove
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -520,16 +626,78 @@ function Th({ children, className }: { children: React.ReactNode; className?: st
   );
 }
 
-function ParentBadge({ count }: { count: number }) {
-  if (count === 0) return null;
+// "1/3" code usage chip. Colors: none (grey), active (navy), expired
+// (amber), used up (red).
+function CodeUsageChip({ status }: { status: ParentCodeStatus }) {
+  const tone =
+    status.state === "none"
+      ? "bg-slate-100 text-slate-500"
+      : status.state === "active"
+        ? "bg-navy-50 text-navy-800"
+        : status.state === "expired"
+          ? "bg-amber-100 text-amber-800"
+          : "bg-red-100 text-red-700";
+  const label =
+    status.state === "none"
+      ? "No code"
+      : `${status.redemptions}/${status.max}${status.state === "expired" ? " · expired" : status.state === "exhausted" ? " · used up" : ""}`;
+  const title =
+    status.state === "none"
+      ? "No parent code issued yet"
+      : `Code used ${status.redemptions} of ${status.max} times${status.expiresAt ? ` · valid until ${formatDate(status.expiresAt)}` : ""}`;
   return (
-    <span
-      className="inline-flex items-center gap-1 rounded bg-navy-50 px-1.5 py-0.5 text-[11px] font-semibold text-navy-800"
-      title={`${count} parent${count === 1 ? "" : "s"} linked`}
-    >
-      <Heart size={11} strokeWidth={2.5} aria-hidden />
-      {count}
+    <span className={cn("stat-number inline-flex items-center rounded px-1.5 py-0.5 text-xs font-bold", tone)} title={title}>
+      {label}
     </span>
+  );
+}
+
+// Linked parent emails under a player, each removable on its own.
+function ParentLinksList({
+  links,
+  onRemoveLink,
+}: {
+  links: RosterParentLink[];
+  onRemoveLink: (linkId: string) => Promise<void>;
+}) {
+  const [confirming, setConfirming] = useState<string | null>(null);
+  if (links.length === 0) return <span className="text-xs text-slate-400">No parents linked</span>;
+  return (
+    <ul className="space-y-0.5">
+      {links.map((l) => (
+        <li key={l.id} className="flex items-center gap-1.5 text-xs text-slate-700">
+          <Heart size={11} strokeWidth={2.5} className="shrink-0 text-navy-700" aria-hidden />
+          <span className="truncate" title={l.parentName ?? undefined}>{l.parentEmail}</span>
+          {confirming === l.id ? (
+            <span className="ml-1 inline-flex items-center gap-1">
+              <button type="button" onClick={() => setConfirming(null)} className="rounded px-1 text-[11px] font-semibold text-slate-500 hover:text-slate-900">
+                Keep
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await onRemoveLink(l.id);
+                  setConfirming(null);
+                }}
+                className="rounded bg-red-50 px-1.5 text-[11px] font-semibold text-red-700 hover:bg-red-100"
+              >
+                Remove
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirming(l.id)}
+              className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-red-700"
+              aria-label={`Remove ${l.parentEmail}`}
+              title="Remove this parent"
+            >
+              <X size={12} strokeWidth={2.5} aria-hidden />
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -539,6 +707,7 @@ function PlayerTable({
   onEdit,
   onToggle,
   onParent,
+  onRemoveLink,
   dim,
 }: {
   players: RosterPlayerRow[];
@@ -546,6 +715,7 @@ function PlayerTable({
   onEdit: (p: RosterPlayerRow) => void;
   onToggle: (p: RosterPlayerRow) => void;
   onParent: (p: RosterPlayerRow) => void;
+  onRemoveLink: (linkId: string) => Promise<void>;
   dim?: boolean;
 }) {
   return (
@@ -593,9 +763,9 @@ function PlayerTable({
                   <PositionBadge position={p.primaryPosition} neutral />
                 </td>
               )}
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 align-top">
                 <div className="flex items-center gap-2">
-                  <ParentBadge count={p.parentLinks.length} />
+                  <CodeUsageChip status={parentCodeStatus(p)} />
                   <button
                     onClick={() => onParent(p)}
                     className="btn-ghost px-2 py-1 text-xs"
@@ -603,6 +773,9 @@ function PlayerTable({
                     <Heart size={14} strokeWidth={2} aria-hidden />
                     Parent access
                   </button>
+                </div>
+                <div className="mt-1.5">
+                  <ParentLinksList links={p.parentLinks} onRemoveLink={onRemoveLink} />
                 </div>
               </td>
               <td className="px-4 py-3 text-right">
@@ -637,7 +810,7 @@ function PlayerTable({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="truncate font-semibold text-slate-900">{p.name}</span>
-                  <ParentBadge count={p.parentLinks.length} />
+                  <CodeUsageChip status={parentCodeStatus(p)} />
                 </div>
                 <div className="mt-0.5 flex flex-wrap gap-1">
                   <PositionBadge position={p.primaryPosition} size="xs" neutral={!usesPositions} />
@@ -647,6 +820,11 @@ function PlayerTable({
                 </div>
               </div>
             </div>
+            {p.parentLinks.length > 0 && (
+              <div className="mt-2 pl-[52px]">
+                <ParentLinksList links={p.parentLinks} onRemoveLink={onRemoveLink} />
+              </div>
+            )}
             <div className="mt-2 flex flex-wrap gap-1">
               <button onClick={() => onParent(p)} className="btn-ghost px-2 py-1 text-xs">
                 <Heart size={14} strokeWidth={2} aria-hidden />

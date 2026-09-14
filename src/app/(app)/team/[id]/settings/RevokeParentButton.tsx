@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { X } from "lucide-react";
 
-// Revokes parent access for one player (all of that player's parents).
+// Removes ONE parent's link to one player.
 export function RevokeParentButton({
   teamId,
-  playerId,
+  linkId,
+  parentEmail,
   playerName,
 }: {
   teamId: string;
-  playerId: string;
+  linkId: string;
+  parentEmail: string;
   playerName: string;
 }) {
   const router = useRouter();
@@ -20,7 +22,7 @@ export function RevokeParentButton({
 
   async function revoke() {
     setBusy(true);
-    await fetch(`/api/teams/${teamId}/players/${playerId}/parent-code`, { method: "DELETE" });
+    await fetch(`/api/teams/${teamId}/parent-links/${linkId}`, { method: "DELETE" });
     setBusy(false);
     setConfirm(false);
     router.refresh();
@@ -33,7 +35,7 @@ export function RevokeParentButton({
           Keep
         </button>
         <button type="button" onClick={revoke} disabled={busy} className="btn-danger px-2 py-1 text-xs">
-          {busy ? "…" : "Revoke"}
+          {busy ? "…" : "Remove"}
         </button>
       </div>
     );
@@ -43,10 +45,10 @@ export function RevokeParentButton({
       type="button"
       onClick={() => setConfirm(true)}
       className="btn-ghost shrink-0 px-2 py-1 text-xs"
-      title={`Revoke every parent's access to ${playerName}`}
+      title={`Remove ${parentEmail}'s access to ${playerName}`}
     >
-      <Trash2 size={14} strokeWidth={2} aria-hidden />
-      Revoke
+      <X size={14} strokeWidth={2} aria-hidden />
+      Remove
     </button>
   );
 }

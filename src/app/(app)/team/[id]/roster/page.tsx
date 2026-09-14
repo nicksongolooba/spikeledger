@@ -3,6 +3,7 @@ import { AlertTriangle } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { getTeamForCoach } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
+import { getUnseenParentLinks } from "@/lib/parent";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { RosterClient } from "./RosterClient";
 
@@ -17,16 +18,19 @@ export default async function RosterPage({
 }) {
   const user = await requireUser();
   const team = await getTeamForCoach(params.id, user.id);
-  const players = await prisma.player.findMany({
-    where: { teamId: team.id },
-    orderBy: [{ isActive: "desc" }, { number: "asc" }, { name: "asc" }],
-    include: {
-      parentLinks: {
-        orderBy: { linkedAt: "asc" },
-        include: { parent: { select: { name: true, email: true } } },
+  const [players, unseen] = await Promise.all([
+    prisma.player.findMany({
+      where: { teamId: team.id },
+      orderBy: [{ isActive: "desc" }, { number: "asc" }, { name: "asc" }],
+      include: {
+        parentLinks: {
+          orderBy: { linkedAt: "asc" },
+          include: { parent: { select: { name: true, email: true } } },
+        },
       },
-    },
-  });
+    }),
+    getUnseenParentLinks(team.id),
+  ]);
   const assignPositions = searchParams?.assignPositions === "1" && team.usesPositions;
 
   return (
@@ -72,6 +76,13 @@ export default async function RosterPage({
         <RosterClient
           teamId={team.id}
           usesPositions={team.usesPositions}
+          notices={unseen.map((l) => ({
+            id: l.id,
+            playerName: l.player.name,
+            parentName: l.parent.name,
+            parentEmail: l.parent.email,
+            linkedAt: l.linkedAt.toISOString(),
+          }))}
           initialPlayers={players.map((p) => ({
             id: p.id,
             name: p.name,
@@ -80,6 +91,8 @@ export default async function RosterPage({
             secondaryPosition: p.secondaryPosition,
             isActive: p.isActive,
             parentCode: p.parentCode,
+            parentCodeRedemptions: p.parentCodeRedemptions,
+            parentCodeExpiresAt: p.parentCodeExpiresAt?.toISOString() ?? null,
             parentLinks: p.parentLinks.map((l) => ({
               id: l.id,
               linkedAt: l.linkedAt.toISOString(),

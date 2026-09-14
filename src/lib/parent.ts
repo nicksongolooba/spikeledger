@@ -5,6 +5,13 @@
 
 import { randomInt } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+import {
+  PARENT_CODE_MAX_REDEMPTIONS,
+  PARENT_CODE_TTL_DAYS,
+  parentCodeStatus,
+} from "@/lib/parent-constants";
+
+export { PARENT_CODE_MAX_REDEMPTIONS, PARENT_CODE_TTL_DAYS, parentCodeStatus };
 
 export class ParentError extends Error {
   status: number;
@@ -30,9 +37,16 @@ export function normalizeParentCode(raw: string): string {
   return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
 }
 
-// Issue (or re-issue) a player's parent code. Re-issuing invalidates the old
-// code for NEW links but keeps existing parents linked.
-export async function issueParentCode(playerId: string): Promise<string> {
+export interface IssuedParentCode {
+  code: string;
+  expiresAt: Date;
+  redemptions: number;
+  maxRedemptions: number;
+}
+
+// Issue (or re-issue) a player's parent code: 3 redemptions, 30 days. A new
+// code invalidates the old one for NEW links but keeps existing parents.
+export async function issueParentCode(playerId: string): Promise<IssuedParentCode> {
   const player = await prisma.player.findUnique({
     where: { id: playerId },
     include: { team: { select: { name: true } } },
@@ -50,11 +64,18 @@ export async function issueParentCode(playerId: string): Promise<string> {
       select: { id: true },
     });
     if (clash) continue;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + PARENT_CODE_TTL_DAYS * 24 * 60 * 60 * 1000);
     await prisma.player.update({
       where: { id: playerId },
-      data: { parentCode: code, parentCodeCreatedAt: new Date() },
+      data: {
+        parentCode: code,
+        parentCodeCreatedAt: now,
+        parentCodeExpiresAt: expiresAt,
+        parentCodeRedemptions: 0,
+      },
     });
-    return code;
+    return { code, expiresAt, redemptions: 0, maxRedemptions: PARENT_CODE_MAX_REDEMPTIONS };
   }
   throw new ParentError("Could not generate a unique code - try again.", 500);
 }
@@ -66,18 +87,58 @@ export async function revokeParentAccess(playerId: string): Promise<number> {
     prisma.parentPlayerLink.deleteMany({ where: { playerId } }),
     prisma.player.update({
       where: { id: playerId },
-      data: { parentCode: null, parentCodeCreatedAt: null },
+      data: {
+        parentCode: null,
+        parentCodeCreatedAt: null,
+        parentCodeExpiresAt: null,
+        parentCodeRedemptions: 0,
+      },
     }),
   ]);
   return deleted.count;
 }
 
-// Parent redeems a code. Idempotent - linking twice is fine.
+// Coach removes ONE parent's access to a player (wrong person redeemed the
+// code). Other links and the code itself are untouched.
+export async function revokeParentLink(teamId: string, linkId: string): Promise<boolean> {
+  const { count } = await prisma.parentPlayerLink.deleteMany({
+    where: { id: linkId, player: { teamId } },
+  });
+  return count > 0;
+}
+
+// Coach dismisses the "X's parent linked" notice.
+export async function markParentLinkSeen(teamId: string, linkId: string): Promise<boolean> {
+  const { count } = await prisma.parentPlayerLink.updateMany({
+    where: { id: linkId, player: { teamId }, coachSeenAt: null },
+    data: { coachSeenAt: new Date() },
+  });
+  return count > 0;
+}
+
+// Links the coach hasn't acknowledged yet, newest first.
+export async function getUnseenParentLinks(teamId: string) {
+  return prisma.parentPlayerLink.findMany({
+    where: { player: { teamId }, coachSeenAt: null },
+    orderBy: { linkedAt: "desc" },
+    include: {
+      parent: { select: { name: true, email: true } },
+      player: { select: { id: true, name: true } },
+    },
+  });
+}
+
+// Parent redeems a code. A code works 3 times within 30 days of being
+// issued; a parent who is already linked can re-enter it freely without
+// using up a redemption.
 export async function linkParentByCode(parentId: string, rawCode: string) {
   const code = normalizeParentCode(rawCode);
   const player = await prisma.player.findUnique({
     where: { parentCode: code },
-    include: { team: { select: { id: true, name: true, ageGroup: true } } },
+    include: {
+      team: { select: { id: true, name: true, ageGroup: true } },
+      parentLinks: { where: { parentId }, select: { id: true } },
+    },
   });
   if (!player) {
     throw new ParentError(
@@ -88,12 +149,41 @@ export async function linkParentByCode(parentId: string, rawCode: string) {
   if (!player.isActive) {
     throw new ParentError("That player is no longer on the roster.", 410);
   }
-  const link = await prisma.parentPlayerLink.upsert({
-    where: { parentId_playerId: { parentId, playerId: player.id } },
-    create: { parentId, playerId: player.id },
-    update: {},
+  const existing = player.parentLinks[0];
+  if (existing) {
+    const link = await prisma.parentPlayerLink.findUniqueOrThrow({ where: { id: existing.id } });
+    return { link, player, alreadyLinked: true as const };
+  }
+  const status = parentCodeStatus(player);
+  if (status.state === "expired") {
+    throw new ParentError("This code has expired. Ask the coach for a new one.", 410);
+  }
+  if (status.state === "exhausted") {
+    throw new ParentError(
+      `This code has already been used ${PARENT_CODE_MAX_REDEMPTIONS} times. Ask the coach for a new one.`,
+      409,
+    );
+  }
+  // Consume a redemption and create the link atomically; the guarded
+  // updateMany stops two parents racing past the cap.
+  const link = await prisma.$transaction(async (tx) => {
+    const consumed = await tx.player.updateMany({
+      where: {
+        id: player.id,
+        parentCode: code,
+        parentCodeRedemptions: { lt: PARENT_CODE_MAX_REDEMPTIONS },
+      },
+      data: { parentCodeRedemptions: { increment: 1 } },
+    });
+    if (consumed.count === 0) {
+      throw new ParentError(
+        `This code has already been used ${PARENT_CODE_MAX_REDEMPTIONS} times. Ask the coach for a new one.`,
+        409,
+      );
+    }
+    return tx.parentPlayerLink.create({ data: { parentId, playerId: player.id } });
   });
-  return { link, player };
+  return { link, player, alreadyLinked: false as const };
 }
 
 // Parent removes a player from their own account.

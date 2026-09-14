@@ -82,7 +82,12 @@ export default async function TeamSettingsPage({ params }: { params: { id: strin
                       {formatDate(l.linkedAt)}
                     </div>
                   </div>
-                  <RevokeParentButton teamId={team.id} playerId={l.player.id} playerName={l.player.name} />
+                  <RevokeParentButton
+                    teamId={team.id}
+                    linkId={l.id}
+                    parentEmail={l.parent.email}
+                    playerName={l.player.name}
+                  />
                 </li>
               ))}
             </ul>

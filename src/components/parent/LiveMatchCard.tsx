@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Radio } from "lucide-react";
+import { Info, Radio } from "lucide-react";
 import type { LiveSnapshot } from "@/lib/parent-view";
+import { WinChanceSparkline } from "@/components/charts/WinChanceSparkline";
 import { cn, formatDate } from "@/lib/utils";
 
 const LIVE_POLL_MS = 15_000; // during a match
@@ -99,6 +100,28 @@ export function LiveMatchCard({
         )}
       </div>
 
+      {(isLive || isFinal) && snap.sets.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-100 px-5 py-2.5 text-sm">
+          <span className="eyebrow text-slate-500">Sets</span>
+          {snap.sets.map((s) => (
+            <span
+              key={s.setNumber}
+              className={cn(
+                "stat-number text-base font-bold",
+                s.decided === "us" ? "text-emerald-700" : s.decided === "them" ? "text-red-700" : "text-slate-900",
+              )}
+              title={`Set ${s.setNumber}`}
+            >
+              {s.us}-{s.them}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {isLive && snap.currentSet && (
+        <SetWinChanceBar current={snap.currentSet} />
+      )}
+
       {stats ? (
         <div className="grid grid-cols-3 divide-x divide-y divide-slate-100 sm:grid-cols-6 sm:divide-y-0">
           <LiveStat label="Kills" value={stats.kills} />
@@ -162,6 +185,57 @@ function LiveStat({
       </div>
       <div className="eyebrow mt-1 text-[10px] text-slate-500">{label}</div>
       {hint && <div className="text-[10px] text-slate-400">{hint}</div>}
+    </div>
+  );
+}
+
+// "Set win chance: 72%" - a bar that fills green above 50% and red below,
+// with the trend of the set so far.
+function SetWinChanceBar({ current }: { current: NonNullable<LiveSnapshot["currentSet"]> }) {
+  const pct = current.winChancePct;
+  const good = pct !== null && pct >= 50;
+  return (
+    <div className="border-b border-slate-100 px-5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="font-display text-sm font-bold uppercase tracking-wider text-slate-700">
+            Set win chance
+          </span>
+          <span
+            className="inline-flex text-slate-400"
+            title="Based on the current score and how many rallies your team has been winning this set"
+            aria-label="Based on the current score and how many rallies your team has been winning this set"
+          >
+            <Info size={14} strokeWidth={2} aria-hidden />
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-500">
+            Set {current.setNumber} · {current.us}-{current.them}
+          </span>
+          <span
+            className={cn(
+              "stat-number text-2xl font-bold leading-none",
+              pct === null ? "text-slate-400" : good ? "text-emerald-700" : "text-red-700",
+            )}
+          >
+            {pct === null ? "\u2014" : `${pct}%`}
+          </span>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center gap-3">
+        <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct ?? undefined} aria-label="Set win chance">
+          <div className="absolute inset-y-0 left-1/2 w-px bg-slate-300" aria-hidden />
+          <div
+            className={cn("h-full rounded-full transition-[width] duration-500", good ? "bg-emerald-600" : "bg-red-600")}
+            style={{ width: `${pct ?? 0}%` }}
+          />
+        </div>
+        <WinChanceSparkline history={current.winChanceHistory} width={120} height={32} className="shrink-0" />
+      </div>
+      {pct === null && (
+        <div className="mt-1 text-[11px] text-slate-500">Shows after 3 rallies in the set.</div>
+      )}
     </div>
   );
 }

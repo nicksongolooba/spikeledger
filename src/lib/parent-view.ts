@@ -17,6 +17,8 @@ import { generateRuleBasedPlayerInsight } from "@/engine/ai/rule-based";
 import { getPlayerInsight } from "@/engine/ai";
 import { getEffectivePlan } from "@/lib/club";
 import { hasFeature } from "@/lib/plan-limits";
+import { computeSetWinChance, setWinner, setRulesFor } from "@/engine/win-probability";
+import { parseScoreHistory, teamHistoricalRallyRate } from "@/lib/win-probability-data";
 import type { ReportCardData } from "@/components/reports/cards/types";
 import type { ImprovementArea } from "@/components/reports/utils/improvement-rules";
 
@@ -67,6 +69,18 @@ export interface LiveSnapshot {
     ratingLabel: string;
     ratingColor: string;
   } | null;
+  // Live per-set scores synced from the courtside page (empty until the
+  // coach scores a point).
+  sets: { setNumber: number; us: number; them: number; decided: "us" | "them" | null }[];
+  // The set in progress: score plus the win probability after every point.
+  currentSet: {
+    setNumber: number;
+    us: number;
+    them: number;
+    winChancePct: number | null; // null until 3 rallies have been played
+    winChanceHistory: number[]; // 0..1 after each point, for the sparkline
+    rallies: number;
+  } | null;
   updatedAt: string; // ISO
 }
 
@@ -97,7 +111,16 @@ export async function buildLiveSnapshot(playerId: string): Promise<LiveSnapshot>
     },
   });
   const updatedAt = new Date().toISOString();
-  if (!player) return { status: "none", match: null, stats: null, bankAccount: null, updatedAt };
+  const empty: LiveSnapshot = {
+    status: "none",
+    match: null,
+    stats: null,
+    bankAccount: null,
+    sets: [],
+    currentSet: null,
+    updatedAt,
+  };
+  if (!player) return empty;
 
   const latest = await prisma.match.findFirst({
     where: { tournament: { teamId: player.teamId } },
@@ -106,9 +129,36 @@ export async function buildLiveSnapshot(playerId: string): Promise<LiveSnapshot>
       tournament: { select: { name: true, startDate: true } },
       _count: { select: { statLines: true } },
       statLines: { where: { playerId } },
+      setScores: { orderBy: { setNumber: "asc" } },
     },
   });
-  if (!latest) return { status: "none", match: null, stats: null, bankAccount: null, updatedAt };
+  if (!latest) return empty;
+
+  // Set scores + the win probability for the set in progress.
+  const sets = latest.setScores.map((sc) => ({
+    setNumber: sc.setNumber,
+    us: sc.us,
+    them: sc.them,
+    decided: setWinner(sc.us, sc.them, setRulesFor(sc.setNumber)),
+  }));
+  const lastSet = latest.setScores[latest.setScores.length - 1] ?? null;
+  let currentSet: LiveSnapshot["currentSet"] = null;
+  if (lastSet) {
+    const historicalRate = await teamHistoricalRallyRate(player.teamId, latest.id);
+    const history = parseScoreHistory(lastSet.history);
+    const wc = computeSetWinChance(history.length > 0 ? history : [[lastSet.us, lastSet.them]], {
+      setNumber: lastSet.setNumber,
+      historicalRate,
+    });
+    currentSet = {
+      setNumber: lastSet.setNumber,
+      us: lastSet.us,
+      them: lastSet.them,
+      winChancePct: wc.pct,
+      winChanceHistory: wc.history,
+      rallies: wc.rallies,
+    };
+  }
 
   const status = matchStatus(latest, latest._count.statLines > 0);
   const line = latest.statLines[0] ?? null;
@@ -138,6 +188,8 @@ export async function buildLiveSnapshot(playerId: string): Promise<LiveSnapshot>
           ratingColor: ba.ratingColor,
         }
       : null,
+    sets,
+    currentSet,
     updatedAt,
   };
 }
