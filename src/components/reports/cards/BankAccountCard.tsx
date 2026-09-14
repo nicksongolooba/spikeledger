@@ -12,7 +12,7 @@ import {
   REPORT_GREEN,
   REPORT_MUTED,
   REPORT_NAVY,
-  REPORT_ORANGE_DEEP,
+  REPORT_ACCENT_DEEP,
   REPORT_RED,
   REPORT_TEXT,
   type ReportCardData,
@@ -43,7 +43,7 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
             style={{
               fontFamily: REPORT_FONT_DISPLAY,
               fontSize: "16px",
-              color: REPORT_ORANGE_DEEP,
+              color: REPORT_ACCENT_DEEP,
               textTransform: "uppercase",
               letterSpacing: "0.14em",
               fontWeight: 700,

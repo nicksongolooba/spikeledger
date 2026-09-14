@@ -121,7 +121,7 @@ export function PricingSection() {
               )}
             >
               {t.recommended && (
-                <div className="bg-navy-900 px-6 py-2 text-center font-display text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+                <div className="bg-navy-900 px-6 py-2 text-center font-display text-xs font-bold uppercase tracking-[0.16em] text-cyan-500">
                   Most coaches pick this
                 </div>
               )}
@@ -155,7 +155,7 @@ export function PricingSection() {
                         <Check
                           size={16}
                           strokeWidth={2.5}
-                          className="mt-0.5 shrink-0 text-emerald-600"
+                          className="mt-0.5 shrink-0 text-green-600"
                           aria-hidden
                         />
                       ) : (

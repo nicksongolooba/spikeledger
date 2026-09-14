@@ -10,7 +10,7 @@ import {
   REPORT_FONT_DISPLAY,
   REPORT_HEIGHT,
   REPORT_NAVY,
-  REPORT_ORANGE_LIGHT,
+  REPORT_ACCENT_ON_NAVY,
   REPORT_TEXT,
   REPORT_WIDTH,
 } from "../cards/types";
@@ -22,7 +22,7 @@ import { LOGO_RATIO } from "@/components/layout/Wordmark";
 const GROUP_ACCENT: Record<PositionGroup, string> = {
   hitter: "#1f3557",
   setter_middle: "#0369a1",
-  libero_ds: "#059669",
+  libero_ds: "#1b9757",
 };
 
 const HEADER_HEIGHT = 88;
@@ -90,7 +90,7 @@ export function ReportShell({ position, accentOverride, cardKey, children }: Pro
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
-            color: REPORT_ORANGE_LIGHT,
+            color: REPORT_ACCENT_ON_NAVY,
             lineHeight: 1,
           }}
         >

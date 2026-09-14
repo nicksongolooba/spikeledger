@@ -122,7 +122,7 @@ export default async function TournamentPage({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="rounded-lg bg-navy-900 px-5 py-3 text-white shadow-card">
-            <div className="eyebrow text-orange-300">Record</div>
+            <div className="eyebrow text-cyan-500">Record</div>
             <div className="stat-number mt-0.5 text-3xl font-bold leading-none">
               {record}
             </div>
@@ -225,10 +225,10 @@ export default async function TournamentPage({
                   <Trophy
                     size={16}
                     strokeWidth={2}
-                    className="text-orange-300"
+                    className="text-cyan-500"
                     aria-hidden
                   />
-                  <span className="eyebrow text-orange-300">Best Bank Account</span>
+                  <span className="eyebrow text-cyan-500">Best Bank Account</span>
                 </div>
                 <div className="p-5">
                   <div className="font-display text-2xl font-bold leading-none text-slate-900">
@@ -314,7 +314,7 @@ function SumTile({
 }) {
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-700"
+      ? "text-green-700"
       : accent === "red"
         ? "text-red-700"
         : accent === "cyan"

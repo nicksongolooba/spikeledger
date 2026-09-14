@@ -10,9 +10,9 @@ import {
   REPORT_MUTED,
   REPORT_NAVY,
   REPORT_NAVY_LIGHT,
-  REPORT_ORANGE,
-  REPORT_ORANGE_DEEP,
-  REPORT_ORANGE_TINT,
+  REPORT_ACCENT,
+  REPORT_ACCENT_DEEP,
+  REPORT_ACCENT_TINT,
   type ReportCardData,
 } from "./types";
 
@@ -41,7 +41,7 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
           fontFamily: REPORT_FONT_DISPLAY,
           fontSize: "16px",
           fontWeight: 700,
-          color: REPORT_ORANGE_DEEP,
+          color: REPORT_ACCENT_DEEP,
           textTransform: "uppercase",
           letterSpacing: "0.12em",
           marginBottom: "6px",
@@ -62,16 +62,16 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
               margin: "0 -8px",
               padding: "5px 8px",
               borderRadius: "6px",
-              background: r.isMe ? REPORT_ORANGE_TINT : "transparent",
+              background: r.isMe ? REPORT_ACCENT_TINT : "transparent",
             }}
           >
-            {/* Orange marker on the featured player's row */}
+            {/* Cyan marker on the featured player's row */}
             <span
               style={{
                 width: "4px",
                 height: "18px",
                 borderRadius: "2px",
-                background: r.isMe ? REPORT_ORANGE : "transparent",
+                background: r.isMe ? REPORT_ACCENT : "transparent",
                 flexShrink: 0,
               }}
             />

@@ -112,7 +112,7 @@ function LoginForm() {
               Email{" "}
               <a
                 href="mailto:support@spikeledger.com"
-                className="font-semibold text-orange-700 hover:text-orange-800"
+                className="font-semibold text-cyan-700 hover:text-cyan-800"
               >
                 support@spikeledger.com
               </a>{" "}
@@ -124,7 +124,7 @@ function LoginForm() {
 
       <p className="mt-6 text-center text-sm text-slate-600">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-medium text-orange-700 hover:text-orange-800">
+        <Link href="/register" className="font-medium text-cyan-700 hover:text-cyan-800">
           Create one
         </Link>
       </p>

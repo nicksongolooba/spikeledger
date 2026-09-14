@@ -2,11 +2,12 @@ import type { CSSProperties } from "react";
 
 // Shared Recharts styling for the light "Scoreboard" palette. Recharts paints
 // SVG, so it needs literal colors - these mirror the tokens in
-// tailwind.config.ts and Tailwind's stock slate/emerald/red scales.
+// tailwind.config.ts (cyan/green from the logo) and Tailwind's stock slate/red.
 export const CHART = {
   primary: "#0b1a33", // navy-900 - main series
-  secondary: "#e4520b", // orange-500 - second series
-  positive: "#059669", // emerald-600 - deposits
+  secondary: "#00cafd", // cyan-500, the logo cyan - second series
+  tertiary: "#25e380", // green-500, the logo green - third series
+  positive: "#1b9757", // green-600 - deposits
   negative: "#dc2626", // red-600 - withdrawals
   neutral: "#b9c8de", // navy-200 - bars with no rating
   grid: "#e2e8f0", // slate-200
@@ -19,16 +20,15 @@ export const CHART = {
   white: "#ffffff",
 } as const;
 
-// Pie ramps: darkest stop for the biggest slice. Stock emerald / red scales,
-// 800 down to 200 (the 400 stops are skipped so the two ramps stay apart
-// from the old dark-theme accent colors).
+// Pie ramps: darkest stop for the biggest slice. Brand green / stock red,
+// 800 down to 200 (the 400 stops are skipped so the two ramps stay apart).
 export const DEPOSIT_RAMP = [
-  "#065f46",
-  "#047857",
-  "#059669",
-  "#10b981",
-  "#6ee7b7",
-  "#a7f3d0",
+  "#17633c",
+  "#1a7f4a",
+  "#1b9757",
+  "#25e380",
+  "#6eecab",
+  "#a5f3ca",
 ];
 export const WITHDRAWAL_RAMP = [
   "#991b1b",

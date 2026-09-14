@@ -43,7 +43,7 @@ export const REPORT_HEIGHT = 1350;
 // Color + type tokens shared across cards. Keep as plain strings (not
 // Tailwind classes) - html-to-image relies on computed CSS and these end up
 // inline. They mirror the "Scoreboard" tokens in tailwind.config.ts: white
-// cards, slate neutrals, navy primary, orange accent, emerald/red ledger.
+// cards, slate neutrals, navy primary, cyan accent, green/red ledger.
 export const REPORT_BG = "#ffffff";           // card surface
 export const REPORT_CARD_BG = "#f4f6f9";      // inset panels (paper)
 export const REPORT_BORDER = "#e2e8f0";       // slate-200 hairlines
@@ -54,11 +54,11 @@ export const REPORT_DIM = "#94a3b8";          // slate-400 decorative only
 
 export const REPORT_NAVY = "#0b1a33";         // navy-900 primary
 export const REPORT_NAVY_LIGHT = "#b9c8de";   // navy-200 secondary bars
-export const REPORT_ORANGE = "#e4520b";       // orange-500 accent fills
-export const REPORT_ORANGE_DEEP = "#a33808";  // orange-700 accent text on white
-export const REPORT_ORANGE_LIGHT = "#ffa572"; // orange-300 accent text on navy
-export const REPORT_ORANGE_TINT = "#fff4ec";  // orange-50 highlighted rows
-export const REPORT_GREEN = "#059669";        // emerald-600 deposits
+export const REPORT_ACCENT = "#00cafd";        // cyan-500, the logo cyan - accent fills (navy text on it)
+export const REPORT_ACCENT_DEEP = "#047895";   // cyan-700 accent text on white
+export const REPORT_ACCENT_ON_NAVY = "#00cafd"; // the logo cyan as text on the navy band
+export const REPORT_ACCENT_TINT = "#ebfbff";    // cyan-50 highlighted rows
+export const REPORT_GREEN = "#1b9757";        // green-600, from the logo green - deposits
 export const REPORT_RED = "#dc2626";          // red-600 withdrawals
 
 // Barlow is loaded by next/font in app/layout.tsx and exposed as CSS

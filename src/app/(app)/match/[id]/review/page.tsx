@@ -119,7 +119,7 @@ export default async function MatchReviewPage({
         : "Pending";
   const resultTone =
     match.result === "WIN"
-      ? "bg-emerald-600 text-white"
+      ? "bg-green-600 text-white"
       : match.result === "LOSS"
         ? "bg-red-600 text-white"
         : match.result === "DRAW"
@@ -212,7 +212,7 @@ export default async function MatchReviewPage({
           <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4">
             <div>
               <dt className="eyebrow text-[10px] text-slate-500">Deposits</dt>
-              <dd className="stat-number mt-0.5 text-2xl font-bold leading-none text-emerald-700">
+              <dd className="stat-number mt-0.5 text-2xl font-bold leading-none text-green-700">
                 {teamBA.deposits}
               </dd>
             </div>
@@ -247,7 +247,7 @@ export default async function MatchReviewPage({
             />
           </div>
           <div className="mt-3 flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 px-5 py-3">
-            <div className="stat-number text-3xl font-bold leading-none text-orange-700">
+            <div className="stat-number text-3xl font-bold leading-none text-cyan-700">
               {match.opponentErrors}
             </div>
             <div className="text-sm text-slate-600">
@@ -291,7 +291,7 @@ export default async function MatchReviewPage({
       <section className="mt-10 overflow-hidden rounded-lg bg-navy-900 text-white shadow-card">
         <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="eyebrow text-orange-300">Next step</div>
+            <div className="eyebrow text-cyan-500">Next step</div>
             <h2 className="mt-1 font-display text-2xl font-bold leading-none">
               Turn this tournament into report cards
             </h2>
@@ -329,13 +329,13 @@ function SumTile({
 }) {
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-700"
+      ? "text-green-700"
       : accent === "red"
         ? "text-red-700"
         : accent === "cyan"
           ? "text-navy-700"
           : accent === "violet"
-            ? "text-orange-700"
+            ? "text-cyan-700"
             : "text-slate-900";
   return (
     <div className="card p-5">

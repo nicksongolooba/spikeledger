@@ -115,7 +115,7 @@ export default function BlogPostPage({
                   href={`/blog/${r.slug}`}
                   className="card card-hover group flex h-full flex-col p-4"
                 >
-                  <span className="text-sm font-semibold text-slate-900 group-hover:text-orange-700">
+                  <span className="text-sm font-semibold text-slate-900 group-hover:text-cyan-700">
                     {r.title}
                   </span>
                   <span className="mt-2 line-clamp-3 text-xs leading-relaxed text-slate-500">

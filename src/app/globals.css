@@ -20,7 +20,7 @@
   }
 
   ::selection {
-    background: rgba(228, 82, 11, 0.18);
+    background: rgba(0, 202, 253, 0.28);
   }
 }
 
@@ -46,7 +46,7 @@
   }
 
   .btn-primary {
-    @apply btn bg-orange-500 text-white hover:bg-orange-600;
+    @apply btn bg-cyan-500 text-navy-950 hover:bg-cyan-600;
   }
 
   .btn-secondary {
@@ -72,7 +72,7 @@
 
   /* Small-caps section label in the accent color. */
   .eyebrow {
-    @apply font-display text-xs font-bold uppercase tracking-[0.16em] text-orange-700;
+    @apply font-display text-xs font-bold uppercase tracking-[0.16em] text-cyan-700;
   }
 
   .chip {

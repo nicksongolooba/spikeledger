@@ -68,11 +68,11 @@ export default async function SettingsPage() {
             <ArrowRight
               size={18}
               strokeWidth={2}
-              className="shrink-0 text-slate-300 transition-colors group-hover:text-orange-600"
+              className="shrink-0 text-slate-300 transition-colors group-hover:text-cyan-600"
               aria-hidden
             />
           </div>
-          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-slate-900 group-hover:text-orange-700">
+          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-slate-900 group-hover:text-cyan-700">
             Billing and plan
           </h2>
           <p className="mt-1 text-sm text-slate-600">

@@ -105,7 +105,7 @@ export function ReviewTable({ rows }: { rows: ReviewRow[] }) {
                 className={cn(
                   "cursor-pointer select-none whitespace-nowrap px-3 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors hover:text-slate-900",
                   c.align === "right" ? "text-right" : "text-left",
-                  sort.key === c.key ? "text-orange-700" : "text-slate-500",
+                  sort.key === c.key ? "text-cyan-700" : "text-slate-500",
                 )}
                 onClick={() => toggleSort(c.key)}
                 role="button"

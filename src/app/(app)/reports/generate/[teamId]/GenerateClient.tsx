@@ -232,7 +232,7 @@ export function GenerateClient({
               className={
                 "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors " +
                 (scopeKey === s.key
-                  ? "border-orange-500 bg-orange-50 text-orange-800"
+                  ? "border-cyan-500 bg-cyan-50 text-cyan-800"
                   : "border-slate-300 bg-white text-slate-700 hover:border-slate-300")
               }
             >
@@ -273,7 +273,7 @@ export function GenerateClient({
                 className={
                   "flex items-center gap-3 rounded-lg border p-2.5 text-left transition-colors " +
                   (selected
-                    ? "border-orange-500 bg-orange-50"
+                    ? "border-cyan-500 bg-cyan-50"
                     : hasData
                       ? "border-slate-200 bg-white hover:border-slate-300"
                       : "cursor-not-allowed border-slate-200 bg-white/40 opacity-50")
@@ -377,7 +377,7 @@ export function GenerateClient({
         <div className="mt-3 flex flex-col gap-3 lg:flex-row">
           <div className="flex-1">
             <div className="text-sm text-slate-700">
-              Scope: <span className="text-orange-700">{scopeLabel}</span>
+              Scope: <span className="text-cyan-700">{scopeLabel}</span>
             </div>
             <div className="text-sm text-slate-700">
               {selectedPlayers.size} player(s) · {finalCards.length} image(s) each
@@ -406,7 +406,7 @@ export function GenerateClient({
             {busy && (
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className="h-full bg-orange-500 transition-all"
+                  className="h-full bg-cyan-500 transition-all"
                   style={{
                     width:
                       progress.total > 0
@@ -514,7 +514,7 @@ export function GenerateClient({
                           // Revoke after the click - browsers usually finish the download first.
                           setTimeout(() => URL.revokeObjectURL(url), 5000);
                         }}
-                        className="group relative overflow-hidden rounded-md border border-slate-200 transition-colors hover:border-orange-300"
+                        className="group relative overflow-hidden rounded-md border border-slate-200 transition-colors hover:border-cyan-300"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img

@@ -21,7 +21,7 @@ export default function BlogIndexPage() {
   return (
     <div>
       <header className="border-b border-slate-200 pb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-orange-700">
+        <p className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
           SpikeLedger Blog
         </p>
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl mt-2 text-slate-900">
@@ -46,13 +46,13 @@ export default function BlogIndexPage() {
                 <span aria-hidden>·</span>
                 <span>{readingTimeMinutes(post.body)} min read</span>
               </div>
-              <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-900 group-hover:text-orange-700">
+              <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-900 group-hover:text-cyan-700">
                 {post.title}
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 {post.excerpt}
               </p>
-              <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-orange-700">
+              <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-cyan-700">
                 Read more
                 <ArrowRight size={14} strokeWidth={2} aria-hidden />
               </span>

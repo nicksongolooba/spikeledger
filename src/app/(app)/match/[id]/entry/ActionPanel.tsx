@@ -35,7 +35,7 @@ const SR: { id: StatActionId; label: string; className: string }[] = [
   { id: "SR_0", label: "0", className: "bg-red-600 active:bg-red-700" },
   { id: "SR_1", label: "1", className: "bg-amber-600 active:bg-amber-700" },
   { id: "SR_2", label: "2", className: "bg-sky-600 active:bg-sky-700" },
-  { id: "SR_3", label: "3", className: "bg-emerald-600 active:bg-emerald-700" },
+  { id: "SR_3", label: "3", className: "bg-green-600 active:bg-green-700" },
 ];
 
 // Liberos/DS shouldn't attack or block in standard play. Dim those buttons but
@@ -169,7 +169,7 @@ function ActionRow({
   // Solid fills: green for points we earned, navy for the plays that keep a
   // rally alive, red for errors. White labels pass contrast on all three.
   const baseByCategory = {
-    positive: "bg-emerald-600 active:bg-emerald-700",
+    positive: "bg-green-600 active:bg-green-700",
     neutral: "bg-navy-800 active:bg-navy-900",
     negative: "bg-red-600 active:bg-red-700",
   }[category];

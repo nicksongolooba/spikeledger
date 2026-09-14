@@ -215,10 +215,10 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-navy-950 text-white">
         <div className="relative mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-14 lg:grid-cols-12 lg:pb-24 lg:pt-24">
           <div className="relative z-10 lg:col-span-6">
-            <div className="eyebrow text-orange-300">Built by a club coach · Free for one team</div>
+            <div className="eyebrow text-cyan-500">Built by a club coach · Free for one team</div>
             <h1 className="mt-4 font-display text-5xl font-extrabold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               Stats that are fair to every position.{" "}
-              <span className="text-orange-400">Reports parents actually understand.</span>
+              <span className="text-cyan-500">Reports parents actually understand.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-navy-100">
               Your libero doesn&apos;t hit. Your middle doesn&apos;t pass. SpikeLedger
@@ -268,7 +268,7 @@ export default function LandingPage() {
               const Icon = s.icon;
               return (
                 <li key={s.title} className="flex items-start gap-3">
-                  <Icon size={20} strokeWidth={2} className="mt-0.5 shrink-0 text-orange-400" aria-hidden />
+                  <Icon size={20} strokeWidth={2} className="mt-0.5 shrink-0 text-cyan-500" aria-hidden />
                   <div>
                     <div className="font-display text-lg font-bold leading-tight">{s.title}</div>
                     <div className="text-sm text-navy-300">{s.body}</div>
@@ -298,7 +298,7 @@ export default function LandingPage() {
           <ol className="divide-y divide-slate-200 lg:col-span-7">
             {STEPS.map((s) => (
               <li key={s.n} className="grid grid-cols-[4.5rem_1fr] gap-4 py-7 first:pt-0 last:pb-0">
-                <div className="stat-number text-5xl font-bold leading-none text-orange-500">{s.n}</div>
+                <div className="stat-number text-5xl font-bold leading-none text-cyan-700">{s.n}</div>
                 <div>
                   <h3 className="font-display text-2xl font-bold leading-tight">{s.title}</h3>
                   <p className="mt-2 leading-relaxed text-slate-600">{s.body}</p>
@@ -325,7 +325,7 @@ export default function LandingPage() {
             <ul className="mt-6 space-y-3">
               {BANK_POINTS.map((p) => (
                 <li key={p} className="flex items-start gap-3 text-slate-700">
-                  <Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-emerald-600" aria-hidden />
+                  <Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-green-600" aria-hidden />
                   <span>{p}</span>
                 </li>
               ))}
@@ -384,7 +384,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-navy-950/70 via-navy-950/85 to-navy-950" />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-12 lg:items-center lg:py-28">
           <div className="lg:col-span-7">
-            <div className="eyebrow text-orange-300">Courtside entry</div>
+            <div className="eyebrow text-cyan-500">Courtside entry</div>
             <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
               Two taps per rally. One hand. Gym Wi-Fi optional.
             </h2>
@@ -397,7 +397,7 @@ export default function LandingPage() {
                 const Icon = c.icon;
                 return (
                   <li key={c.title} className="flex gap-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-orange-500 text-white">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-cyan-500 text-navy-950">
                       <Icon size={20} strokeWidth={2} aria-hidden />
                     </span>
                     <div>
@@ -446,7 +446,7 @@ export default function LandingPage() {
             <ol className="mt-7 grid gap-x-8 gap-y-3 sm:grid-cols-2">
               {CARDS.map((c) => (
                 <li key={c.n} className="flex gap-3">
-                  <span className="stat-number text-2xl font-bold leading-none text-orange-500">{c.n}</span>
+                  <span className="stat-number text-2xl font-bold leading-none text-cyan-500">{c.n}</span>
                   <div>
                     <div className="font-semibold leading-tight">{c.label}</div>
                     <div className="mt-0.5 text-sm text-slate-500">{c.caption}</div>
@@ -650,8 +650,8 @@ export default function LandingPage() {
 // the hero photo. Numbers follow the engine's libero rules.
 function LedgerCard({ className }: { className?: string }) {
   const rows = [
-    { label: "Passes rated 2 or 3", value: "+19", tone: "text-emerald-700" },
-    { label: "Aces", value: "+3", tone: "text-emerald-700" },
+    { label: "Passes rated 2 or 3", value: "+19", tone: "text-green-700" },
+    { label: "Aces", value: "+3", tone: "text-green-700" },
     { label: "Serve errors", value: "-4", tone: "text-red-700" },
     { label: "Passes rated 0", value: "-4", tone: "text-red-700" },
   ];
@@ -662,12 +662,12 @@ function LedgerCard({ className }: { className?: string }) {
           <div className="font-display text-xl font-bold leading-none">Jade · #5</div>
           <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Libero · Winter Invitational</div>
         </div>
-        <span className="whitespace-nowrap rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+        <span className="whitespace-nowrap rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-green-700">
           Helping team win
         </span>
       </div>
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="stat-number text-5xl font-bold leading-none text-emerald-700">+14</span>
+        <span className="stat-number text-5xl font-bold leading-none text-green-700">+14</span>
         <span className="text-xs text-slate-500">Bank Account balance</span>
       </div>
       <dl className="mt-3 divide-y divide-slate-100 border-t border-slate-100 text-sm">
@@ -685,7 +685,7 @@ function LedgerCard({ className }: { className?: string }) {
 function RulesTable() {
   const cell = (c: Cell) => {
     if (c === "deposit")
-      return <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-700">Deposit</span>;
+      return <span className="rounded bg-green-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-green-700">Deposit</span>;
     if (c === "withdrawal")
       return <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-red-700">Withdrawal</span>;
     if (c === "baseline")

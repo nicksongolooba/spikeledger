@@ -195,12 +195,12 @@ export default async function PlayerReportPage({
         : "Kills/Match";
   const primaryColor =
     group === "libero_ds"
-      ? "#e4520b"
+      ? "#00cafd"
       : group === "setter_middle"
         ? mostPlayed === "S"
-          ? "#e4520b"
-          : "#e4520b"
-        : "#e4520b";
+          ? "#00cafd"
+          : "#00cafd"
+        : "#00cafd";
 
   const tiles = statTilesFor(group, overall);
 
@@ -394,13 +394,13 @@ export default async function PlayerReportPage({
 function StatTile({ label, value, accent }: StatTileItem) {
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-700"
+      ? "text-green-700"
       : accent === "red"
         ? "text-red-700"
         : accent === "cyan"
-          ? "text-orange-700"
+          ? "text-cyan-700"
           : accent === "violet"
-            ? "text-orange-700"
+            ? "text-cyan-700"
             : accent === "amber"
               ? "text-amber-700"
               : "text-slate-900";

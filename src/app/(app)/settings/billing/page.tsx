@@ -95,11 +95,11 @@ export default async function BillingPage({
       </header>
 
       {searchParams?.success === "true" && (
-        <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
           <Check
             size={16}
             strokeWidth={2.5}
-            className="mt-0.5 shrink-0 text-emerald-600"
+            className="mt-0.5 shrink-0 text-green-600"
             aria-hidden
           />
           <span>
@@ -207,7 +207,7 @@ function UsageTile({
             <div
               className={cn(
                 "h-full rounded-full",
-                near ? "bg-amber-500" : "bg-orange-500",
+                near ? "bg-amber-500" : "bg-cyan-500",
               )}
               style={{ width: `${pct}%` }}
             />
@@ -249,7 +249,7 @@ function PlanColumn({
             <div
               className={cn(
                 "eyebrow",
-                recommended ? "text-orange-300" : "text-slate-500",
+                recommended ? "text-cyan-500" : "text-slate-500",
               )}
             >
               {PLAN_EYEBROW[plan]}
@@ -345,7 +345,7 @@ function Item({ ok, children }: { ok: boolean; children: React.ReactNode }) {
         <Check
           size={16}
           strokeWidth={2.5}
-          className="mt-0.5 shrink-0 text-emerald-600"
+          className="mt-0.5 shrink-0 text-green-600"
           aria-hidden
         />
       ) : (

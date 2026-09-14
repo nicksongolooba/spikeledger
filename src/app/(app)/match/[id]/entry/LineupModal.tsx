@@ -112,7 +112,7 @@ export function LineupModal({
               className={cn(
                 "flex min-h-[56px] items-center gap-3 rounded-md border-2 p-2.5 text-left transition-colors",
                 isSelected
-                  ? "border-orange-500 bg-orange-50"
+                  ? "border-cyan-500 bg-cyan-50"
                   : "border-slate-200 bg-white hover:border-slate-400",
               )}
             >
@@ -133,8 +133,8 @@ export function LineupModal({
               {isSelected && (
                 <span
                   className={cn(
-                    "stat-number flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white",
-                    isServer ? "bg-orange-500" : "bg-navy-900",
+                    "stat-number flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+                    isServer ? "bg-cyan-500 text-navy-950" : "bg-navy-900 text-white",
                   )}
                   title={
                     isServer
@@ -203,7 +203,7 @@ export function LineupModal({
                       className={cn(
                         "stat-number flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold",
                         i === 0
-                          ? "bg-orange-500 text-white"
+                          ? "bg-cyan-500 text-navy-950"
                           : "bg-slate-200 text-slate-700",
                       )}
                     >
@@ -212,7 +212,7 @@ export function LineupModal({
                     {p.name}{" "}
                     <span className="text-slate-500">#{p.number ?? "-"}</span>
                     {i === 0 && (
-                      <span className="rounded bg-orange-100 px-1 font-display text-[10px] font-bold uppercase tracking-wide text-orange-800">
+                      <span className="rounded bg-cyan-100 px-1 font-display text-[10px] font-bold uppercase tracking-wide text-cyan-800">
                         Server
                       </span>
                     )}

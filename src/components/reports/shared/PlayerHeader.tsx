@@ -11,13 +11,13 @@ import {
 
 // Tailwind classes don't survive html-to-image cleanly if applied to <span>
 // in a hidden tree, so we derive inline colors from the badge class string.
-// Keep in sync with POSITION_BADGE_CLASS (navy / sky / orange / emerald).
+// Keep in sync with POSITION_BADGE_CLASS (navy / sky / cyan / green).
 function badgeColors(position: Position) {
   const cls = POSITION_BADGE_CLASS[position];
   if (cls.includes("navy")) return { bg: "#152743", fg: "#ffffff" };
   if (cls.includes("sky")) return { bg: "#0369a1", fg: "#ffffff" };
-  if (cls.includes("orange")) return { bg: "#e4520b", fg: "#ffffff" };
-  if (cls.includes("emerald")) return { bg: "#059669", fg: "#ffffff" };
+  if (cls.includes("cyan")) return { bg: "#00cafd", fg: "#071022" };
+  if (cls.includes("green")) return { bg: "#1b9757", fg: "#ffffff" };
   return { bg: "#475569", fg: "#ffffff" }; // slate fallback
 }
 

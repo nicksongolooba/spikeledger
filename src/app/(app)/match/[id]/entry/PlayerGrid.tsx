@@ -14,8 +14,8 @@ import type { PositionByPlayer, RosterPlayer } from "./types";
 const GROUP_RING: Record<PositionGroup, string> = {
   hitter: "ring-navy-200",
   middle: "ring-sky-200",
-  setter: "ring-orange-200",
-  libero: "ring-emerald-200",
+  setter: "ring-cyan-200",
+  libero: "ring-green-200",
 };
 
 export function PlayerGrid({
@@ -105,8 +105,8 @@ export function PlayerGrid({
               className={cn(
                 "min-h-[36px] rounded-full border px-3 font-display text-xs font-bold uppercase tracking-wide transition-colors",
                 liberoActive
-                  ? "border-emerald-600 bg-emerald-600 text-white"
-                  : "border-slate-300 bg-white text-slate-600 hover:border-emerald-500 hover:text-emerald-700",
+                  ? "border-green-600 bg-green-600 text-white"
+                  : "border-slate-300 bg-white text-slate-600 hover:border-green-500 hover:text-green-700",
               )}
             >
               {liberoActive ? "Libero out" : "Libero"}
@@ -115,7 +115,7 @@ export function PlayerGrid({
           <button
             type="button"
             onClick={onOpenLineup}
-            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-2 text-sm font-semibold text-orange-700 hover:text-orange-800"
+            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-2 text-sm font-semibold text-cyan-700 hover:text-cyan-800"
           >
             <Pencil size={14} strokeWidth={2} aria-hidden />
             Edit lineup
@@ -251,7 +251,7 @@ function PickTile({
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-[72px] flex-col items-center justify-center rounded-md border-2 border-slate-200 bg-white py-2 transition-colors hover:border-orange-500 active:bg-orange-50"
+      className="flex min-h-[72px] flex-col items-center justify-center rounded-md border-2 border-slate-200 bg-white py-2 transition-colors hover:border-cyan-500 active:bg-cyan-50"
     >
       <div className="stat-number text-lg font-bold leading-none text-slate-900">
         #{player.number ?? "-"}
@@ -287,7 +287,7 @@ function PlayerCard({
         "ring-1",
         GROUP_RING[group],
         selected
-          ? "border-orange-500 bg-orange-50 ring-2 ring-orange-500"
+          ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-500"
           : "border-slate-200",
         dim && !selected ? "opacity-70" : "",
       )}
