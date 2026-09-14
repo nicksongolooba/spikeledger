@@ -5,24 +5,35 @@ import {
 import type { Position } from "@prisma/client";
 import {
   REPORT_BG,
+  REPORT_DIM,
+  REPORT_FONT,
+  REPORT_FONT_DISPLAY,
   REPORT_HEIGHT,
+  REPORT_NAVY,
+  REPORT_ORANGE_LIGHT,
   REPORT_TEXT,
   REPORT_WIDTH,
 } from "../cards/types";
 
+// Position-group accent for the stripe under the header band. Same families
+// as the position badges in src/lib/positions.ts: hitters navy, setters and
+// middles steel blue, liberos green.
 const GROUP_ACCENT: Record<PositionGroup, string> = {
-  hitter: "#fbbf24",
-  setter_middle: "#a78bfa",
-  libero_ds: "#34d399",
+  hitter: "#1f3557",
+  setter_middle: "#0369a1",
+  libero_ds: "#059669",
 };
+
+const HEADER_HEIGHT = 88;
+const STRIPE_HEIGHT = 10;
 
 interface Props {
   position: Position;
-  // The shell positions an accent stripe down the left edge - pass a rating
+  // The shell draws an accent stripe under the header band - pass a rating
   // color (from BankAccountResult) and we use that instead, useful for the
   // Performance Overview card which is mostly about the rating.
   accentOverride?: string;
-  cardKey: string; // for the corner watermark, e.g. "01 / Overview"
+  cardKey: string; // header label, e.g. "01 OVERVIEW"
   children: React.ReactNode;
 }
 
@@ -36,46 +47,65 @@ export function ReportShell({ position, accentOverride, cardKey, children }: Pro
         height: `${REPORT_HEIGHT}px`,
         background: REPORT_BG,
         color: REPORT_TEXT,
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily: REPORT_FONT,
         position: "relative",
         overflow: "hidden",
         boxSizing: "border-box",
       }}
     >
-      {/* Accent stripe down the left edge */}
+      {/* Navy header band: wordmark left, card label right */}
       <div
         style={{
           position: "absolute",
-          left: 0,
           top: 0,
-          bottom: 0,
-          width: "10px",
-          background: accent,
+          left: 0,
+          right: 0,
+          height: `${HEADER_HEIGHT}px`,
+          background: REPORT_NAVY,
+          color: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 56px",
+          boxSizing: "border-box",
         }}
-      />
+      >
+        <div
+          style={{
+            fontFamily: REPORT_FONT_DISPLAY,
+            fontSize: "30px",
+            textTransform: "uppercase",
+            letterSpacing: "0.02em",
+            lineHeight: 1,
+          }}
+        >
+          <span style={{ fontWeight: 800 }}>Spike</span>
+          <span style={{ fontWeight: 500 }}>Ledger</span>
+        </div>
+        <div
+          style={{
+            fontFamily: REPORT_FONT_DISPLAY,
+            fontSize: "22px",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+            color: REPORT_ORANGE_LIGHT,
+            lineHeight: 1,
+          }}
+        >
+          {cardKey}
+        </div>
+      </div>
 
-      {/* Decorative gradient blobs */}
+      {/* Position-group accent stripe along the bottom edge of the band */}
       <div
         style={{
           position: "absolute",
-          width: "640px",
-          height: "640px",
-          top: "-220px",
-          right: "-180px",
-          background: `radial-gradient(circle, ${accent}1f 0%, transparent 70%)`,
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: "520px",
-          height: "520px",
-          bottom: "-200px",
-          left: "-120px",
-          background: "radial-gradient(circle, #cbf03c1a 0%, transparent 70%)",
-          pointerEvents: "none",
+          top: `${HEADER_HEIGHT}px`,
+          left: 0,
+          right: 0,
+          height: `${STRIPE_HEIGHT}px`,
+          background: accent,
         }}
       />
 
@@ -83,27 +113,30 @@ export function ReportShell({ position, accentOverride, cardKey, children }: Pro
         style={{
           position: "absolute",
           inset: 0,
-          padding: "56px 56px 48px 64px",
+          padding: `${HEADER_HEIGHT + STRIPE_HEIGHT + 44}px 56px 56px 56px`,
           display: "flex",
           flexDirection: "column",
+          boxSizing: "border-box",
         }}
       >
         {children}
       </div>
 
-      {/* Watermark / branding */}
+      {/* Footer watermark */}
       <div
         style={{
           position: "absolute",
-          right: "32px",
-          bottom: "24px",
+          right: "56px",
+          bottom: "22px",
+          fontFamily: REPORT_FONT_DISPLAY,
           fontSize: "14px",
           fontWeight: 600,
-          color: "#3c4f78",
-          letterSpacing: "0.05em",
+          color: REPORT_DIM,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
         }}
       >
-        SPIKELEDGER · {cardKey}
+        spikeledger.com
       </div>
     </div>
   );

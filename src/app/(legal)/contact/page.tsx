@@ -8,18 +8,18 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <article className="text-center sm:text-left">
-      <h1 className="text-3xl font-bold tracking-tight">Contact</h1>
-      <p className="mt-4 text-base leading-relaxed text-slate-300">
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">Contact</h1>
+      <p className="mt-4 text-base leading-relaxed text-slate-700">
         Questions or feedback? Email us at{" "}
         <a
-          className="font-semibold text-volt-300 hover:text-volt-200"
+          className="font-semibold text-orange-700 hover:text-orange-800"
           href="mailto:support@spikeledger.com"
         >
           support@spikeledger.com
         </a>
         .
       </p>
-      <p className="mt-3 text-sm text-slate-400">
+      <p className="mt-3 text-sm text-slate-600">
         We&apos;re a small team built by a volleyball coach - we read
         everything, and feature ideas from working coaches shape what gets
         built next.

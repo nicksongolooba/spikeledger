@@ -3,9 +3,10 @@ import { getTeamForCoach } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate, pluralize } from "@/lib/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Calendar, FileImage, MapPin, Trophy } from "lucide-react";
 import { AddMatchButton } from "./AddMatchButton";
 import { MatchRow } from "./MatchRow";
 import { BankAccountBars } from "@/components/charts/BankAccountBars";
@@ -65,6 +66,7 @@ export default async function TournamentPage({
   const wins = tournament.matches.filter((m) => m.result === "WIN").length;
   const losses = tournament.matches.filter((m) => m.result === "LOSS").length;
   const draws = tournament.matches.filter((m) => m.result === "DRAW").length;
+  const record = `${wins}-${losses}${draws > 0 ? `-${draws}` : ""}`;
 
   const nextMatchNumber =
     tournament.matches.reduce((max, m) => Math.max(max, m.matchNumber), 0) + 1;
@@ -88,50 +90,80 @@ export default async function TournamentPage({
         ]}
       />
 
-      <header className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <header className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{tournament.name}</h1>
-          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-400">
-            <span>{formatDate(tournament.startDate)}</span>
-            {tournament.endDate && <span>- {formatDate(tournament.endDate)}</span>}
+          <div className="eyebrow">{team.name}</div>
+          <h1 className="mt-1 font-display text-3xl font-bold leading-none tracking-tight text-slate-900 sm:text-4xl">
+            {tournament.name}
+          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar
+                size={15}
+                strokeWidth={2}
+                className="text-slate-400"
+                aria-hidden
+              />
+              {formatDate(tournament.startDate)}
+              {tournament.endDate && <> - {formatDate(tournament.endDate)}</>}
+            </span>
             {tournament.location && (
-              <span className="text-slate-500">· {tournament.location}</span>
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin
+                  size={15}
+                  strokeWidth={2}
+                  className="text-slate-400"
+                  aria-hidden
+                />
+                {tournament.location}
+              </span>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="card px-4 py-2 text-right">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              Record
-            </div>
-            <div className="stat-number text-lg font-bold text-slate-100">
-              {wins}-{losses}
-              {draws > 0 && `-${draws}`}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="rounded-lg bg-navy-900 px-5 py-3 text-white shadow-card">
+            <div className="eyebrow text-orange-300">Record</div>
+            <div className="stat-number mt-0.5 text-3xl font-bold leading-none">
+              {record}
             </div>
           </div>
-          <AddMatchButton
-            teamId={team.id}
-            tournamentId={tournament.id}
-            nextMatchNumber={nextMatchNumber}
-          />
-          {statLines.length > 0 && (
-            <Link
-              href={`/reports/generate/${team.id}?tournament=${tournament.id}`}
-              className="btn-secondary"
-            >
-              Generate report cards
-            </Link>
-          )}
+          <div className="flex flex-wrap gap-2">
+            <AddMatchButton
+              teamId={team.id}
+              tournamentId={tournament.id}
+              nextMatchNumber={nextMatchNumber}
+            />
+            {statLines.length > 0 && (
+              <Link
+                href={`/reports/generate/${team.id}?tournament=${tournament.id}`}
+                className="btn-secondary"
+              >
+                <FileImage size={16} strokeWidth={2} aria-hidden />
+                Report cards
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Matches */}
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold">Matches</h2>
+      <section className="mt-10">
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+            Matches
+          </h2>
+          {tournament.matches.length > 0 && (
+            <span className="text-sm text-slate-500">
+              {tournament.matches.length}{" "}
+              {pluralize(tournament.matches.length, "match", "matches")}
+            </span>
+          )}
+        </div>
         {tournament.matches.length === 0 ? (
           <EmptyState
+            className="mt-4"
             title="No matches yet"
-            description="Add a match to start tracking stats for this tournament."
+            description="Add the first match and start entering stats."
             action={
               <AddMatchButton
                 teamId={team.id}
@@ -142,7 +174,7 @@ export default async function TournamentPage({
             }
           />
         ) : (
-          <div className="card divide-y divide-slate-800">
+          <div className="card mt-4 divide-y divide-slate-100 overflow-hidden">
             {tournament.matches.map((m) => (
               <MatchRow
                 key={m.id}
@@ -155,77 +187,95 @@ export default async function TournamentPage({
         )}
       </section>
 
-      {/* Summary */}
+      {/* Summary: four tiles beside the top-player card */}
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold">Tournament summary</h2>
+        <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+          Tournament summary
+        </h2>
         {!hasStats ? (
           <EmptyState
-            title="Enter match stats to see tournament analytics"
-            description="Once you log stats for at least one match, totals, Bank Account and the best-player tile appear here."
+            className="mt-4"
+            title="Enter match stats to see the tournament picture"
+            description="Log stats for one match and the totals, Bank Account and top player show up here."
           />
         ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <SumTile label="Total Kills" value={totalKills.toString()} accent="emerald" />
-              <SumTile label="Total Errors" value={totalErrors.toString()} accent="red" />
+          <div className="mt-4 grid gap-4 lg:grid-cols-12">
+            <div
+              className={cn(
+                "grid grid-cols-2 gap-3",
+                bestPlayer ? "lg:col-span-8" : "sm:grid-cols-4 lg:col-span-12",
+              )}
+            >
+              <SumTile label="Kills" value={totalKills.toString()} accent="emerald" />
+              <SumTile label="Errors" value={totalErrors.toString()} accent="red" />
               <SumTile
-                label="Net Production"
+                label="Net production"
                 value={fmtSigned(net)}
                 accent={net >= 0 ? "emerald" : "red"}
               />
               <SumTile
-                label="Team SR Avg"
+                label="Team SR avg"
                 value={srAtt > 0 ? fmtNum(srAvg, 2) : "-"}
                 accent="cyan"
               />
             </div>
             {bestPlayer && (
-              <div className="mt-3 card flex flex-wrap items-center justify-between gap-3 p-4">
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Best Bank Account
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-slate-100">
+              <article className="card overflow-hidden lg:col-span-4">
+                <div className="flex items-center gap-2 bg-navy-900 px-5 py-3 text-white">
+                  <Trophy
+                    size={16}
+                    strokeWidth={2}
+                    className="text-orange-300"
+                    aria-hidden
+                  />
+                  <span className="eyebrow text-orange-300">Best Bank Account</span>
+                </div>
+                <div className="p-5">
+                  <div className="font-display text-2xl font-bold leading-none text-slate-900">
                     {bestPlayer.player.name}
-                    {bestPlayer.player.number !== null && (
-                      <span className="ml-2 text-sm text-slate-500">
-                        #{bestPlayer.player.number}
-                      </span>
-                    )}
+                  </div>
+                  {bestPlayer.player.number !== null && (
+                    <div className="mt-1 text-sm text-slate-500">
+                      #{bestPlayer.player.number}
+                    </div>
+                  )}
+                  <div className="mt-4">
+                    <BankAccountChip
+                      result={{
+                        balance: bestPlayer.bar.balance,
+                        deposits: 0,
+                        withdrawals: 0,
+                        ratio: bestPlayer.bar.ratio,
+                        rating: bestPlayer.bar.rating as
+                          | "GREEN"
+                          | "BLUE"
+                          | "ORANGE"
+                          | "RED"
+                          | "GREY",
+                        ratingLabel: bestPlayer.bar.ratingLabel,
+                        ratingColor: bestPlayer.bar.ratingColor,
+                        depositBreakdown: {},
+                        withdrawalBreakdown: {},
+                        positionGroup: null,
+                      }}
+                    />
                   </div>
                 </div>
-                <BankAccountChip
-                  result={{
-                    balance: bestPlayer.bar.balance,
-                    deposits: 0,
-                    withdrawals: 0,
-                    ratio: bestPlayer.bar.ratio,
-                    rating: bestPlayer.bar.rating as
-                      | "GREEN"
-                      | "BLUE"
-                      | "ORANGE"
-                      | "RED"
-                      | "GREY",
-                    ratingLabel: bestPlayer.bar.ratingLabel,
-                    ratingColor: bestPlayer.bar.ratingColor,
-                    depositBreakdown: {},
-                    withdrawalBreakdown: {},
-                    positionGroup: null,
-                  }}
-                />
-              </div>
+              </article>
             )}
-          </>
+          </div>
         )}
       </section>
 
       {/* Bank Account chart */}
       {bankAccountBars.length > 0 && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-lg font-semibold">
+        <section className="mt-10">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
             Bank Account - this tournament
           </h2>
-          <BankAccountBars data={bankAccountBars.map((p) => p.bar)} />
+          <div className="mt-4">
+            <BankAccountBars data={bankAccountBars.map((p) => p.bar)} />
+          </div>
         </section>
       )}
 
@@ -264,16 +314,21 @@ function SumTile({
 }) {
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-300"
+      ? "text-emerald-700"
       : accent === "red"
-        ? "text-red-300"
+        ? "text-red-700"
         : accent === "cyan"
-          ? "text-volt-300"
-          : "text-slate-100";
+          ? "text-navy-700"
+          : "text-slate-900";
   return (
-    <div className="card p-4">
-      <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-      <div className={`stat-number mt-1 text-2xl font-bold ${accentClass}`}>
+    <div className="card p-5">
+      <div className="eyebrow text-slate-500">{label}</div>
+      <div
+        className={cn(
+          "stat-number mt-2 text-4xl font-bold leading-none",
+          accentClass,
+        )}
+      >
         {value}
       </div>
     </div>

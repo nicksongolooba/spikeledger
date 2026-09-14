@@ -9,6 +9,15 @@ import {
   Tooltip,
 } from "recharts";
 import { BREAKDOWN_LABELS } from "@/engine/bank-account";
+import {
+  CHART,
+  DEPOSIT_RAMP,
+  LEGEND_WRAPPER_STYLE,
+  TOOLTIP_CONTENT_STYLE,
+  TOOLTIP_ITEM_STYLE,
+  WITHDRAWAL_RAMP,
+  legendText,
+} from "./chartTheme";
 
 interface Slice {
   key: string;
@@ -16,23 +25,6 @@ interface Slice {
   value: number;
   fill: string;
 }
-
-const DEPOSIT_PALETTE = [
-  "#34d399",
-  "#cbf03c",
-  "#a78bfa",
-  "#10b981",
-  "#60a5fa",
-  "#6366f1",
-];
-const WITHDRAWAL_PALETTE = [
-  "#f87171",
-  "#fb923c",
-  "#fbbf24",
-  "#ef4444",
-  "#f97316",
-  "#eab308",
-];
 
 function buildSlices(
   breakdown: Record<string, number>,
@@ -57,8 +49,8 @@ export default function BankAccountBreakdownPie({
   deposits: Record<string, number>;
   withdrawals: Record<string, number>;
 }) {
-  const depositSlices = buildSlices(deposits, DEPOSIT_PALETTE);
-  const withdrawalSlices = buildSlices(withdrawals, WITHDRAWAL_PALETTE);
+  const depositSlices = buildSlices(deposits, DEPOSIT_RAMP);
+  const withdrawalSlices = buildSlices(withdrawals, WITHDRAWAL_RAMP);
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -83,14 +75,14 @@ function PieCard({
   slices: Slice[];
   tone: "emerald" | "red";
 }) {
-  const totalColor = tone === "emerald" ? "text-emerald-300" : "text-red-300";
+  const totalColor = tone === "emerald" ? "text-emerald-700" : "text-red-700";
   return (
     <div className="card p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h4 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
           {title}
         </h4>
-        <span className={`stat-number text-lg font-bold ${totalColor}`}>
+        <span className={`stat-number text-2xl font-bold ${totalColor}`}>
           {total}
         </span>
       </div>
@@ -109,26 +101,23 @@ function PieCard({
                 innerRadius={45}
                 outerRadius={70}
                 paddingAngle={2}
-                stroke="#121b30"
+                stroke={CHART.white}
+                strokeWidth={2}
               >
                 {slices.map((s) => (
                   <Cell key={s.key} fill={s.fill} />
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{
-                  background: "#121b30",
-                  border: "1px solid #1b2742",
-                  borderRadius: 6,
-                  fontSize: 12,
-                  color: "#dbe0e8",
-                }}
+                contentStyle={TOOLTIP_CONTENT_STYLE}
+                itemStyle={TOOLTIP_ITEM_STYLE}
                 formatter={(value, name) => [value as number, name as string]}
               />
               <Legend
                 verticalAlign="bottom"
                 height={28}
-                wrapperStyle={{ fontSize: 11, color: "#8a97ad" }}
+                wrapperStyle={LEGEND_WRAPPER_STYLE}
+                formatter={legendText}
               />
             </PieChart>
           </ResponsiveContainer>

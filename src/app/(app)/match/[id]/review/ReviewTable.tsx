@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Position } from "@prisma/client";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { POSITION_GROUP_MAP, type Rating } from "@/engine/bank-account";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { BankAccountChip } from "@/components/charts/BankAccountChip";
@@ -96,38 +97,41 @@ export function ReviewTable({ rows }: { rows: ReviewRow[] }) {
   return (
     <div className="card overflow-x-auto">
       <table className="min-w-full text-sm">
-        <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
+        <thead className="border-b border-slate-200 bg-slate-50">
           <tr>
             {COLUMNS.map((c) => (
               <th
                 key={c.key}
                 className={cn(
-                  "select-none whitespace-nowrap px-3 py-2.5 font-semibold transition-colors hover:text-slate-200",
+                  "cursor-pointer select-none whitespace-nowrap px-3 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors hover:text-slate-900",
                   c.align === "right" ? "text-right" : "text-left",
-                  sort.key === c.key && "text-volt-300",
+                  sort.key === c.key ? "text-orange-700" : "text-slate-500",
                 )}
                 onClick={() => toggleSort(c.key)}
                 role="button"
               >
-                {c.label}
-                {sort.key === c.key && (
-                  <span className="ml-1 text-[10px]">
-                    {sort.dir === "asc" ? "▲" : "▼"}
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-0.5">
+                  {c.label}
+                  {sort.key === c.key &&
+                    (sort.dir === "asc" ? (
+                      <ChevronUp size={12} strokeWidth={2.5} aria-hidden />
+                    ) : (
+                      <ChevronDown size={12} strokeWidth={2.5} aria-hidden />
+                    ))}
+                </span>
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800">
+        <tbody className="divide-y divide-slate-100">
           {sorted.map((r) => (
-            <tr key={r.playerId} className="transition-colors hover:bg-slate-800/30">
+            <tr key={r.playerId} className="transition-colors hover:bg-slate-50">
               <td className="whitespace-nowrap px-3 py-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="stat-number w-7 text-center text-xs text-slate-500">
+                  <span className="stat-number w-7 text-center text-xs font-bold text-slate-500">
                     {r.number !== null ? `#${r.number}` : "-"}
                   </span>
-                  <span className="font-medium text-slate-100">{r.name}</span>
+                  <span className="font-semibold text-slate-900">{r.name}</span>
                   <PositionBadge position={r.position} size="xs" />
                 </div>
               </td>
@@ -164,8 +168,8 @@ export function ReviewTable({ rows }: { rows: ReviewRow[] }) {
                   <td
                     key={c.key}
                     className={cn(
-                      "stat-number whitespace-nowrap px-3 py-2.5 text-right tabular-nums",
-                      muted ? "text-slate-600" : "text-slate-100",
+                      "stat-number whitespace-nowrap px-3 py-2.5 text-right text-base tabular-nums",
+                      muted ? "text-slate-400" : "text-slate-900",
                     )}
                   >
                     {value}

@@ -1,13 +1,36 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  FileImage,
+  MessageSquareText,
+  RefreshCw,
+  Scale,
+  Smartphone,
+  Undo2,
+  User,
+  WifiOff,
+} from "lucide-react";
 import { PricingSection } from "./PricingSection";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { Wordmark } from "@/components/layout/Wordmark";
+import { TESTIMONIALS } from "@/content/testimonials";
+import { cn } from "@/lib/utils";
+import heroCourt from "@/assets/hero-court.jpg";
+import shotDashboard from "@/assets/screens/dashboard.png";
+import shotPlayer from "@/assets/screens/player.png";
+import shotEntry from "@/assets/screens/entry.png";
+import shotEntryActions from "@/assets/screens/entry-actions.png";
+import cardOverview from "@/assets/screens/card-overview.png";
+import cardBank from "@/assets/screens/card-bank.png";
 
 export const metadata: Metadata = {
-  title: "SpikeLedger - Position-Fair Volleyball Analytics",
+  title: "SpikeLedger - Volleyball stats that are fair to every position",
   description:
-    "Turn match stats into coaching feedback you can use, with the Bank Account system. WhatsApp-ready report cards, AI coaching, and position-fair analysis for volleyball coaches.",
+    "Courtside stat entry, the position-fair Bank Account, and six-image report cards parents actually understand. Built by a club volleyball coach. Free for one team.",
   keywords: [
     "volleyball stats",
     "volleyball analytics",
@@ -17,121 +40,132 @@ export const metadata: Metadata = {
     "bank account volleyball",
   ],
   openGraph: {
-    title: "SpikeLedger - Position-Fair Volleyball Analytics",
+    title: "SpikeLedger - Volleyball stats that are fair to every position",
     description:
-      "The coaching analytics tool that evaluates every player fairly by position.",
+      "Courtside stat entry, the position-fair Bank Account, and report cards parents actually understand.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "SpikeLedger",
-    description: "Position-fair volleyball analytics for coaches",
+    description: "Volleyball stats that are fair to every position.",
   },
 };
 
-const features = [
+const NAV_LINKS = [
+  { href: "#how", label: "How it works" },
+  { href: "#courtside", label: "Courtside" },
+  { href: "#reports", label: "Report cards" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "/blog", label: "Blog" },
+];
+
+const STRIP = [
+  { icon: Smartphone, title: "Two taps per rally", body: "The player, then what happened." },
+  { icon: WifiOff, title: "Works offline", body: "Saves on the phone, syncs later." },
+  { icon: Scale, title: "Position-fair", body: "Liberos graded as liberos." },
+  { icon: FileImage, title: "Six-image report cards", body: "Sized for WhatsApp and iMessage." },
+];
+
+const STEPS = [
   {
-    title: "Bank Account System",
-    body: "Every action is a deposit or withdrawal, calibrated to what each position is supposed to do. A libero's good pass counts. A hitter's is baseline.",
-    accent: "from-volt-400/20 to-volt-400/5",
-    iconColor: "text-volt-300",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <rect x="3" y="6" width="18" height="13" rx="2" />
-        <path d="M3 10h18M7 15h3" />
-      </svg>
-    ),
+    n: "01",
+    title: "Courtside, during the match",
+    body: "Tap the player, tap the action. Kill, ace, block, dig, assist, four kinds of error, and a 0-3 pass rating. Rotation moves itself on side-outs. Undo anything.",
   },
   {
-    title: "Courtside Stat Entry",
-    body: "Two taps: the player, then what they did. Works one-handed on your phone in a loud gym. Works offline too, so bad WiFi never loses a stat.",
-    accent: "from-emerald-400/20 to-emerald-400/5",
-    iconColor: "text-emerald-300",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <rect x="7" y="2" width="10" height="20" rx="2" />
-        <path d="M11 18h2" />
-      </svg>
-    ),
+    n: "02",
+    title: "The Bank Account does the math",
+    body: "Every action becomes a deposit or a withdrawal, scored against what that position is on the court to do. A libero's 2-pass is a deposit. A hitter's is just her job.",
   },
   {
-    title: "WhatsApp-Ready Reports",
-    body: "Six-image player report cards sized for phone screens. Share to parents in one tap. Public share links work without an account.",
-    accent: "from-violet-400/20 to-violet-400/5",
-    iconColor: "text-violet-300",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <rect x="4" y="3" width="16" height="18" rx="2.5" />
-        <path d="M9 8h6M9 12h6M9 16h4" />
-      </svg>
-    ),
-  },
-  {
-    title: "AI Coaching Insights",
-    body: "Powered by advanced AI. Specific drill recommendations based on each player's actual numbers. Never generic, always position-aware.",
-    accent: "from-amber-400/20 to-amber-400/5",
-    iconColor: "text-amber-300",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
-        <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Position-Fair Comparison",
-    body: "Liberos compared to liberos. Hitters to hitters. Never judge a defensive specialist by kills or a middle by serve receive.",
-    accent: "from-volt-400/20 to-volt-400/5",
-    iconColor: "text-volt-300",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <path d="M3 6h18M3 12h12M3 18h6" />
-      </svg>
-    ),
-  },
-  {
-    title: "Works Globally",
-    body: "Volleyball stats are universal. The Bank Account math doesn't care what country or league. Built by a coach, ready everywhere.",
-    accent: "from-emerald-400/20 to-emerald-400/5",
-    iconColor: "text-emerald-300",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M3 12h18M12 3a13 13 0 010 18M12 3a13 13 0 000 18" />
-      </svg>
-    ),
+    n: "03",
+    title: "Report cards in the chat that night",
+    body: "Six phone-sized images per player: overview, numbers, what to work on, bank account, breakdown, team comparison. Share from the app or send a link.",
   },
 ];
 
-const faqs = [
+type Cell = "deposit" | "withdrawal" | "baseline" | "none";
+const RULES: { action: string; libero: Cell; hitter: Cell; setterMiddle: Cell }[] = [
+  { action: "Pass rated 3 (perfect)", libero: "deposit", hitter: "deposit", setterMiddle: "none" },
+  { action: "Pass rated 2 (good)", libero: "deposit", hitter: "baseline", setterMiddle: "none" },
+  { action: "Pass rated 0 (shank)", libero: "withdrawal", hitter: "withdrawal", setterMiddle: "none" },
+  { action: "Kill, block or ace", libero: "deposit", hitter: "deposit", setterMiddle: "deposit" },
+  { action: "Attack error", libero: "none", hitter: "withdrawal", setterMiddle: "withdrawal" },
+  { action: "Net touch on a block", libero: "none", hitter: "withdrawal", setterMiddle: "withdrawal" },
+  { action: "Serve error", libero: "withdrawal", hitter: "withdrawal", setterMiddle: "withdrawal" },
+];
+
+const BANK_POINTS = [
+  "Kills, blocks and aces are deposits for everyone.",
+  "Serve errors and ball-handling errors are withdrawals for everyone.",
+  "Attack and net errors never count against a libero. Passing does, and a good pass is a deposit.",
+  "A rating from Helping Team Win to Hurting Team, set by the deposit ratio, not by who the coach likes.",
+];
+
+const COURTSIDE = [
   {
-    q: "Can I cancel anytime?",
-    a: "Yes. Cancel from the billing portal - your plan stays active through the end of the period, then drops to Free. No questions asked.",
+    icon: Smartphone,
+    title: "Big targets, built for thumbs",
+    body: "Player tiles sit in real court formation, and the action pad is sized so you can hit it without looking down for long.",
+  },
+  {
+    icon: RefreshCw,
+    title: "Rotation tracks itself",
+    body: "Side-out? Everyone slides one spot. Libero in and out is a single tap. The server is always marked.",
+  },
+  {
+    icon: Undo2,
+    title: "Undo anything",
+    body: "Fast rallies mean fat fingers. Every tap is reversible from the undo bar, with the last ten shown.",
+  },
+  {
+    icon: WifiOff,
+    title: "Offline first",
+    body: "Stats save to the phone the instant you tap and sync when the signal comes back. Nothing is lost when the gym Wi-Fi dies.",
+  },
+];
+
+const CARDS = [
+  { n: "01", label: "Performance Overview", caption: "Bank Account rating and the headline stats." },
+  { n: "02", label: "Your Numbers", caption: "The full stat line, laid out so a parent can read it." },
+  { n: "03", label: "What To Work On", caption: "Three focus areas with a drill for each, position-aware." },
+  { n: "04", label: "Bank Account", caption: "Deposits and withdrawals, and where each came from." },
+  { n: "05", label: "Breakdown", caption: "The mix of actions behind the balance." },
+  { n: "06", label: "Team Comparison", caption: "Rank inside the position group. Optional to share." },
+];
+
+const FAQS = [
+  {
+    q: "Can I cancel any time?",
+    a: "Yes. Cancel from the billing page - your plan stays active to the end of the period, then drops to Free. No questions asked.",
   },
   {
     q: "What happens to my data if I downgrade?",
-    a: "Nothing. Every stat, match, and player you've logged stays. You just hit the Free-plan limits again (1 team, 3 tournaments) - and any data above those limits becomes read-only until you upgrade or remove it.",
+    a: "Nothing is deleted. Every stat, match and player stays. You're back on the Free limits (1 team, 3 tournaments), and anything above those limits goes read-only until you upgrade or remove it.",
   },
   {
     q: "Do you offer team or club discounts?",
-    a: "The Club tier is built for it - one subscription covers up to 15 coaches sharing data. For larger orgs, email us and we'll work out a plan.",
+    a: "The Club tier is built for that - one subscription covers up to 15 coaches on the same data. Bigger organisation? Email us and we'll sort out a plan.",
   },
   {
     q: "Is my players' data private?",
-    a: "Yes. Only you (and any coaches you explicitly invite on the Club plan) can see your team's stats. Public share links are opt-in per report and revocable from your dashboard.",
+    a: "Yes. Only you, and any coaches you invite on the Club plan, can see your team's stats. Public share links are opt-in per report and can be revoked from your dashboard.",
   },
   {
     q: "Do I need to install anything?",
-    a: "No. SpikeLedger runs in any modern browser, including mobile. The stat entry page is designed to work one-handed on a phone at courtside.",
+    a: "No. SpikeLedger runs in the browser on your phone and your laptop. The courtside page is built to be used one-handed at the scorer's table.",
   },
   {
     q: "Can I import stats from a spreadsheet?",
-    a: "Yes - Coach Pro and up. Drag in a CSV or Excel file, map your columns, and a whole season backfills in a minute.",
+    a: "Yes, on Coach Pro and up. Drop in a CSV or Excel file, map your columns, and a whole season backfills in a minute.",
   },
 ];
 
 export default function LandingPage() {
+  const year = new Date().getFullYear();
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950">
+    <div className="bg-white text-slate-900">
       {/* Structured data for SEO */}
       <script
         type="application/ld+json"
@@ -144,213 +178,640 @@ export default function LandingPage() {
             operatingSystem: "Web",
             offers: { "@type": "Offer", price: "0", priceCurrency: "CAD" },
             description:
-              "Position-fair volleyball analytics. The Bank Account system, WhatsApp-ready report cards, and AI coaching insights for volleyball coaches.",
+              "Volleyball stats that are fair to every position. Courtside stat entry, the Bank Account system, and six-image report cards for coaches.",
           }),
         }}
       />
-      {/* Background gradient */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-volt-400/10 blur-[120px]" />
-        <div className="absolute bottom-0 left-1/3 h-[400px] w-[600px] rounded-full bg-violet-400/10 blur-[120px]" />
-      </div>
 
       {/* Header */}
-      <header className="relative z-10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/logo-full.png"
-              alt="SpikeLedger"
-              width={556}
-              height={141}
-              priority
-              className="h-9 w-auto"
-            />
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <Link href="/" aria-label="SpikeLedger home">
+            <Wordmark size="md" />
           </Link>
-          <nav className="flex items-center gap-1 sm:gap-3">
-            <Link href="#features" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100 sm:inline">
-              Features
-            </Link>
-            <Link href="#pricing" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100 sm:inline">
-              Pricing
-            </Link>
-            <Link href="/blog" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100">
-              Blog
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100"
-            >
-              Login
-            </Link>
-            <Link href="/register" className="btn-primary text-sm">
-              Start Free
-            </Link>
+          <nav className="hidden items-center gap-6 md:flex">
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+              >
+                {l.label}
+              </Link>
+            ))}
           </nav>
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="btn-ghost hidden sm:inline-flex">
+              Log in
+            </Link>
+            <Link href="/register" className="btn-primary">
+              Start free
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative z-10 mx-auto max-w-5xl px-6 pt-12 text-center sm:pt-20">
-        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1 text-xs font-medium text-slate-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          Built by a coach, for coaches
-        </div>
-        <h1 className="text-balance text-4xl font-bold leading-tight tracking-tight text-slate-50 sm:text-5xl md:text-6xl">
-          Your Team&apos;s Performance Has a{" "}
-          <span className="bg-gradient-to-r from-volt-300 via-volt-400 to-gold-300 bg-clip-text text-transparent">
-            Balance Sheet
-          </span>
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-balance text-lg text-slate-400 sm:text-xl">
-          SpikeLedger turns match stats into position-fair coaching insights.
-          The Bank Account system every volleyball coach needs.
-        </p>
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href="/register" className="btn-primary px-6 py-3 text-base">
-            Start Free - No Credit Card Required
-            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-              <path
-                fillRule="evenodd"
-                d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
-                clipRule="evenodd"
+      <section className="relative overflow-hidden bg-navy-950 text-white">
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-14 lg:grid-cols-12 lg:pb-24 lg:pt-24">
+          <div className="relative z-10 lg:col-span-6">
+            <div className="eyebrow text-orange-300">Built by a club coach · Free for one team</div>
+            <h1 className="mt-4 font-display text-5xl font-extrabold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+              Stats that are fair to every position.{" "}
+              <span className="text-orange-400">Reports parents actually understand.</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-navy-100">
+              Your libero doesn&apos;t hit. Your middle doesn&apos;t pass. SpikeLedger
+              grades every player on the job she is actually on the court to do,
+              then turns the numbers into a report card you can drop in the team
+              chat on the drive home.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/register" className="btn-primary px-6 py-3 text-base">
+                Start free
+                <ArrowRight size={18} strokeWidth={2} aria-hidden />
+              </Link>
+              <Link
+                href="#reports"
+                className="btn border border-white/25 px-6 py-3 text-base text-white hover:bg-white/10"
+              >
+                See a report card
+              </Link>
+            </div>
+            <p className="mt-4 text-sm text-navy-300">
+              1 team, 3 tournaments, the whole Bank Account system. No credit
+              card, no trial clock.
+            </p>
+          </div>
+
+          {/* Photo + floating ledger card */}
+          <div className="relative lg:col-span-6">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-lg lg:absolute lg:inset-y-[-6rem] lg:left-6 lg:right-[-50vw] lg:aspect-auto lg:rounded-none lg:[clip-path:polygon(9%_0,100%_0,100%_100%,0_100%)]">
+              <Image
+                src={heroCourt}
+                alt="A club volleyball team celebrating a point at the net"
+                fill
+                priority
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                className="object-cover object-[62%_30%]"
               />
-            </svg>
-          </Link>
-          <Link href="/login" className="btn-secondary px-6 py-3 text-base">
-            I already have an account
-          </Link>
+              <div className="absolute inset-0 bg-navy-950/25 lg:bg-gradient-to-r lg:from-navy-950 lg:via-navy-950/20 lg:to-transparent" />
+            </div>
+            <LedgerCard className="relative mt-4 lg:absolute lg:-bottom-8 lg:left-2 lg:mt-0" />
+          </div>
         </div>
-        <p className="mt-4 text-xs text-slate-500">
-          1 team, 3 tournaments, the full Bank Account system. Free forever.
-        </p>
+
+        {/* Scoreboard strip */}
+        <div className="relative border-t border-white/10 bg-navy-900">
+          <ul className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-6 py-6 lg:grid-cols-4">
+            {STRIP.map((s) => {
+              const Icon = s.icon;
+              return (
+                <li key={s.title} className="flex items-start gap-3">
+                  <Icon size={20} strokeWidth={2} className="mt-0.5 shrink-0 text-orange-400" aria-hidden />
+                  <div>
+                    <div className="font-display text-lg font-bold leading-tight">{s.title}</div>
+                    <div className="text-sm text-navy-300">{s.body}</div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="relative z-10 mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
-        <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">
-          Everything coaches actually need
-        </h2>
-        <p className="mt-3 text-center text-slate-400">
-          The features the original analytics pipeline made obvious. Now in your browser.
-        </p>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <div key={f.title} className="card relative overflow-hidden p-6">
-              <div
-                className={`absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br ${f.accent} blur-2xl`}
-              />
-              <div
-                className={`relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-800 bg-slate-950 ${f.iconColor}`}
-              >
-                {f.icon}
+      {/* How it works */}
+      <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-20 lg:py-28">
+        <div className="grid gap-12 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <div className="eyebrow">How it works</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              From the scorer&apos;s table to the team chat, without the spreadsheet in between.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+              Most of us have run the same routine: tally marks on a clipboard,
+              an Excel sheet on Sunday night, then a paragraph per kid that
+              nobody reads. SpikeLedger is that routine with the middle taken
+              out.
+            </p>
+          </div>
+          <ol className="divide-y divide-slate-200 lg:col-span-7">
+            {STEPS.map((s) => (
+              <li key={s.n} className="grid grid-cols-[4.5rem_1fr] gap-4 py-7 first:pt-0 last:pb-0">
+                <div className="stat-number text-5xl font-bold leading-none text-orange-500">{s.n}</div>
+                <div>
+                  <h3 className="font-display text-2xl font-bold leading-tight">{s.title}</h3>
+                  <p className="mt-2 leading-relaxed text-slate-600">{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Bank Account */}
+      <section id="bank" className="scroll-mt-20 bg-paper py-20 lg:py-28">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-12 lg:items-center">
+          <div className="lg:col-span-5">
+            <div className="eyebrow">The Bank Account</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              Your libero doesn&apos;t hit. Stop grading her like she does.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+              Raw totals punish defensive players and flatter big hitters. The
+              Bank Account fixes that by changing what counts, position by
+              position. Same tap courtside, different rules in the ledger.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {BANK_POINTS.map((p) => (
+                <li key={p} className="flex items-start gap-3 text-slate-700">
+                  <Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-emerald-600" aria-hidden />
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="lg:col-span-7">
+            <RulesTable />
+          </div>
+        </div>
+      </section>
+
+      {/* Screens */}
+      <section id="screens" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-20 lg:py-28">
+        <div className="max-w-2xl">
+          <div className="eyebrow">The app</div>
+          <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+            Built for a phone in a loud gym and a laptop on Sunday night.
+          </h2>
+          <p className="mt-5 text-lg leading-relaxed text-slate-600">
+            Nothing to install. It runs in the browser on whatever you already
+            carry to the gym.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-6 lg:grid-cols-12">
+          <figure className="lg:col-span-8">
+            <Screenshot src={shotDashboard} alt="The SpikeLedger dashboard showing three teams, season totals and recent match results" />
+            <figcaption className="mt-3 text-sm text-slate-500">
+              <span className="font-semibold text-slate-700">Dashboard.</span> Every team, the latest tournament, recent results.
+            </figcaption>
+          </figure>
+          <figure className="lg:col-span-4 lg:row-span-2">
+            <PhoneFrame src={shotEntry} alt="Courtside stat entry on a phone: score, rotation, on-court players and the action pad" className="mx-auto max-w-[300px]" />
+            <figcaption className="mt-3 text-center text-sm text-slate-500">
+              <span className="font-semibold text-slate-700">Courtside.</span> Score, rotation, lineup and the action pad on one screen.
+            </figcaption>
+          </figure>
+          <figure className="lg:col-span-8">
+            <Screenshot src={shotPlayer} alt="A player page with the Bank Account rating, season trend and focus areas" />
+            <figcaption className="mt-3 text-sm text-slate-500">
+              <span className="font-semibold text-slate-700">Player page.</span> Bank Account, trend across tournaments, and what to work on.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      {/* Courtside */}
+      <section id="courtside" className="relative scroll-mt-20 overflow-hidden bg-navy-950 text-white">
+        <Image
+          src={heroCourt}
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-[20%_center] opacity-[0.18]"
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-950/70 via-navy-950/85 to-navy-950" />
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-12 lg:items-center lg:py-28">
+          <div className="lg:col-span-7">
+            <div className="eyebrow text-orange-300">Courtside entry</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              Two taps per rally. One hand. Gym Wi-Fi optional.
+            </h2>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-navy-100">
+              The courtside page is the whole reason this exists. If it is slower
+              than a clipboard, nobody uses it, so it is not.
+            </p>
+            <ul className="mt-8 grid gap-6 sm:grid-cols-2">
+              {COURTSIDE.map((c) => {
+                const Icon = c.icon;
+                return (
+                  <li key={c.title} className="flex gap-4">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-orange-500 text-white">
+                      <Icon size={20} strokeWidth={2} aria-hidden />
+                    </span>
+                    <div>
+                      <h3 className="font-display text-xl font-bold leading-tight">{c.title}</h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-navy-200">{c.body}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="lg:col-span-5">
+            <PhoneFrame src={shotEntryActions} alt="The courtside action pad: opponent error, kill, ace, block, assist, dig, four error types and the 0-3 serve-receive buttons" className="mx-auto max-w-[320px]" dark />
+          </div>
+        </div>
+      </section>
+
+      {/* Report cards */}
+      <section id="reports" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-20 lg:py-28">
+        <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+          <div className="order-2 lg:order-1 lg:col-span-6">
+            <div className="relative mx-auto aspect-[4/5] max-w-md">
+              <div className="absolute inset-0 -rotate-3 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lift">
+                <Image src={cardBank} alt="" sizes="(min-width: 1024px) 40vw, 100vw" className="h-full w-full object-cover" aria-hidden />
               </div>
-              <h3 className="relative text-lg font-semibold text-slate-100">
-                {f.title}
-              </h3>
-              <p className="relative mt-2 text-sm leading-relaxed text-slate-400">
-                {f.body}
-              </p>
+              <div className="absolute inset-0 translate-x-6 translate-y-6 rotate-2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-pop">
+                <Image
+                  src={cardOverview}
+                  alt="A SpikeLedger report card: Performance Overview for a libero, with the Bank Account rating and headline stats"
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  className="h-full w-full object-cover"
+                />
+              </div>
             </div>
+          </div>
+          <div className="order-1 lg:order-2 lg:col-span-6">
+            <div className="eyebrow">Report cards</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              Six images per player. Sized for a phone. Ready for the team chat.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+              Parents don&apos;t read paragraphs on a Sunday night. They look at a
+              picture. Each player gets six 1080 by 1350 cards, the size chat
+              apps show full-screen without cropping.
+            </p>
+            <ol className="mt-7 grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              {CARDS.map((c) => (
+                <li key={c.n} className="flex gap-3">
+                  <span className="stat-number text-2xl font-bold leading-none text-orange-500">{c.n}</span>
+                  <div>
+                    <div className="font-semibold leading-tight">{c.label}</div>
+                    <div className="mt-0.5 text-sm text-slate-500">{c.caption}</div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <Link href="/register" className="btn-navy mt-8 px-6 py-3 text-base">
+              Make the first one free
+              <ArrowRight size={18} strokeWidth={2} aria-hidden />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Ask Coach AI */}
+      <section className="bg-paper py-20 lg:py-24">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-12 lg:items-center">
+          <div className="lg:col-span-5">
+            <div className="eyebrow">Ask Coach AI · Coach Pro</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              Ask it what you&apos;d ask your assistant coach.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+              It reads your team&apos;s stat lines, knows the Bank Account rules,
+              and answers in plain volleyball. Position-aware, so it never tells
+              a libero to work on her hitting.
+            </p>
+          </div>
+          <div className="lg:col-span-7">
+            <div className="card p-5 sm:p-6">
+              <div className="flex justify-end">
+                <p className="max-w-md rounded-lg rounded-br-sm bg-navy-900 px-4 py-3 text-sm text-white">
+                  Who should start at libero this weekend, Jade or Sam?
+                </p>
+              </div>
+              <div className="mt-4 flex gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-navy-50 text-navy-700">
+                  <MessageSquareText size={18} strokeWidth={2} aria-hidden />
+                </span>
+                <div className="rounded-lg rounded-tl-sm border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700">
+                  <p>
+                    <span className="font-semibold text-slate-900">Jade.</span> Over
+                    the last two tournaments she is passing 2.31 to Sam&apos;s 2.02
+                    and has no passes rated 0 in 41 attempts. Sam&apos;s serving is
+                    the better of the two (4 aces, 1 error), so if you are short on
+                    servers, bring him in at position 1 and let Jade take the rest
+                    of the rotation.
+                  </p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Based on 8 matches · Bank Account: Jade +14, Sam +9
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+        <div className="eyebrow">Coaches</div>
+        <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+          What coaches are saying
+        </h2>
+        <div className="mt-10 grid gap-5 lg:grid-cols-12">
+          {TESTIMONIALS.map((t, i) => (
+            <TestimonialCard
+              key={i}
+              t={t}
+              large={i === 0}
+              className={i === 0 ? "lg:col-span-5 lg:row-span-2" : "lg:col-span-7"}
+            />
           ))}
         </div>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="relative z-10 mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
-        <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">
-          Simple pricing
-        </h2>
-        <p className="mt-3 text-center text-slate-400">
-          Free tier is a real product - not a crippled demo. Upgrade when you
-          want it for your whole team.
-        </p>
-        <div className="mt-12">
-          <PricingSection />
-        </div>
-      </section>
-
-      {/* Social proof placeholder */}
-      <section className="relative z-10 mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
-        <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/30 p-8 text-center sm:p-12">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Built from a real season of coaching.
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
-            The Bank Account system was calibrated across multiple seasons of
-            competitive volleyball - not invented in a boardroom. Every metric was
-            stress-tested against what actually helps youth players improve.
-          </p>
-          <div className="mt-8">
-            <Link href="/register" className="btn-primary px-6 py-3 text-base">
-              Start with your first team
-            </Link>
+      <section id="pricing" className="scroll-mt-20 bg-paper py-20 lg:py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="max-w-2xl">
+            <div className="eyebrow">Pricing</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              Free for one team. Paid when you run more than one.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+              The free tier is the real product: full Bank Account, courtside
+              entry, one report card per tournament. Coach Pro removes the
+              limits. Club puts every coach in your club on the same data.
+            </p>
+          </div>
+          <div className="mt-12">
+            <PricingSection />
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="relative z-10 mx-auto mt-24 max-w-3xl px-6 sm:mt-32">
-        <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">
-          Frequently asked
+      <section className="mx-auto max-w-3xl px-6 py-20 lg:py-28">
+        <div className="eyebrow">Questions</div>
+        <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+          Things coaches ask before they sign up
         </h2>
-        <div className="mt-10 space-y-3">
-          {faqs.map((faq) => (
-            <details
-              key={faq.q}
-              className="group rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition-colors hover:border-slate-700 open:border-slate-700"
-            >
-              <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-medium text-slate-100">
-                {faq.q}
-                <span className="text-slate-500 transition-transform group-open:rotate-180">
-                  ▾
-                </span>
+        <div className="mt-8 divide-y divide-slate-200 border-y border-slate-200">
+          {FAQS.map((f) => (
+            <details key={f.q} className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-xl font-bold text-slate-900 [&::-webkit-details-marker]:hidden">
+                {f.q}
+                <ChevronDown
+                  size={20}
+                  strokeWidth={2}
+                  className="shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+                  aria-hidden
+                />
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">
-                {faq.a}
-              </p>
+              <p className="mt-3 max-w-2xl leading-relaxed text-slate-600">{f.a}</p>
             </details>
           ))}
         </div>
       </section>
 
+      {/* Final call */}
+      <section className="bg-navy-900 text-white">
+        <div className="mx-auto max-w-6xl px-6 py-16 text-center lg:py-20">
+          <h2 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+            Your next tournament is the easiest place to start.
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl text-lg text-navy-200">
+            Set up the roster tonight. Tap through one match this weekend. Send
+            the first report cards on the drive home.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/register" className="btn-primary px-6 py-3 text-base">
+              Start free
+              <ArrowRight size={18} strokeWidth={2} aria-hidden />
+            </Link>
+            <Link href="/login" className="btn border border-white/25 px-6 py-3 text-base text-white hover:bg-white/10">
+              I already have an account
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="relative z-10 mt-32 border-t border-slate-800/60 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center">
-              <Image
-                src="/logo-full.png"
-                alt="SpikeLedger"
-                width={556}
-                height={141}
-                className="h-7 w-auto"
-              />
-            </div>
-            <p className="mt-2 text-xs text-slate-500">
-              Built by a volleyball coach, for volleyball coaches.
+      <footer className="bg-navy-950 py-12 text-navy-200">
+        <div className="mx-auto grid max-w-6xl gap-10 px-6 md:grid-cols-12">
+          <div className="md:col-span-5">
+            <Wordmark tone="light" size="sm" />
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-navy-300">
+              Position-fair volleyball stats, built by a club coach who got
+              tired of grading liberos on kills.
             </p>
           </div>
-          <nav className="flex flex-wrap gap-4 text-xs text-slate-400">
-            <Link href="#features" className="hover:text-slate-200">Features</Link>
-            <Link href="#pricing" className="hover:text-slate-200">Pricing</Link>
-            <Link href="/blog" className="hover:text-slate-200">Blog</Link>
-            <Link href="/login" className="hover:text-slate-200">Login</Link>
-            <Link href="/register" className="hover:text-slate-200">Register</Link>
-            <Link href="/privacy" className="hover:text-slate-200">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-200">Terms of Service</Link>
-            <Link href="/contact" className="hover:text-slate-200">Contact</Link>
-          </nav>
+          <FooterCol
+            title="Product"
+            links={[
+              { href: "#how", label: "How it works" },
+              { href: "#courtside", label: "Courtside entry" },
+              { href: "#reports", label: "Report cards" },
+              { href: "#pricing", label: "Pricing" },
+              { href: "/blog", label: "Blog" },
+            ]}
+          />
+          <FooterCol
+            title="Account"
+            links={[
+              { href: "/login", label: "Log in" },
+              { href: "/register", label: "Create account" },
+            ]}
+          />
+          <FooterCol
+            title="Legal"
+            links={[
+              { href: "/privacy", label: "Privacy policy" },
+              { href: "/terms", label: "Terms of service" },
+              { href: "/contact", label: "Contact" },
+            ]}
+          />
         </div>
-        <div className="mx-auto mt-6 max-w-6xl px-6 text-center text-xs text-slate-600">
-          © {new Date().getFullYear()} SpikeLedger ·{" "}
-          <a href="mailto:support@spikeledger.com" className="hover:text-slate-400">
-            support@spikeledger.com
-          </a>
+        <div className="mx-auto mt-10 flex max-w-6xl flex-col gap-2 border-t border-white/10 px-6 pt-6 text-xs text-navy-400 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            © {year} SpikeLedger ·{" "}
+            <a href="mailto:support@spikeledger.com" className="hover:text-white">
+              support@spikeledger.com
+            </a>
+          </div>
+          <div>Photo by Vince Fleming on Unsplash.</div>
         </div>
       </footer>
 
       <InstallPrompt />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Pieces
+// ---------------------------------------------------------------------------
+
+// A real Bank Account line, the way it shows on a player page, floated over
+// the hero photo. Numbers follow the engine's libero rules.
+function LedgerCard({ className }: { className?: string }) {
+  const rows = [
+    { label: "Passes rated 2 or 3", value: "+19", tone: "text-emerald-700" },
+    { label: "Aces", value: "+3", tone: "text-emerald-700" },
+    { label: "Serve errors", value: "-4", tone: "text-red-700" },
+    { label: "Passes rated 0", value: "-4", tone: "text-red-700" },
+  ];
+  return (
+    <div className={cn("w-full max-w-xs rounded-lg bg-white p-4 text-slate-900 shadow-pop", className)}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-display text-xl font-bold leading-none">Jade · #5</div>
+          <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Libero · Winter Invitational</div>
+        </div>
+        <span className="whitespace-nowrap rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+          Helping team win
+        </span>
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="stat-number text-5xl font-bold leading-none text-emerald-700">+14</span>
+        <span className="text-xs text-slate-500">Bank Account balance</span>
+      </div>
+      <dl className="mt-3 divide-y divide-slate-100 border-t border-slate-100 text-sm">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center justify-between py-1.5">
+            <dt className="text-slate-600">{r.label}</dt>
+            <dd className={cn("stat-number text-base font-bold", r.tone)}>{r.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function RulesTable() {
+  const cell = (c: Cell) => {
+    if (c === "deposit")
+      return <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-700">Deposit</span>;
+    if (c === "withdrawal")
+      return <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-red-700">Withdrawal</span>;
+    if (c === "baseline")
+      return <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-600">Baseline</span>;
+    return <span className="text-xs text-slate-400">Doesn&apos;t count</span>;
+  };
+  return (
+    <div className="card overflow-hidden">
+      <div className="border-b border-slate-200 px-5 py-3.5">
+        <div className="font-display text-lg font-bold">How the same action is scored</div>
+        <div className="text-xs text-slate-500">The exact rules from the engine that scores every match.</div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[540px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
+              <th className="px-5 py-2.5 font-bold">Action</th>
+              <th className="px-3 py-2.5 font-bold">Libero / DS</th>
+              <th className="px-3 py-2.5 font-bold">Outside / Right side</th>
+              <th className="px-3 py-2.5 font-bold">Setter / Middle</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {RULES.map((r) => (
+              <tr key={r.action}>
+                <td className="px-5 py-3 font-medium text-slate-800">{r.action}</td>
+                <td className="px-3 py-3">{cell(r.libero)}</td>
+                <td className="px-3 py-3">{cell(r.hitter)}</td>
+                <td className="px-3 py-3">{cell(r.setterMiddle)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Screenshot({ src, alt }: { src: typeof shotDashboard; alt: string }) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-card">
+      <Image src={src} alt={alt} sizes="(min-width: 1024px) 66vw, 100vw" className="block h-auto w-full" />
+    </div>
+  );
+}
+
+function PhoneFrame({
+  src,
+  alt,
+  className,
+  dark = false,
+}: {
+  src: typeof shotEntry;
+  alt: string;
+  className?: string;
+  dark?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "overflow-hidden rounded-[2.25rem] border-[10px] bg-navy-950 shadow-pop",
+        dark ? "border-navy-800" : "border-navy-950",
+        className,
+      )}
+    >
+      <Image src={src} alt={alt} sizes="320px" className="block h-auto w-full" aria-hidden={alt === "" ? true : undefined} />
+    </div>
+  );
+}
+
+function TestimonialCard({
+  t,
+  large,
+  className,
+}: {
+  t: (typeof TESTIMONIALS)[number];
+  large: boolean;
+  className?: string;
+}) {
+  const empty = !t.quote;
+  return (
+    <figure className={cn("card flex flex-col justify-between p-6", large && "lg:p-8", className)}>
+      <blockquote
+        className={cn(
+          "font-display font-semibold leading-snug",
+          large ? "text-2xl sm:text-3xl" : "text-xl",
+          empty ? "italic text-slate-400" : "text-slate-900",
+        )}
+      >
+        {empty
+          ? "“Your quote goes here. Two or three sentences about what changed for your team.”"
+          : `“${t.quote}”`}
+      </blockquote>
+      <figcaption className="mt-6 flex items-center gap-3">
+        {t.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={t.photo} alt="" className="h-12 w-12 rounded-full object-cover" />
+        ) : (
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400">
+            <User size={20} strokeWidth={2} aria-hidden />
+          </span>
+        )}
+        <div>
+          <div className={cn("font-semibold", empty ? "text-slate-400" : "text-slate-900")}>
+            {t.name || "Coach name"}
+          </div>
+          <div className="text-sm text-slate-500">{t.team || "Team · Club"}</div>
+        </div>
+      </figcaption>
+    </figure>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: { href: string; label: string }[] }) {
+  return (
+    <div className="md:col-span-2">
+      <div className="eyebrow text-navy-400">{title}</div>
+      <ul className="mt-3 space-y-2 text-sm">
+        {links.map((l) => (
+          <li key={l.href}>
+            <Link href={l.href} className="text-navy-200 hover:text-white">
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

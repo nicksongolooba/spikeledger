@@ -1,79 +1,65 @@
 import type { Config } from "tailwindcss";
 
+// SpikeLedger brand tokens - "Scoreboard" system (Sept 2026 redesign).
+//
+// Light UI. Deep navy is the primary brand color (solid surfaces, sidebar,
+// hero bands, headline ink). Volleyball-leather orange is the single accent
+// (calls to action, active states, eyebrows). Tailwind's default `slate`
+// scale carries every neutral in its normal direction: 900 for headings, 600
+// for body copy, 500 muted, 200 borders, 50 insets. Semantic colors use the
+// stock scales (emerald = deposits, red = withdrawals, amber = warnings).
+//
+// Type: Barlow (body) + Barlow Condensed (display, big numbers, eyebrows),
+// loaded through next/font in app/layout.tsx and exposed as CSS variables.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica",
-          "Arial",
+        sans: ["var(--font-barlow)", "system-ui", "Segoe UI", "sans-serif"],
+        display: [
+          "var(--font-barlow-condensed)",
+          "var(--font-barlow)",
+          "Impact",
           "sans-serif",
         ],
-        mono: [
-          "JetBrains Mono",
-          "SF Mono",
-          "Menlo",
-          "Monaco",
-          "Consolas",
-          "monospace",
-        ],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
       },
       colors: {
-        // "Prime Court" palette. `slate` is overridden with navy-tinted inks
-        // so every existing slate-* class restyles app-wide: deep navy-ink
-        // backgrounds at the dark end, warm (not pure) whites at the light
-        // end. Volt is the primary accent (electric yellow-green - volleyball
-        // energy, readable in bright gyms); gold marks AI/premium surfaces.
-        slate: {
-          50: "#faf9f4",
-          100: "#f4f3ed", // warm white - main text
-          200: "#dbe0e8",
-          300: "#b6c0d1",
-          400: "#8a97ad",
-          500: "#5d6d8f",
-          600: "#3c4f78",
-          700: "#2a3a5e",
-          800: "#1b2742",
-          900: "#121b30",
-          950: "#0c1220", // deep navy-ink - app background
+        // App page background: a hair cooler and darker than white so white
+        // cards read as cards without heavy shadows.
+        paper: "#f4f6f9",
+        navy: {
+          50: "#eef2f8",
+          100: "#dbe3ef",
+          200: "#b9c8de",
+          300: "#8ba3c5",
+          400: "#5d7ba6",
+          500: "#3d5c8a",
+          600: "#2b466f",
+          700: "#1f3557",
+          800: "#152743",
+          900: "#0b1a33", // primary solid
+          950: "#071022", // sidebar / footer
         },
-        volt: {
-          50: "#fafdea",
-          100: "#f4fcd0",
-          200: "#e9f9a3",
-          300: "#dff871",
-          400: "#cbf03c", // primary accent
-          500: "#aed622",
-          600: "#88ab15",
-          700: "#678114",
-          800: "#526617",
-          900: "#465718",
-          950: "#1a2403", // text on volt
+        orange: {
+          50: "#fff4ec",
+          100: "#ffe5d3",
+          200: "#ffc9a6",
+          300: "#ffa572",
+          400: "#ff7d3d",
+          500: "#e4520b", // accent - white text passes 3.8:1
+          600: "#c8440a", // hover
+          700: "#a33808", // accent text on light surfaces (6.5:1)
+          800: "#7f2d0a",
+          900: "#66260b",
+          950: "#381203",
         },
-        gold: {
-          50: "#fdf9eb",
-          100: "#fbf0c9",
-          200: "#fbe3a4",
-          300: "#f8cf6e",
-          400: "#f3b53b",
-          500: "#dd9418",
-          600: "#bf7112",
-          700: "#985112",
-          800: "#7c4016",
-          900: "#693518",
-          950: "#3b2704", // text on gold
-        },
-        // semantic aliases on top of the ink scale
-        surface: {
-          DEFAULT: "#121b30", // slate-900
-          elevated: "#1b2742", // slate-800
-          border: "#2a3a5e", // slate-700
-        },
+      },
+      boxShadow: {
+        card: "0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06)",
+        lift: "0 12px 32px -14px rgba(11, 26, 51, 0.28)",
+        pop: "0 24px 60px -24px rgba(11, 26, 51, 0.45)",
       },
       keyframes: {
         "pulse-soft": {

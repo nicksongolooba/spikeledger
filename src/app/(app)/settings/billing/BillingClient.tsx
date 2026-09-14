@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Plan } from "@prisma/client";
+import { AlertTriangle, ArrowRight, ExternalLink } from "lucide-react";
 
 export function BillingClient({
   plan,
@@ -55,16 +56,21 @@ export function BillingClient({
 
   if (!stripeConfigured) {
     return (
-      <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-400">
-        Billing is not configured on this server. Set <code className="font-mono">STRIPE_SECRET_KEY</code> in <code className="font-mono">.env</code> to enable checkout.
+      <div className="flex max-w-sm items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <AlertTriangle size={14} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden />
+        <span>
+          Billing is not configured on this server. Set{" "}
+          <code className="font-mono">STRIPE_SECRET_KEY</code> in{" "}
+          <code className="font-mono">.env</code> to enable checkout.
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {error && (
-        <span className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-1 text-xs text-red-300">
+        <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700">
           {error}
         </span>
       )}
@@ -74,9 +80,10 @@ export function BillingClient({
             type="button"
             disabled={busy === "COACH_PRO"}
             onClick={() => checkout("COACH_PRO", "month")}
-            className="bg-violet-400 hover:bg-violet-300 text-violet-950 btn"
+            className="btn-primary"
           >
             {busy === "COACH_PRO" ? "Opening Stripe…" : "Upgrade to Coach Pro"}
+            <ArrowRight size={18} strokeWidth={2} aria-hidden />
           </button>
           <button
             type="button"
@@ -93,9 +100,10 @@ export function BillingClient({
             type="button"
             disabled={busy === "portal"}
             onClick={manage}
-            className="btn-primary"
+            className="btn-navy"
           >
             {busy === "portal" ? "Opening portal…" : "Manage subscription"}
+            <ExternalLink size={18} strokeWidth={2} aria-hidden />
           </button>
         )
       )}

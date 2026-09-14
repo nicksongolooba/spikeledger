@@ -1,13 +1,13 @@
 {
   "name": "SpikeLedger",
   "short_name": "SpikeLedger",
-  "description": "Position-Fair Volleyball Analytics",
+  "description": "Volleyball stats that are fair to every position",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0c1220",
-  "theme_color": "#cbf03c",
+  "background_color": "#f4f6f9",
+  "theme_color": "#0b1a33",
   "icons": [
     {
       "src": "/icons/icon-192.png",

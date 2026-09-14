@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Lightbulb, RefreshCw } from "lucide-react";
 import { AIBadge, AIUnavailableNote } from "./AIBadge";
 import { InsightSkeleton } from "./InsightSkeleton";
 import type { TeamInsightResponse } from "@/engine/ai/types";
@@ -9,7 +10,7 @@ export function TeamIntelligenceCard({
   teamId,
   scope,
   scopeId,
-  title = "AI Coach Analysis",
+  title = "Coach analysis",
 }: {
   teamId: string;
   scope: "tournament" | "season";
@@ -56,14 +57,10 @@ export function TeamIntelligenceCard({
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="h-5 w-5 text-gold-300"
-          >
-            <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
-          </svg>
+        <h2 className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-slate-900">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-navy-50 text-navy-700">
+            <Lightbulb size={18} strokeWidth={2} aria-hidden />
+          </span>
           {title}
           {data && <AIBadge provider={data.provider} cached={data.cached} />}
         </h2>
@@ -71,8 +68,9 @@ export function TeamIntelligenceCard({
           <button
             type="button"
             onClick={() => void load(true)}
-            className="btn-ghost px-2 py-1 text-xs"
+            className="btn-secondary px-2.5 py-1 text-xs"
           >
+            <RefreshCw size={14} strokeWidth={2} aria-hidden />
             Refresh
           </button>
         )}
@@ -81,13 +79,13 @@ export function TeamIntelligenceCard({
       {loading ? (
         <InsightSkeleton lines={4} />
       ) : error ? (
-        <div className="card p-4 text-sm text-red-300">{error}</div>
+        <div className="card p-4 text-sm text-red-700">{error}</div>
       ) : data ? (
         <div className="card p-5">
           <ul className="space-y-3">
             {data.insights.map((line, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-slate-200">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-300" />
+              <li key={i} className="flex items-start gap-3 text-sm text-slate-800">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
                 <span className="leading-relaxed">{line}</span>
               </li>
             ))}

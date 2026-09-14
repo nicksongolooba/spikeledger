@@ -1,28 +1,29 @@
-// Shared shell for the public legal/support pages (/privacy, /terms,
-// /contact): simple logo header, readable column, site footer.
+// Shared shell for the public legal/support/blog pages (/privacy, /terms,
+// /contact, /blog): wordmark header, readable column, site footer.
 
-import Image from "next/image";
 import Link from "next/link";
+import { Wordmark } from "@/components/layout/Wordmark";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950">
-      <header className="border-b border-slate-800/60">
+    <div className="flex min-h-screen flex-col bg-white">
+      <header className="border-b border-slate-200">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-5">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/logo-full.png"
-              alt="SpikeLedger"
-              width={556}
-              height={141}
-              priority
-              className="h-8 w-auto"
-            />
+          <Link href="/" aria-label="SpikeLedger home">
+            <Wordmark size="sm" />
           </Link>
-          <Link href="/login" className="text-sm text-slate-400 hover:text-slate-200">
-            Log in
-          </Link>
+          <nav className="flex items-center gap-4 text-sm font-medium">
+            <Link href="/blog" className="text-slate-600 hover:text-slate-900">
+              Blog
+            </Link>
+            <Link href="/login" className="text-slate-600 hover:text-slate-900">
+              Log in
+            </Link>
+            <Link href="/register" className="btn-primary px-3 py-1.5">
+              Start free
+            </Link>
+          </nav>
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">{children}</main>

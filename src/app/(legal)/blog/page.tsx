@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import { BLOG_POSTS } from "@/content/blog";
 import { formatBlogDate, readingTimeMinutes } from "@/content/blog/types";
@@ -19,14 +20,14 @@ export const metadata: Metadata = {
 export default function BlogIndexPage() {
   return (
     <div>
-      <header className="border-b border-slate-800 pb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-volt-400">
+      <header className="border-b border-slate-200 pb-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-orange-700">
           SpikeLedger Blog
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl">
+        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl mt-2 text-slate-900">
           Volleyball coaching, drills &amp; stats
         </h1>
-        <p className="mt-3 max-w-2xl text-slate-400">
+        <p className="mt-3 max-w-2xl text-slate-600">
           Practical guides for coaches who want to develop players fairly -
           drills by position, practice plans, stat tracking, and what the
           numbers actually mean. Written by coaches, for coaches.
@@ -45,21 +46,15 @@ export default function BlogIndexPage() {
                 <span aria-hidden>·</span>
                 <span>{readingTimeMinutes(post.body)} min read</span>
               </div>
-              <h2 className="mt-2 text-xl font-semibold text-slate-100 group-hover:text-volt-300">
+              <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-900 group-hover:text-orange-700">
                 {post.title}
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 {post.excerpt}
               </p>
-              <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-volt-300">
+              <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-orange-700">
                 Read more
-                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                  <path
-                    fillRule="evenodd"
-                    d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <ArrowRight size={14} strokeWidth={2} aria-hidden />
               </span>
             </Link>
           </li>

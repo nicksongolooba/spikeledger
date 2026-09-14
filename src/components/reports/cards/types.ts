@@ -40,11 +40,30 @@ export interface ReportCardData {
 export const REPORT_WIDTH = 1080;
 export const REPORT_HEIGHT = 1350;
 
-// Background tokens shared across cards. Keep as plain strings (not Tailwind
-// classes) - html-to-image relies on computed CSS and these end up inline.
-export const REPORT_BG = "#0a0f1c";
-export const REPORT_CARD_BG = "#121b30";
-export const REPORT_BORDER = "#1b2742";
-export const REPORT_TEXT = "#f4f3ed";
-export const REPORT_MUTED = "#8a97ad";
-export const REPORT_DIM = "#5d6d8f";
+// Color + type tokens shared across cards. Keep as plain strings (not
+// Tailwind classes) - html-to-image relies on computed CSS and these end up
+// inline. They mirror the "Scoreboard" tokens in tailwind.config.ts: white
+// cards, slate neutrals, navy primary, orange accent, emerald/red ledger.
+export const REPORT_BG = "#ffffff";           // card surface
+export const REPORT_CARD_BG = "#f4f6f9";      // inset panels (paper)
+export const REPORT_BORDER = "#e2e8f0";       // slate-200 hairlines
+export const REPORT_TEXT = "#0f172a";         // slate-900 headings + values
+export const REPORT_BODY = "#475569";         // slate-600 body copy
+export const REPORT_MUTED = "#64748b";        // slate-500 labels
+export const REPORT_DIM = "#94a3b8";          // slate-400 decorative only
+
+export const REPORT_NAVY = "#0b1a33";         // navy-900 primary
+export const REPORT_NAVY_LIGHT = "#b9c8de";   // navy-200 secondary bars
+export const REPORT_ORANGE = "#e4520b";       // orange-500 accent fills
+export const REPORT_ORANGE_DEEP = "#a33808";  // orange-700 accent text on white
+export const REPORT_ORANGE_LIGHT = "#ffa572"; // orange-300 accent text on navy
+export const REPORT_ORANGE_TINT = "#fff4ec";  // orange-50 highlighted rows
+export const REPORT_GREEN = "#059669";        // emerald-600 deposits
+export const REPORT_RED = "#dc2626";          // red-600 withdrawals
+
+// Barlow is loaded by next/font in app/layout.tsx and exposed as CSS
+// variables on <html>, so the hidden capture tree inherits them.
+export const REPORT_FONT =
+  'var(--font-barlow), "Barlow", system-ui, sans-serif';
+export const REPORT_FONT_DISPLAY =
+  'var(--font-barlow-condensed), "Barlow Condensed", "Arial Narrow", sans-serif';

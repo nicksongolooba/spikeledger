@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Plan } from "@prisma/client";
+import { Plus } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { useUpgradePrompt } from "@/components/billing/UpgradePrompt";
 import { canUserPerformAction } from "@/lib/plan-limits";
@@ -64,10 +65,8 @@ export function CreateTeamButton({
         onClick={tryOpen}
         className={variant === "prominent" ? "btn-primary px-5 py-2.5" : "btn-primary"}
       >
-        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-          <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-        </svg>
-        New Team
+        <Plus size={16} strokeWidth={2.5} aria-hidden />
+        New team
       </button>
       {upgrade.modal}
       <Modal open={open} onClose={() => setOpen(false)} title="Create a new team">
@@ -81,7 +80,7 @@ export function CreateTeamButton({
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input"
-              placeholder="Thunder Hawks 16U"
+              placeholder="Lakeshore Storm 16U"
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -108,7 +107,7 @@ export function CreateTeamButton({
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+            <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </div>
           )}

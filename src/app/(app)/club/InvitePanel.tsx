@@ -74,7 +74,7 @@ export function InvitePanel({
   return (
     <div className="card p-5">
       {atCapacity ? (
-        <p className="text-sm text-amber-300">
+        <p className="text-sm text-amber-700">
           Your club is at the 15-coach maximum. Remove a coach before inviting
           another.
         </p>
@@ -95,15 +95,15 @@ export function InvitePanel({
         </form>
       )}
 
-      {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
 
       {createdUrl && (
-        <div className="mt-4 rounded-lg border border-volt-400/30 bg-volt-400/5 p-3">
-          <div className="text-xs font-semibold uppercase tracking-wide text-volt-300">
+        <div className="mt-4 rounded-lg border border-orange-300 bg-orange-50 p-3">
+          <div className="text-xs font-semibold uppercase tracking-wide text-orange-700">
             Invite link created - share it with your coach
           </div>
           <div className="mt-2 flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded bg-slate-950 px-2 py-1.5 text-xs text-slate-300">
+            <code className="min-w-0 flex-1 truncate rounded bg-slate-50 px-2 py-1.5 text-xs text-slate-700">
               {createdUrl}
             </code>
             <button
@@ -122,11 +122,11 @@ export function InvitePanel({
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
             Pending invites
           </div>
-          <ul className="divide-y divide-slate-800">
+          <ul className="divide-y divide-slate-200">
             {pending.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
-                  <div className="truncate text-sm text-slate-200">{inv.email}</div>
+                  <div className="truncate text-sm text-slate-800">{inv.email}</div>
                   <div className="text-xs text-slate-500">
                     Expires {new Date(inv.expiresAt).toLocaleDateString()}
                   </div>

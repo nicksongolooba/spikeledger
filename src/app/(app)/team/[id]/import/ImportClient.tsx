@@ -5,12 +5,21 @@ import { useState } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  FileSpreadsheet,
+  RotateCcw,
+  Upload,
+} from "lucide-react";
+import {
   CANONICAL_FIELDS,
   CANONICAL_LABELS,
   autoMap,
   REQUIRED_FIELDS,
   type CanonicalField,
 } from "@/lib/import-schema";
+import { cn } from "@/lib/utils";
 
 type ParsedRow = Record<string, string | number | null>;
 
@@ -107,30 +116,22 @@ export function ImportClient({ teamId }: { teamId: string }) {
   const previewRows = rows.slice(0, 5);
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="mt-8 space-y-6">
       {/* Step 1: upload */}
       <div className="card p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          1. Choose file
-        </h2>
-        <label className="mt-3 flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-700 bg-slate-950/60 px-6 py-10 transition-colors hover:border-slate-600">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            className="h-8 w-8 text-slate-500"
-          >
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-          </svg>
-          <div className="text-sm text-slate-300">
-            <span className="font-semibold text-volt-300">Click to upload</span>{" "}
-            CSV or .xlsx
-          </div>
-          <div className="text-xs text-slate-500">
+        <StepHeading n={1} title="Choose a file" />
+        <label className="mt-4 flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center transition-colors hover:border-navy-400 hover:bg-navy-50">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-navy-700">
+            <Upload size={20} strokeWidth={2} aria-hidden />
+          </span>
+          <span className="text-sm text-slate-700">
+            <span className="font-semibold text-orange-700">Choose a file</span>{" "}
+            - CSV or .xlsx
+          </span>
+          <span className="max-w-md text-xs text-slate-500">
             One row per player per match, or one row per player for tournament
             totals. Headers in row 1.
-          </div>
+          </span>
           <input
             type="file"
             accept=".csv,.xls,.xlsx"
@@ -142,9 +143,17 @@ export function ImportClient({ teamId }: { teamId: string }) {
           />
         </label>
         {filename && (
-          <div className="mt-3 text-xs text-slate-500">
-            Loaded: <span className="text-slate-300">{filename}</span> ·{" "}
-            {rows.length} rows, {headers.length} columns
+          <div className="mt-3 inline-flex flex-wrap items-center gap-2 rounded bg-slate-100 px-2.5 py-1.5 text-xs text-slate-600">
+            <FileSpreadsheet
+              size={14}
+              strokeWidth={2}
+              className="text-navy-700"
+              aria-hidden
+            />
+            <span className="font-semibold text-slate-900">{filename}</span>
+            <span>
+              · {rows.length} rows, {headers.length} columns
+            </span>
           </div>
         )}
       </div>
@@ -153,10 +162,8 @@ export function ImportClient({ teamId }: { teamId: string }) {
         <>
           {/* Step 2: tournament meta */}
           <div className="card p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-              2. Tournament details
-            </h2>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <StepHeading n={2} title="Tournament details" />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="label">Tournament name</label>
                 <input
@@ -189,14 +196,18 @@ export function ImportClient({ teamId }: { teamId: string }) {
 
           {/* Step 3: column mapping */}
           <div className="card p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-              3. Column mapping
-            </h2>
-            <p className="mt-1 text-xs text-slate-500">
-              Auto-detected where possible. Player is required. No Match column?
-              We roll every row into one &quot;Tournament Aggregate&quot; match -
-              map your &quot;Matches Played&quot; column to Sets / matches played.
-            </p>
+            <StepHeading
+              n={3}
+              title="Match the columns"
+              hint={
+                <>
+                  Matched automatically where the headers were obvious. Player
+                  is required. No Match column? Every row rolls into one
+                  &quot;Tournament Aggregate&quot; match - map your &quot;Matches
+                  Played&quot; column to Sets / matches played.
+                </>
+              }
+            />
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {headers.map((h) => {
                 const selected = mapping[h] ?? "";
@@ -209,10 +220,10 @@ export function ImportClient({ teamId }: { teamId: string }) {
                 return (
                   <div
                     key={h}
-                    className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2"
+                    className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-slate-100">
+                      <div className="truncate text-sm font-semibold text-slate-900">
                         {h}
                       </div>
                       <div className="truncate text-[11px] text-slate-500">
@@ -241,7 +252,15 @@ export function ImportClient({ teamId }: { teamId: string }) {
                       ))}
                     </select>
                     {isRequiredAndUnset && (
-                      <span className="text-xs text-red-300">!</span>
+                      <span
+                        className="shrink-0 text-red-600"
+                        title="A required column is still unmapped"
+                      >
+                        <AlertTriangle size={14} strokeWidth={2} aria-hidden />
+                        <span className="sr-only">
+                          A required column is still unmapped
+                        </span>
+                      </span>
                     )}
                   </div>
                 );
@@ -252,43 +271,44 @@ export function ImportClient({ teamId }: { teamId: string }) {
           {/* Step 4: preview */}
           {previewRows.length > 0 && (
             <div className="card p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-                4. Preview (first {previewRows.length} rows)
-              </h2>
-              <div className="mt-3 overflow-x-auto">
+              <StepHeading
+                n={4}
+                title={`Preview the first ${previewRows.length} rows`}
+                hint="Mapped columns are highlighted. Skipped ones stay grey and are ignored."
+              />
+              <div className="mt-4 overflow-x-auto rounded-md border border-slate-200">
                 <table className="min-w-full text-xs">
-                  <thead className="bg-slate-900/80 text-slate-400">
+                  <thead className="border-b border-slate-200 bg-slate-50">
                     <tr>
                       {headers.map((h) => {
                         const mapped = mapping[h];
                         return (
                           <th
                             key={h}
-                            className={
-                              "whitespace-nowrap px-2 py-1.5 text-left " +
-                              (mapped
-                                ? "text-volt-300"
-                                : "text-slate-500")
-                            }
+                            className={cn(
+                              "whitespace-nowrap px-2 py-2 text-left align-top font-semibold",
+                              mapped ? "text-orange-700" : "text-slate-500",
+                            )}
                           >
                             {h}
                             {mapped && (
-                              <div className="text-[10px] font-normal text-slate-500">
-                                → {CANONICAL_LABELS[mapped as CanonicalField]}
-                              </div>
+                              <span className="mt-0.5 flex items-center gap-0.5 text-[10px] font-normal text-slate-500">
+                                <ArrowRight size={10} strokeWidth={2} aria-hidden />
+                                {CANONICAL_LABELS[mapped as CanonicalField]}
+                              </span>
                             )}
                           </th>
                         );
                       })}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800">
+                  <tbody className="divide-y divide-slate-100">
                     {previewRows.map((r, i) => (
                       <tr key={i}>
                         {headers.map((h) => (
                           <td
                             key={h}
-                            className="whitespace-nowrap px-2 py-1.5 text-slate-200"
+                            className="whitespace-nowrap px-2 py-1.5 text-slate-800"
                           >
                             {String(r[h] ?? "")}
                           </td>
@@ -302,12 +322,18 @@ export function ImportClient({ teamId }: { teamId: string }) {
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-300">
-              {error}
+            <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <AlertTriangle
+                size={16}
+                strokeWidth={2}
+                className="mt-0.5 shrink-0"
+                aria-hidden
+              />
+              <span>{error}</span>
             </div>
           )}
 
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
               type="button"
               onClick={() => {
@@ -318,6 +344,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
               }}
               className="btn-secondary"
             >
+              <RotateCcw size={16} strokeWidth={2} aria-hidden />
               Start over
             </button>
             <button
@@ -326,6 +353,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
               disabled={busy}
               className="btn-primary"
             >
+              <Check size={18} strokeWidth={2} aria-hidden />
               {busy
                 ? "Importing…"
                 : `Import ${rows.length} row${rows.length === 1 ? "" : "s"}`}
@@ -333,6 +361,31 @@ export function ImportClient({ teamId }: { teamId: string }) {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// Numbered step title used by every card in the import flow.
+function StepHeading({
+  n,
+  title,
+  hint,
+}: {
+  n: number;
+  title: string;
+  hint?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="stat-number flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navy-900 text-sm font-bold text-white">
+        {n}
+      </span>
+      <div className="min-w-0">
+        <h2 className="font-display text-lg font-bold leading-7 text-slate-900">
+          {title}
+        </h2>
+        {hint && <p className="mt-1 text-sm text-slate-600">{hint}</p>}
+      </div>
     </div>
   );
 }

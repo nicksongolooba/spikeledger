@@ -3,6 +3,7 @@
 // management controls.
 
 import Link from "next/link";
+import { Volleyball } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/session";
@@ -77,18 +78,18 @@ export default async function ClubPage() {
             <img
               src={membership.club.logo}
               alt={membership.club.name}
-              className="h-14 w-14 rounded-xl border border-slate-700 object-cover"
+              className="h-14 w-14 rounded-lg border border-slate-300 object-cover"
             />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gold-400/10 text-2xl">
-              🏐
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-navy-900 text-white">
+              <Volleyball size={28} strokeWidth={2} aria-hidden />
             </div>
           )}
           <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">
               {membership.club.name}
             </h1>
-            <div className="mt-1 text-sm text-slate-400">
+            <div className="mt-1 text-sm text-slate-600">
               {membership.club.province && <span>{membership.club.province} · </span>}
               {ROLE_LABEL[membership.role]} view
             </div>
@@ -114,14 +115,14 @@ export default async function ClubPage() {
       {/* Coaches */}
       <section className="mt-10">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Coaches</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">Coaches</h2>
           <span className="text-xs text-slate-500">{members.length} / 15</span>
         </div>
-        <div className="card divide-y divide-slate-800">
+        <div className="card divide-y divide-slate-200">
           {members.map((m) => (
             <div key={m.id} className="flex items-center justify-between gap-3 p-4">
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-slate-100">
+                <div className="truncate text-sm font-medium text-slate-900">
                   {m.user.name ?? (isOwner ? m.user.email : "Coach")}
                   {m.user.id === user.id && (
                     <span className="ml-2 text-xs text-slate-500">(you)</span>
@@ -135,8 +136,8 @@ export default async function ClubPage() {
                 <span
                   className={
                     m.role === "OWNER"
-                      ? "rounded-md border border-gold-400/40 bg-gold-400/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gold-200"
-                      : "rounded-md border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-300"
+                      ? "rounded-md border border-navy-200 bg-navy-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-navy-800"
+                      : "rounded-md border border-slate-300 bg-slate-100/60 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700"
                   }
                 >
                   {ROLE_LABEL[m.role]}
@@ -156,7 +157,7 @@ export default async function ClubPage() {
       {/* Invites (owner only) */}
       {isOwner && (
         <section className="mt-10">
-          <h2 className="mb-3 text-lg font-semibold">Invite a coach</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight mb-3 text-slate-900">Invite a coach</h2>
           <InvitePanel
             pending={pendingInvites.map((i) => ({
               id: i.id,
@@ -171,7 +172,7 @@ export default async function ClubPage() {
 
       {/* Teams across the club */}
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold">
+        <h2 className="font-display text-2xl font-bold tracking-tight mb-3 text-slate-900">
           {isOwner ? "Club teams" : "Your teams"}
         </h2>
         {teams.length === 0 ? (
@@ -187,10 +188,10 @@ export default async function ClubPage() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {teams.map((t) => (
               <Link key={t.id} href={`/team/${t.id}`} className="card card-hover p-4">
-                <div className="text-base font-semibold text-slate-100">{t.name}</div>
-                <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-400">
+                <div className="text-base font-semibold text-slate-900">{t.name}</div>
+                <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-600">
                   {t.ageGroup && (
-                    <span className="rounded-md bg-slate-800 px-1.5 py-0.5">{t.ageGroup}</span>
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5">{t.ageGroup}</span>
                   )}
                   <span>
                     Coach: {t.coach.name ?? "Unknown"}
@@ -199,13 +200,13 @@ export default async function ClubPage() {
                 </div>
                 <div className="mt-3 flex gap-4 text-xs text-slate-500">
                   <span>
-                    <span className="stat-number font-bold text-slate-200">
+                    <span className="stat-number font-bold text-slate-800">
                       {t._count.players}
                     </span>{" "}
                     players
                   </span>
                   <span>
-                    <span className="stat-number font-bold text-slate-200">
+                    <span className="stat-number font-bold text-slate-800">
                       {t._count.tournaments}
                     </span>{" "}
                     tournaments
@@ -234,7 +235,7 @@ function ClubStat({
       <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
       <div
         className={`stat-number mt-1 text-2xl font-bold ${
-          accent ? "text-volt-300" : "text-slate-100"
+          accent ? "text-orange-700" : "text-slate-900"
         }`}
       >
         {value}

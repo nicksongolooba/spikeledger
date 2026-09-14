@@ -1,12 +1,13 @@
 // Generates PWA icons (manifest) and iOS splash screens from existing brand art.
 // Run: node scripts/generate-pwa-assets.mjs
-// Sources: src/app/icon.png (512x512 square mark) and public/logo-full.png (wordmark).
+// Sources: public/logo-icon.png (512x512 orange mark) and public/logo-full.png (wordmark).
 
 import sharp from "sharp";
 import { mkdir } from "node:fs/promises";
 
-const BG = "#0c1220"; // dark theme background
-const ICON_SRC = "src/app/icon.png";
+const MASKABLE_BG = "#0b1a33"; // navy-900 behind the orange mark
+const SPLASH_BG = "#f4f6f9"; // paper - matches the light app shell
+const ICON_SRC = "public/logo-icon.png";
 const WORDMARK_SRC = "public/logo-full.png";
 
 await mkdir("public/icons", { recursive: true });
@@ -29,7 +30,7 @@ for (const size of [192, 512]) {
     .png()
     .toBuffer();
   await sharp({
-    create: { width: size, height: size, channels: 4, background: BG },
+    create: { width: size, height: size, channels: 4, background: MASKABLE_BG },
   })
     .composite([{ input: logo, gravity: "centre" }])
     .png()
@@ -37,7 +38,7 @@ for (const size of [192, 512]) {
   console.log(`maskable-${size}.png`);
 }
 
-// --- iOS splash screens: dark bg + centered wordmark ---------------------
+// --- iOS splash screens: paper bg + centered wordmark --------------------
 // [cssWidth, cssHeight, dpr] — used to build both the PNG (px = css*dpr) and
 // the media query in the layout's appleWebApp.startupImage list.
 const DEVICES = [
@@ -60,7 +61,7 @@ for (const [cw, ch, dpr] of DEVICES) {
     .png()
     .toBuffer();
   await sharp({
-    create: { width: w, height: h, channels: 4, background: BG },
+    create: { width: w, height: h, channels: 4, background: SPLASH_BG },
   })
     .composite([{ input: logo, gravity: "centre" }])
     .png()

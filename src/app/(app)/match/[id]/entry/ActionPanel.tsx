@@ -9,32 +9,33 @@ import type { RosterPlayer } from "./types";
 interface ActionButton {
   id: StatActionId;
   label: string;
-  icon: string;
 }
 
 const POSITIVE: ActionButton[] = [
-  { id: "KILL", label: "KILL", icon: "⚡" },
-  { id: "ACE", label: "ACE", icon: "🎯" },
-  { id: "BLOCK", label: "BLOCK", icon: "🛡" },
+  { id: "KILL", label: "Kill" },
+  { id: "ACE", label: "Ace" },
+  { id: "BLOCK", label: "Block" },
 ];
 
 const NEUTRAL: ActionButton[] = [
-  { id: "ASSIST", label: "ASSIST", icon: "➡" },
-  { id: "DIG", label: "DIG", icon: "⬇" },
+  { id: "ASSIST", label: "Assist" },
+  { id: "DIG", label: "Dig" },
 ];
 
 const NEGATIVE: ActionButton[] = [
-  { id: "S_ERR", label: "S.ERR", icon: "✕" },
-  { id: "NET_ERR", label: "NET.ERR", icon: "✕" },
-  { id: "A_ERR", label: "A.ERR", icon: "✕" },
-  { id: "GEN_ERR", label: "GEN.ERR", icon: "✕" },
+  { id: "S_ERR", label: "Serve err" },
+  { id: "NET_ERR", label: "Net err" },
+  { id: "A_ERR", label: "Attack err" },
+  { id: "GEN_ERR", label: "Gen. err" },
 ];
 
-const SR: { id: StatActionId; label: string; ring: string; bg: string }[] = [
-  { id: "SR_0", label: "0", ring: "border-red-400", bg: "bg-red-400/15 text-red-300" },
-  { id: "SR_1", label: "1", ring: "border-amber-400", bg: "bg-amber-400/15 text-amber-300" },
-  { id: "SR_2", label: "2", ring: "border-blue-400", bg: "bg-blue-400/15 text-blue-300" },
-  { id: "SR_3", label: "3", ring: "border-emerald-400", bg: "bg-emerald-400/15 text-emerald-300" },
+// Serve-receive quality 0 (shank) to 3 (perfect). Solid fills so the four
+// grades read at a glance from arm's length in a bright gym.
+const SR: { id: StatActionId; label: string; className: string }[] = [
+  { id: "SR_0", label: "0", className: "bg-red-600 active:bg-red-700" },
+  { id: "SR_1", label: "1", className: "bg-amber-600 active:bg-amber-700" },
+  { id: "SR_2", label: "2", className: "bg-sky-600 active:bg-sky-700" },
+  { id: "SR_3", label: "3", className: "bg-emerald-600 active:bg-emerald-700" },
 ];
 
 // Liberos/DS shouldn't attack or block in standard play. Dim those buttons but
@@ -66,35 +67,35 @@ export function ActionPanel({
       <button
         type="button"
         onClick={onOpponentError}
-        className="flex w-full items-center justify-between rounded-lg border-2 border-amber-400/40 bg-amber-400/10 px-4 py-3 text-left font-bold text-amber-200 transition-all active:scale-[0.99] active:bg-amber-400/20"
+        className="flex min-h-[56px] w-full items-center justify-between rounded-md border-2 border-amber-300 bg-amber-50 px-4 py-2.5 text-left text-amber-900 transition-all active:scale-[0.99] active:bg-amber-100"
       >
         <span className="flex flex-col">
-          <span className="text-base">OPP ERR</span>
-          <span className="text-[11px] font-normal text-amber-200/70">
+          <span className="font-display text-lg font-bold uppercase tracking-wide">
+            Opp error
+          </span>
+          <span className="text-[11px] font-medium text-amber-800/80">
             Opponent mistake - point for us
           </span>
         </span>
-        <span className="stat-number rounded-md bg-amber-400/20 px-2 py-0.5 text-sm">
+        <span className="stat-number rounded bg-amber-200 px-2.5 py-0.5 text-lg font-bold">
           {opponentErrors}
         </span>
       </button>
 
-      <div className="my-3 h-px bg-slate-800" />
+      <div className="my-3 h-px bg-slate-200" />
 
       {!player ? (
-        <div className="flex min-h-[140px] items-center justify-center p-6 text-sm text-slate-500">
+        <div className="flex min-h-[140px] items-center justify-center rounded-md border border-dashed border-slate-300 p-6 text-sm text-slate-500">
           Tap a player to record a stat.
         </div>
       ) : (
         <>
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-volt-300">
-                Recording for
-              </div>
-              <div className="text-lg font-bold text-slate-100">
+              <div className="eyebrow">Recording for</div>
+              <div className="font-display text-2xl font-bold leading-none text-slate-900">
                 {player.name}{" "}
-                <span className="font-normal text-slate-500">
+                <span className="text-lg font-medium text-slate-500">
                   #{player.number ?? "-"} ·{" "}
                   {positionPlayed ?? player.primaryPosition}
                 </span>
@@ -121,10 +122,10 @@ export function ActionPanel({
             restrict={restrict}
           />
 
-          <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/60 p-2.5">
-            <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-wide text-slate-400">
-              <span>Serve Receive</span>
-              <span className="text-slate-600">0 worst · 3 perfect</span>
+          <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-2.5">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="eyebrow text-slate-600">Serve receive</span>
+              <span className="text-[11px] text-slate-500">0 shank · 3 perfect</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {SR.map((sr) => (
@@ -133,13 +134,15 @@ export function ActionPanel({
                   type="button"
                   onClick={() => onAction(sr.id)}
                   className={cn(
-                    "flex min-h-[60px] flex-col items-center justify-center rounded-lg border-2 font-bold transition-all active:scale-95",
-                    sr.ring,
-                    sr.bg,
+                    "flex min-h-[64px] flex-col items-center justify-center rounded-md text-white transition-all active:scale-95",
+                    sr.className,
                   )}
+                  aria-label={`Serve receive ${sr.label}`}
                 >
-                  <span className="stat-number text-2xl">{sr.label}</span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70">
+                  <span className="stat-number text-3xl font-bold leading-none">
+                    {sr.label}
+                  </span>
+                  <span className="mt-0.5 font-display text-[10px] font-bold uppercase tracking-widest opacity-80">
                     SR
                   </span>
                 </button>
@@ -163,13 +166,12 @@ function ActionRow({
   onAction: (a: StatActionId) => void;
   restrict: (id: StatActionId) => boolean;
 }) {
+  // Solid fills: green for points we earned, navy for the plays that keep a
+  // rally alive, red for errors. White labels pass contrast on all three.
   const baseByCategory = {
-    positive:
-      "border-emerald-400/40 bg-emerald-400/10 text-emerald-300 active:bg-emerald-400/20",
-    neutral:
-      "border-volt-400/40 bg-volt-400/10 text-volt-300 active:bg-volt-400/20",
-    negative:
-      "border-red-400/40 bg-red-400/10 text-red-300 active:bg-red-400/20",
+    positive: "bg-emerald-600 active:bg-emerald-700",
+    neutral: "bg-navy-800 active:bg-navy-900",
+    negative: "bg-red-600 active:bg-red-700",
   }[category];
 
   const gridCols =
@@ -189,7 +191,7 @@ function ActionRow({
             type="button"
             onClick={() => onAction(a.id)}
             className={cn(
-              "flex min-h-[60px] flex-col items-center justify-center rounded-lg border-2 font-bold transition-all active:scale-95",
+              "flex min-h-[64px] items-center justify-center rounded-md px-2 font-display text-lg font-bold uppercase tracking-wide text-white transition-all active:scale-95",
               baseByCategory,
               isRestricted && "opacity-40",
             )}
@@ -199,7 +201,7 @@ function ActionRow({
                 : a.label
             }
           >
-            <span className="text-base">{a.label}</span>
+            {a.label}
           </button>
         );
       })}

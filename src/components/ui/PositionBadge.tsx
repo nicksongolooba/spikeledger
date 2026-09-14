@@ -20,7 +20,7 @@ export function PositionBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md font-bold uppercase tracking-wide",
+        "inline-flex items-center rounded font-display font-bold uppercase tracking-wider",
         POSITION_BADGE_CLASS[position],
         sizeClass,
         className,

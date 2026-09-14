@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Plan } from "@prisma/client";
+import { ArrowRight, Lock } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import {
   PLAN_LABEL,
@@ -23,27 +24,29 @@ export function UpgradeBanner({
   return (
     <div
       className={
-        "flex flex-wrap items-center gap-3 rounded-xl border border-violet-400/30 bg-violet-400/5 p-4 " +
+        "flex flex-wrap items-center gap-3 rounded-lg border border-navy-200 bg-navy-50 p-4 " +
         (className ?? "")
       }
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-400/15 text-violet-200">
-        <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-          <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
-        </svg>
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-navy-900 text-white"
+        aria-hidden
+      >
+        <Lock size={16} strokeWidth={2} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-violet-100">
+        <div className="text-sm font-semibold text-navy-900">
           {reason.feature} · {PLAN_LABEL[reason.recommendedPlan]}
         </div>
-        <div className="text-xs text-violet-100/70">{reason.reason}</div>
+        <div className="text-xs text-navy-800">{reason.reason}</div>
       </div>
       <button
         type="button"
         onClick={onUpgrade ?? (() => (window.location.href = "/settings/billing"))}
-        className="rounded-lg bg-violet-400 px-3 py-1.5 text-xs font-semibold text-violet-950 transition-colors hover:bg-violet-300"
+        className="btn-primary px-3 py-1.5 text-xs"
       >
         Upgrade
+        <ArrowRight size={14} strokeWidth={2} aria-hidden />
       </button>
     </div>
   );
@@ -66,7 +69,7 @@ export function UpgradePromptModal({
 
   const pricing = PLAN_PRICING[reason.recommendedPlan];
   const price = interval === "month" ? pricing.monthlyCents : pricing.yearlyCents;
-  const perLabel = interval === "month" ? "/month" : "/year";
+  const perLabel = interval === "month" ? "/ month" : "/ year";
 
   async function checkout() {
     setError(null);
@@ -97,17 +100,21 @@ export function UpgradePromptModal({
       className="max-w-md"
     >
       <div>
-        <p className="text-sm text-slate-300">{reason.reason}</p>
+        <div className="inline-flex items-center gap-1.5 rounded border border-navy-200 bg-navy-50 px-2 py-1 text-xs font-semibold text-navy-800">
+          <Lock size={12} strokeWidth={2.5} aria-hidden />
+          {reason.feature}
+        </div>
+        <p className="mt-3 text-sm text-slate-700">{reason.reason}</p>
 
-        <div className="mt-5 inline-flex rounded-lg border border-slate-800 bg-slate-950 p-1 text-xs">
+        <div className="mt-5 inline-flex rounded-md border border-slate-200 bg-slate-50 p-1 text-xs">
           <button
             type="button"
             onClick={() => setInterval("month")}
             className={
-              "rounded-md px-3 py-1.5 font-semibold transition-colors " +
+              "rounded px-3 py-1.5 font-semibold transition-colors " +
               (interval === "month"
-                ? "bg-volt-400 text-volt-950"
-                : "text-slate-400")
+                ? "bg-navy-900 text-white"
+                : "text-slate-600 hover:text-slate-900")
             }
           >
             Monthly
@@ -116,10 +123,10 @@ export function UpgradePromptModal({
             type="button"
             onClick={() => setInterval("year")}
             className={
-              "rounded-md px-3 py-1.5 font-semibold transition-colors " +
+              "rounded px-3 py-1.5 font-semibold transition-colors " +
               (interval === "year"
-                ? "bg-volt-400 text-volt-950"
-                : "text-slate-400")
+                ? "bg-navy-900 text-white"
+                : "text-slate-600 hover:text-slate-900")
             }
           >
             Yearly · save 17%
@@ -127,14 +134,14 @@ export function UpgradePromptModal({
         </div>
 
         <div className="mt-4 flex items-baseline gap-2">
-          <span className="stat-number text-3xl font-bold text-slate-100">
+          <span className="stat-number text-4xl font-bold leading-none text-slate-900">
             {fmtCAD(price)}
           </span>
           <span className="text-sm text-slate-500">{perLabel}</span>
         </div>
 
         {error && (
-          <div className="mt-3 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+          <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -147,14 +154,15 @@ export function UpgradePromptModal({
             type="button"
             onClick={checkout}
             disabled={busy}
-            className="bg-violet-400 hover:bg-violet-300 text-violet-950 btn"
+            className="btn-primary"
           >
             {busy ? "Opening Stripe…" : "Continue to checkout"}
+            <ArrowRight size={18} strokeWidth={2} aria-hidden />
           </button>
         </div>
 
         <p className="mt-3 text-center text-[11px] text-slate-500">
-          Cancel anytime · Your data is preserved if you downgrade
+          Cancel any time. Your data stays if you downgrade.
         </p>
       </div>
     </Modal>
@@ -193,13 +201,11 @@ export function ProBadge({ className }: { className?: string }) {
   return (
     <span
       className={
-        "inline-flex items-center gap-1 rounded-md border border-violet-400/40 bg-violet-400/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-200 " +
+        "inline-flex items-center gap-1 rounded border border-navy-200 bg-navy-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-navy-800 " +
         (className ?? "")
       }
     >
-      <svg viewBox="0 0 24 24" fill="currentColor" className="h-2.5 w-2.5">
-        <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
-      </svg>
+      <Lock size={10} strokeWidth={2.5} aria-hidden />
       Pro
     </span>
   );

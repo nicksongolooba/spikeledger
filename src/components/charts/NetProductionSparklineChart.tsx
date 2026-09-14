@@ -9,6 +9,14 @@ import {
   YAxis,
   ReferenceLine,
 } from "recharts";
+import {
+  CHART,
+  TOOLTIP_CONTENT_STYLE,
+  TOOLTIP_ITEM_STYLE,
+  TOOLTIP_LABEL_STYLE,
+  seriesActiveDot,
+  seriesDot,
+} from "./chartTheme";
 
 export interface SparkPoint {
   label: string;
@@ -19,7 +27,7 @@ export interface SparkPoint {
 export default function NetProductionSparkline({ data }: { data: SparkPoint[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex h-20 items-center text-xs text-slate-500">
+      <div className="flex h-20 items-center text-sm text-slate-500">
         Net production trend will appear after the first tournament.
       </div>
     );
@@ -30,29 +38,24 @@ export default function NetProductionSparkline({ data }: { data: SparkPoint[] })
         <LineChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
           <XAxis dataKey="label" hide />
           <YAxis hide domain={["auto", "auto"]} />
-          <ReferenceLine y={0} stroke="#2a3a5e" strokeDasharray="3 3" />
+          <ReferenceLine y={0} stroke={CHART.zeroLine} strokeDasharray="3 3" />
           <Tooltip
-            cursor={{ stroke: "#2a3a5e" }}
-            contentStyle={{
-              background: "#121b30",
-              border: "1px solid #1b2742",
-              borderRadius: 6,
-              fontSize: 12,
-              color: "#dbe0e8",
-            }}
+            cursor={{ stroke: CHART.cursor }}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
             formatter={(value) => {
               const n = value as number;
               return [n > 0 ? `+${n}` : `${n}`, "Net"] as [string, string];
             }}
-            labelStyle={{ color: "#8a97ad" }}
           />
           <Line
             type="monotone"
             dataKey="net"
-            stroke="#cbf03c"
+            stroke={CHART.primary}
             strokeWidth={2}
-            dot={{ r: 3, fill: "#cbf03c" }}
-            activeDot={{ r: 5 }}
+            dot={seriesDot(CHART.primary)}
+            activeDot={seriesActiveDot(CHART.primary)}
           />
         </LineChart>
       </ResponsiveContainer>

@@ -42,11 +42,13 @@ export const RATING_INFO: Record<
   Rating,
   { label: string; color: string }
 > = {
-  GREEN: { label: "Helping Team Win", color: "#34d399" },
-  BLUE: { label: "Solid Contributor", color: "#60a5fa" },
-  ORANGE: { label: "Needs Work", color: "#fbbf24" },
-  RED: { label: "Hurting Team", color: "#f87171" },
-  GREY: { label: "No Data", color: "#5d6d8f" },
+  // Colors are chosen for white/light surfaces (report cards, player pages):
+  // each passes 4.5:1 against white as text.
+  GREEN: { label: "Helping Team Win", color: "#059669" },
+  BLUE: { label: "Solid Contributor", color: "#0369a1" },
+  ORANGE: { label: "Needs Work", color: "#b45309" },
+  RED: { label: "Hurting Team", color: "#dc2626" },
+  GREY: { label: "No Data", color: "#64748b" },
 };
 
 export interface BankAccountResult {

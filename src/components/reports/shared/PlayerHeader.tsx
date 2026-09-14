@@ -1,16 +1,24 @@
 import type { Position } from "@prisma/client";
 import { POSITION_BADGE_CLASS, POSITION_LABELS } from "@/lib/positions";
-import { REPORT_MUTED } from "../cards/types";
+import {
+  REPORT_BG,
+  REPORT_BORDER,
+  REPORT_FONT_DISPLAY,
+  REPORT_MUTED,
+  REPORT_NAVY,
+  REPORT_TEXT,
+} from "../cards/types";
 
 // Tailwind classes don't survive html-to-image cleanly if applied to <span>
 // in a hidden tree, so we derive inline colors from the badge class string.
+// Keep in sync with POSITION_BADGE_CLASS (navy / sky / orange / emerald).
 function badgeColors(position: Position) {
   const cls = POSITION_BADGE_CLASS[position];
-  if (cls.includes("amber")) return { bg: "#fbbf24", fg: "#451a03" };
-  if (cls.includes("violet")) return { bg: "#a78bfa", fg: "#2e1065" };
-  if (cls.includes("volt")) return { bg: "#cbf03c", fg: "#1a2403" };
-  if (cls.includes("emerald")) return { bg: "#34d399", fg: "#022c22" };
-  return { bg: "#8a97ad", fg: "#121b30" };
+  if (cls.includes("navy")) return { bg: "#152743", fg: "#ffffff" };
+  if (cls.includes("sky")) return { bg: "#0369a1", fg: "#ffffff" };
+  if (cls.includes("orange")) return { bg: "#e4520b", fg: "#ffffff" };
+  if (cls.includes("emerald")) return { bg: "#059669", fg: "#ffffff" };
+  return { bg: "#475569", fg: "#ffffff" }; // slate fallback
 }
 
 export function PlayerHeader({
@@ -36,9 +44,9 @@ export function PlayerHeader({
           style={{
             width: "96px",
             height: "96px",
-            borderRadius: "20px",
-            background: "#121b30",
-            border: "2px solid #1b2742",
+            borderRadius: "12px",
+            background: REPORT_BG,
+            border: `2px solid ${REPORT_BORDER}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -47,9 +55,11 @@ export function PlayerHeader({
         >
           <span
             style={{
-              fontFamily: '"JetBrains Mono", monospace',
-              fontSize: "48px",
-              fontWeight: 700,
+              fontFamily: REPORT_FONT_DISPLAY,
+              fontSize: "52px",
+              fontWeight: 800,
+              color: REPORT_NAVY,
+              lineHeight: 1,
             }}
           >
             #{number}
@@ -57,12 +67,20 @@ export function PlayerHeader({
         </div>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: "56px", fontWeight: 800, lineHeight: 1.05 }}>
+        <div
+          style={{
+            fontFamily: REPORT_FONT_DISPLAY,
+            fontSize: "60px",
+            fontWeight: 800,
+            lineHeight: 1,
+            color: REPORT_TEXT,
+          }}
+        >
           {name}
         </div>
         <div
           style={{
-            marginTop: "10px",
+            marginTop: "12px",
             display: "flex",
             gap: "10px",
             flexWrap: "wrap",
@@ -74,10 +92,10 @@ export function PlayerHeader({
               background: colors.bg,
               color: colors.fg,
               padding: "6px 12px",
-              borderRadius: "8px",
+              borderRadius: "6px",
               fontSize: "16px",
               fontWeight: 700,
-              letterSpacing: "0.05em",
+              letterSpacing: "0.06em",
               textTransform: "uppercase",
             }}
           >
@@ -86,10 +104,11 @@ export function PlayerHeader({
           {secondaryPosition && (
             <span
               style={{
-                border: "1px solid #2a3a5e",
+                background: REPORT_BG,
+                border: `1px solid ${REPORT_BORDER}`,
                 color: REPORT_MUTED,
                 padding: "5px 10px",
-                borderRadius: "8px",
+                borderRadius: "6px",
                 fontSize: "14px",
                 fontWeight: 600,
               }}
@@ -102,6 +121,7 @@ export function PlayerHeader({
           style={{
             marginTop: "12px",
             fontSize: "20px",
+            fontWeight: 500,
             color: REPORT_MUTED,
           }}
         >

@@ -57,17 +57,17 @@ export default async function SharePage({
   const labels = meta.labels ?? report.imageUrls.map((_, i) => `Image ${i + 1}`);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <header className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1 text-xs font-medium text-slate-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/60 px-3 py-1 text-xs font-medium text-slate-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
             Match report
           </div>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl mt-4 text-slate-900">
             {meta.playerName ?? "Player report"}
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-600">
             {meta.teamName ? `${meta.teamName} · ` : ""}
             {meta.scopeLabel ?? "Season"}
           </p>
@@ -75,28 +75,28 @@ export default async function SharePage({
 
         <div className="mt-10 space-y-6">
           {report.imageUrls.map((url, i) => (
-            <figure key={i} className="overflow-hidden rounded-xl border border-slate-800">
+            <figure key={i} className="overflow-hidden rounded-lg border border-slate-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={url}
                 alt={labels[i] ?? `Image ${i + 1}`}
                 className="block w-full"
               />
-              <figcaption className="bg-slate-900 px-4 py-2 text-center text-xs text-slate-400">
+              <figcaption className="bg-white px-4 py-2 text-center text-xs text-slate-600">
                 {labels[i] ?? `Image ${i + 1}`}
               </figcaption>
             </figure>
           ))}
         </div>
 
-        <footer className="mt-14 border-t border-slate-800 pt-6 text-center text-sm text-slate-500">
-          <span className="font-medium text-slate-300">
+        <footer className="mt-14 border-t border-slate-200 pt-6 text-center text-sm text-slate-500">
+          <span className="font-medium text-slate-700">
             Powered by SpikeLedger
           </span>{" "}
           - free for coaches at{" "}
           <a
             href="/"
-            className="text-volt-300 hover:text-volt-200"
+            className="text-orange-700 hover:text-orange-800"
           >
             spikeledger.app
           </a>

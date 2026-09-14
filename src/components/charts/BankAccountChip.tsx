@@ -1,6 +1,20 @@
-import type { BankAccountResult } from "@/engine/bank-account";
+import type { BankAccountResult, Rating } from "@/engine/bank-account";
 import { fmtSigned } from "@/engine/derived-stats";
 import { cn } from "@/lib/utils";
+
+// Light chip per rating tone. Written out in full so Tailwind picks them up.
+const TONE: Record<Exclude<Rating, "GREY">, { chip: string; dot: string }> = {
+  GREEN: {
+    chip: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    dot: "bg-emerald-600",
+  },
+  BLUE: { chip: "border-sky-200 bg-sky-50 text-sky-700", dot: "bg-sky-600" },
+  ORANGE: {
+    chip: "border-amber-200 bg-amber-50 text-amber-700",
+    dot: "bg-amber-600",
+  },
+  RED: { chip: "border-red-200 bg-red-50 text-red-700", dot: "bg-red-600" },
+};
 
 // Compact rating chip used in tables and player lists.
 export function BankAccountChip({
@@ -16,33 +30,34 @@ export function BankAccountChip({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/40 px-2 py-0.5 text-xs text-slate-500",
+          "inline-flex items-center gap-1 rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-500",
           className,
         )}
       >
-        - no data
+        No data
       </span>
     );
   }
+  const tone = TONE[result.rating];
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-semibold",
+        "inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-semibold",
+        tone.chip,
         size === "sm" ? "text-[11px]" : "text-xs",
         className,
       )}
-      style={{
-        color: result.ratingColor,
-        borderColor: `${result.ratingColor}55`,
-        backgroundColor: `${result.ratingColor}1a`,
-      }}
-      title={`${result.ratingLabel} · ratio ${(result.ratio * 100).toFixed(0)}%`}
+      title={`${result.ratingLabel} - ratio ${(result.ratio * 100).toFixed(0)}%`}
     >
+      <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
       <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: result.ratingColor }}
-      />
-      <span className="stat-number">{fmtSigned(result.balance)}</span>
+        className={cn(
+          "stat-number font-bold",
+          size === "sm" ? "text-xs" : "text-sm",
+        )}
+      >
+        {fmtSigned(result.balance)}
+      </span>
       <span className="hidden text-[10px] uppercase tracking-wide opacity-80 sm:inline">
         {result.rating}
       </span>

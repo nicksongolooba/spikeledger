@@ -4,9 +4,17 @@ import { fmtSigned } from "@/engine/derived-stats";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
 import {
+  REPORT_BG,
+  REPORT_BODY,
+  REPORT_BORDER,
   REPORT_CARD_BG,
-  REPORT_DIM,
+  REPORT_FONT_DISPLAY,
+  REPORT_GREEN,
   REPORT_MUTED,
+  REPORT_NAVY,
+  REPORT_ORANGE_DEEP,
+  REPORT_RED,
+  REPORT_TEXT,
   type ReportCardData,
 } from "./types";
 
@@ -33,10 +41,11 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
         <div>
           <div
             style={{
+              fontFamily: REPORT_FONT_DISPLAY,
               fontSize: "16px",
-              color: REPORT_MUTED,
+              color: REPORT_ORANGE_DEEP,
               textTransform: "uppercase",
-              letterSpacing: "0.08em",
+              letterSpacing: "0.14em",
               fontWeight: 700,
             }}
           >
@@ -44,11 +53,13 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
           </div>
           <div
             style={{
-              fontFamily: '"JetBrains Mono", monospace',
-              fontSize: "96px",
+              fontFamily: REPORT_FONT_DISPLAY,
+              fontSize: "112px",
               fontWeight: 800,
               color: ba.ratingColor,
-              lineHeight: 1,
+              lineHeight: 0.95,
+              letterSpacing: "-0.01em",
+              marginTop: "6px",
             }}
           >
             {fmtSigned(ba.balance)}
@@ -75,9 +86,11 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
           Evaluated as
           <div
             style={{
-              fontSize: "26px",
+              fontFamily: REPORT_FONT_DISPLAY,
+              fontSize: "32px",
               fontWeight: 700,
-              color: "#f4f3ed",
+              lineHeight: 1.1,
+              color: REPORT_NAVY,
               marginTop: "4px",
             }}
           >
@@ -92,38 +105,39 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
           style={{
             display: "flex",
             justifyContent: "space-between",
-            fontSize: "16px",
+            fontFamily: REPORT_FONT_DISPLAY,
+            fontSize: "17px",
             fontWeight: 700,
-            color: REPORT_MUTED,
             textTransform: "uppercase",
-            letterSpacing: "0.06em",
+            letterSpacing: "0.08em",
             marginBottom: "8px",
           }}
         >
-          <span style={{ color: "#34d399" }}>{ba.deposits} deposits</span>
-          <span style={{ color: "#f87171" }}>{ba.withdrawals} withdrawals</span>
+          <span style={{ color: REPORT_GREEN }}>{ba.deposits} deposits</span>
+          <span style={{ color: REPORT_RED }}>{ba.withdrawals} withdrawals</span>
         </div>
         <div
           style={{
             height: "32px",
-            background: "#121b30",
-            border: "1px solid #1b2742",
-            borderRadius: "16px",
+            background: REPORT_CARD_BG,
+            border: `1px solid ${REPORT_BORDER}`,
+            borderRadius: "6px",
             overflow: "hidden",
             display: "flex",
+            gap: "3px",
           }}
         >
           <div
             style={{
               width: `${depositPct}%`,
-              background: "linear-gradient(90deg, #10b981, #34d399)",
+              background: REPORT_GREEN,
               minWidth: ba.deposits > 0 ? "4px" : "0",
             }}
           />
           <div
             style={{
               width: `${withdrawalPct}%`,
-              background: "linear-gradient(90deg, #f87171, #dc2626)",
+              background: REPORT_RED,
               minWidth: ba.withdrawals > 0 ? "4px" : "0",
               marginLeft: "auto",
             }}
@@ -143,12 +157,12 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
       >
         <BreakdownColumn
           title="Deposits"
-          color="#34d399"
+          color={REPORT_GREEN}
           items={ba.depositBreakdown}
         />
         <BreakdownColumn
           title="Withdrawals"
-          color="#f87171"
+          color={REPORT_RED}
           items={ba.withdrawalBreakdown}
         />
       </div>
@@ -158,14 +172,14 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
           marginTop: "20px",
           padding: "16px 20px",
           background: REPORT_CARD_BG,
-          border: "1px solid #1b2742",
-          borderRadius: "14px",
+          border: `1px solid ${REPORT_BORDER}`,
+          borderRadius: "12px",
           fontSize: "15px",
-          color: REPORT_DIM,
+          color: REPORT_BODY,
           lineHeight: 1.55,
         }}
       >
-        <span style={{ color: "#cbf03c", fontWeight: 700 }}>
+        <span style={{ color: REPORT_NAVY, fontWeight: 700 }}>
           How the Bank Account works:
         </span>{" "}
         Deposits are actions that help the team. Withdrawals are actions that
@@ -190,47 +204,56 @@ function BreakdownColumn({
   return (
     <div
       style={{
-        background: REPORT_CARD_BG,
-        border: "1px solid #1b2742",
-        borderRadius: "16px",
+        background: REPORT_BG,
+        border: `1px solid ${REPORT_BORDER}`,
+        borderRadius: "12px",
         padding: "18px 20px",
       }}
     >
       <div
         style={{
-          fontSize: "16px",
+          fontFamily: REPORT_FONT_DISPLAY,
+          fontSize: "17px",
           textTransform: "uppercase",
-          letterSpacing: "0.06em",
+          letterSpacing: "0.1em",
           fontWeight: 700,
           color,
-          marginBottom: "12px",
+          marginBottom: "6px",
         }}
       >
         {title}
       </div>
       {rows.length === 0 ? (
-        <div style={{ color: REPORT_MUTED, fontSize: "16px" }}>None.</div>
+        <div style={{ color: REPORT_MUTED, fontSize: "16px", padding: "8px 0" }}>
+          None.
+        </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {rows
             .sort((a, b) => b[1] - a[1])
-            .map(([k, v]) => (
+            .map(([k, v], i, arr) => (
               <div
                 key={k}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "baseline",
                   fontSize: "17px",
+                  padding: "8px 0",
+                  borderBottom:
+                    i < arr.length - 1 ? `1px solid ${REPORT_BORDER}` : "none",
                 }}
               >
-                <span style={{ color: "#b6c0d1" }}>
+                <span style={{ color: REPORT_BODY }}>
                   {BREAKDOWN_LABELS[k] ?? k}
                 </span>
                 <span
                   style={{
-                    fontFamily: '"JetBrains Mono", monospace',
+                    fontFamily: REPORT_FONT_DISPLAY,
+                    fontSize: "24px",
                     fontWeight: 700,
-                    color: "#f4f3ed",
+                    lineHeight: 1,
+                    color: REPORT_TEXT,
                   }}
                 >
                   {v}

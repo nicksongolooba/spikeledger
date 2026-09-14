@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 
 const DISMISS_KEY = "spikeledger:pwa-install-dismissed";
 
@@ -72,32 +73,26 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed inset-x-3 bottom-20 z-[120] mx-auto max-w-md lg:bottom-4">
-      <div className="flex items-center gap-3 rounded-xl border border-volt-400/40 bg-slate-900/95 p-3 shadow-2xl backdrop-blur">
+      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-pop">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icons/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded-lg" />
+        <img src="/icons/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded-md" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-100">Install SpikeLedger</p>
-          <p className="mt-0.5 text-xs leading-snug text-slate-400">
-            Add SpikeLedger to your home screen for the best courtside experience.
+          <p className="font-display text-base font-bold leading-tight text-slate-900">Install SpikeLedger</p>
+          <p className="mt-0.5 text-xs leading-snug text-slate-600">
+            Add it to your home screen for the courtside page.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            onClick={install}
-            className="rounded-lg bg-volt-400 px-3 py-1.5 text-sm font-semibold text-volt-950 transition hover:bg-volt-300"
-          >
+          <button type="button" onClick={install} className="btn-primary px-3 py-1.5">
             Install
           </button>
           <button
             type="button"
             onClick={dismiss}
             aria-label="Dismiss"
-            className="rounded-md p-1.5 text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
+            className="rounded-md p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           >
-            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-            </svg>
+            <X size={16} strokeWidth={2} aria-hidden />
           </button>
         </div>
       </div>

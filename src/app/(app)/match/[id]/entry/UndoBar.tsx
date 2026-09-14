@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown, ChevronUp, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STAT_ACTION_LABELS } from "@/lib/stat-actions";
 import type { UndoEntry } from "./types";
@@ -18,11 +19,11 @@ export function UndoBar({
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-14 z-30 border-t border-slate-800 bg-slate-900/95 backdrop-blur lg:bottom-0",
+        "fixed inset-x-0 bottom-14 z-30 border-t border-slate-200 bg-white/95 backdrop-blur lg:bottom-0",
       )}
     >
       {expanded && (
-        <div className="max-h-64 overflow-y-auto border-b border-slate-800 px-3 py-2">
+        <div className="max-h-64 overflow-y-auto border-b border-slate-200 px-3 py-2">
           {entries.length === 0 ? (
             <div className="py-2 text-center text-xs text-slate-500">
               Nothing to undo yet.
@@ -32,10 +33,10 @@ export function UndoBar({
               {[...entries].reverse().map((e) => (
                 <li
                   key={e.id}
-                  className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-slate-800/60"
+                  className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-slate-50"
                 >
-                  <span className="truncate text-slate-300">
-                    <span className="font-medium text-slate-100">
+                  <span className="truncate text-slate-600">
+                    <span className="font-semibold text-slate-900">
                       {e.playerName}
                     </span>{" "}
                     +1 {STAT_ACTION_LABELS[e.action]}
@@ -45,7 +46,7 @@ export function UndoBar({
                     onClick={() => {
                       onUndo(e.id);
                     }}
-                    className="rounded-md border border-red-400/30 px-2 py-0.5 text-xs text-red-300 hover:bg-red-400/10"
+                    className="rounded border border-red-200 px-2 py-0.5 text-xs font-semibold text-red-700 hover:bg-red-50"
                   >
                     Undo
                   </button>
@@ -55,24 +56,18 @@ export function UndoBar({
           )}
         </div>
       )}
-      <div className="flex items-center gap-2 px-3 py-2">
+      <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2 lg:pl-[16.5rem]">
         <button
           type="button"
           onClick={() => last && onUndo(last.id)}
           disabled={!last}
-          className="flex flex-1 items-center gap-2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-left text-sm transition-colors disabled:opacity-40 enabled:hover:border-slate-600"
+          className="flex min-h-[44px] flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm transition-colors disabled:opacity-40 enabled:hover:border-slate-400"
         >
-          <svg
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="h-4 w-4 text-slate-400"
-          >
-            <path d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 010 14H6a1 1 0 110-2h5a5 5 0 100-10H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" />
-          </svg>
+          <Undo2 size={18} strokeWidth={2} className="shrink-0 text-slate-500" aria-hidden />
           {last ? (
             <span className="truncate">
               <span className="text-slate-500">Undo:</span>{" "}
-              <span className="font-medium text-slate-100">
+              <span className="font-semibold text-slate-900">
                 {last.playerName}
               </span>{" "}
               +1 {STAT_ACTION_LABELS[last.action]}
@@ -84,13 +79,16 @@ export function UndoBar({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="relative rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-300 hover:border-slate-600"
+          className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:border-slate-400"
           aria-label="Toggle undo history"
+          aria-expanded={expanded}
         >
-          <span className="stat-number text-sm font-bold">{entries.length}</span>
-          <span className="ml-1 text-xs text-slate-500">
-            {expanded ? "▾" : "▴"}
-          </span>
+          <span className="stat-number text-base font-bold">{entries.length}</span>
+          {expanded ? (
+            <ChevronDown size={16} strokeWidth={2} className="text-slate-500" aria-hidden />
+          ) : (
+            <ChevronUp size={16} strokeWidth={2} className="text-slate-500" aria-hidden />
+          )}
         </button>
       </div>
     </div>

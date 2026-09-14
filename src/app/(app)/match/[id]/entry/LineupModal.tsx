@@ -5,6 +5,7 @@ import type { Position } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { POSITION_LABELS } from "@/lib/positions";
+import { cn } from "@/lib/utils";
 import { CourtFormation } from "./CourtGrid";
 import type { PositionByPlayer, RosterPlayer } from "./types";
 
@@ -91,9 +92,9 @@ export function LineupModal({
       title="Set starting lineup"
       className="max-w-2xl"
     >
-      <p className="mb-4 text-sm text-slate-400">
+      <p className="mb-4 text-sm text-slate-600">
         Tap players in rotation order. The first player tapped is the server
-        (Position 1, back-right); the rest fill 2-6 clockwise. Dual-role players
+        (position 1, back-right); the rest fill 2-6 clockwise. Dual-role players
         will ask which position they&apos;re playing this match.
       </p>
 
@@ -102,23 +103,24 @@ export function LineupModal({
           const isSelected = selectedSet.has(p.id);
           const isDual = !!p.secondaryPosition;
           const chosen = positions[p.id] ?? p.primaryPosition;
+          const isServer = isSelected && selected[0] === p.id;
           return (
             <button
               key={p.id}
               type="button"
               onClick={() => togglePlayer(p.id)}
-              className={
-                "flex items-center gap-3 rounded-lg border p-2.5 text-left transition-colors " +
-                (isSelected
-                  ? "border-volt-400 bg-volt-400/10"
-                  : "border-slate-800 bg-slate-900 hover:border-slate-700")
-              }
+              className={cn(
+                "flex min-h-[56px] items-center gap-3 rounded-md border-2 p-2.5 text-left transition-colors",
+                isSelected
+                  ? "border-orange-500 bg-orange-50"
+                  : "border-slate-200 bg-white hover:border-slate-400",
+              )}
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-800 stat-number text-sm font-bold">
+              <div className="stat-number flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-base font-bold text-slate-900">
                 {p.number ?? "-"}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-slate-100">
+                <div className="truncate text-sm font-semibold text-slate-900">
                   {p.name}
                 </div>
                 <div className="mt-0.5 flex flex-wrap gap-1">
@@ -130,14 +132,12 @@ export function LineupModal({
               </div>
               {isSelected && (
                 <span
-                  className={
-                    "stat-number flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold " +
-                    (selectedSet.size > 0 && selected[0] === p.id
-                      ? "bg-amber-400 text-amber-950"
-                      : "bg-volt-400 text-volt-950")
-                  }
+                  className={cn(
+                    "stat-number flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white",
+                    isServer ? "bg-orange-500" : "bg-navy-900",
+                  )}
                   title={
-                    selected[0] === p.id
+                    isServer
                       ? "Position 1 - server"
                       : `Position ${selected.indexOf(p.id) + 1}`
                   }
@@ -152,7 +152,7 @@ export function LineupModal({
                   onChange={(e) =>
                     setPositionFor(p.id, e.target.value as Position)
                   }
-                  className="ml-auto rounded-md border border-slate-700 bg-slate-950 px-1.5 py-0.5 text-xs"
+                  className="ml-auto rounded border border-slate-300 bg-white px-1.5 py-0.5 text-xs font-semibold text-slate-800"
                 >
                   {[p.primaryPosition, p.secondaryPosition!].map((pos) => (
                     <option key={pos} value={pos}>
@@ -167,17 +167,18 @@ export function LineupModal({
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm">
-        <span className="text-slate-400">
-          {selected.length} / {COURT_SIZE} selected
+        <span className="text-slate-600">
+          <span className="stat-number text-base font-bold text-slate-900">
+            {selected.length} / {COURT_SIZE}
+          </span>{" "}
+          selected
         </span>
-        {error && <span className="text-red-300">{error}</span>}
+        {error && <span className="font-medium text-red-700">{error}</span>}
       </div>
 
       {selected.length === 6 && (
         <div className="mt-4">
-          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Starting formation
-          </div>
+          <div className="eyebrow mb-1 text-slate-500">Starting formation</div>
           <CourtFormation
             ordered={selected}
             roster={roster}
@@ -188,10 +189,8 @@ export function LineupModal({
       )}
 
       {selected.length > 0 && (
-        <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs">
-          <div className="mb-2 font-semibold uppercase tracking-wide text-slate-400">
-            Rotation order:
-          </div>
+        <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
+          <div className="eyebrow mb-2 text-slate-500">Rotation order</div>
           <div className="space-y-1.5">
             {selected.map((id, i) => {
               const p = roster.find((rp) => rp.id === id);
@@ -199,26 +198,26 @@ export function LineupModal({
               const pos = positions[id] ?? p.primaryPosition;
               return (
                 <div key={id} className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-slate-200">
+                  <span className="flex items-center gap-2 text-slate-800">
                     <span
-                      className={
-                        "stat-number flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold " +
-                        (i === 0
-                          ? "bg-amber-400 text-amber-950"
-                          : "bg-slate-800 text-slate-300")
-                      }
+                      className={cn(
+                        "stat-number flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold",
+                        i === 0
+                          ? "bg-orange-500 text-white"
+                          : "bg-slate-200 text-slate-700",
+                      )}
                     >
                       {i + 1}
                     </span>
                     {p.name}{" "}
                     <span className="text-slate-500">#{p.number ?? "-"}</span>
                     {i === 0 && (
-                      <span className="rounded bg-amber-400/15 px-1 text-[10px] font-semibold uppercase text-amber-300">
+                      <span className="rounded bg-orange-100 px-1 font-display text-[10px] font-bold uppercase tracking-wide text-orange-800">
                         Server
                       </span>
                     )}
                   </span>
-                  <span className="flex items-center gap-2 text-slate-400">
+                  <span className="flex items-center gap-2 text-slate-500">
                     {POSITION_LABELS[pos]}
                     <PositionBadge position={pos} size="xs" />
                   </span>

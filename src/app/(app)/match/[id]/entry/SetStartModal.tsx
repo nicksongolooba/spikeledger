@@ -34,6 +34,14 @@ export function SetStartModal({
     }
   }, [open, initialServing, initialRotation]);
 
+  const optionClass = (active: boolean) =>
+    cn(
+      "min-h-[48px] rounded-md border-2 text-sm font-bold transition-colors",
+      active
+        ? "border-navy-900 bg-navy-900 text-white"
+        : "border-slate-200 bg-white text-slate-700 hover:border-slate-400",
+    );
+
   return (
     <Modal
       open={open}
@@ -41,47 +49,33 @@ export function SetStartModal({
       title={`Set ${setNumber} - who serves first?`}
       className="max-w-md"
     >
-      <p className="mb-4 text-sm text-slate-400">
+      <p className="mb-4 text-sm text-slate-600">
         Rotation only advances when you win the serve back (a side-out), so set
         this right and the rest tracks itself.
       </p>
 
-      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-        Serving first
-      </div>
+      <div className="eyebrow mb-2 text-slate-500">Serving first</div>
       <div className="grid grid-cols-2 gap-2">
         {(["us", "them"] as const).map((side) => (
           <button
             key={side}
             type="button"
             onClick={() => setServing(side)}
-            className={cn(
-              "rounded-lg border px-3 py-3 text-sm font-semibold transition-colors",
-              serving === side
-                ? "border-volt-400 bg-volt-400/10 text-volt-200"
-                : "border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700",
-            )}
+            className={cn(optionClass(serving === side), "px-3 py-3")}
           >
             {side === "us" ? "We serve" : "They serve"}
           </button>
         ))}
       </div>
 
-      <div className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-slate-400">
-        Starting rotation
-      </div>
+      <div className="eyebrow mb-2 mt-5 text-slate-500">Starting rotation</div>
       <div className="grid grid-cols-6 gap-1.5">
         {[1, 2, 3, 4, 5, 6].map((r) => (
           <button
             key={r}
             type="button"
             onClick={() => setRotation(r)}
-            className={cn(
-              "stat-number rounded-lg border py-2 text-sm font-bold transition-colors",
-              rotation === r
-                ? "border-volt-400 bg-volt-400/10 text-volt-200"
-                : "border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700",
-            )}
+            className={cn(optionClass(rotation === r), "stat-number py-2 text-base")}
           >
             R{r}
           </button>
