@@ -13,6 +13,7 @@ import { teamVisibleWhere } from "@/lib/access";
 import { ensureClubForOwner } from "@/lib/club";
 import { CreateTeamButton } from "./CreateTeamButton";
 import { cn, formatDate } from "@/lib/utils";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 export const dynamic = "force-dynamic";
 
@@ -205,6 +206,7 @@ export default async function DashboardPage() {
           </aside>
         </section>
       )}
+      <InstallPrompt />
     </div>
   );
 }

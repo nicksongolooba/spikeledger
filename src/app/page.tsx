@@ -15,6 +15,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import { PricingSection } from "./PricingSection";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { Wordmark } from "@/components/layout/Wordmark";
 import { TESTIMONIALS } from "@/content/testimonials";
 import { cn } from "@/lib/utils";
@@ -635,6 +636,8 @@ export default function LandingPage() {
           <div>Photo by Vince Fleming on Unsplash.</div>
         </div>
       </footer>
+
+      <InstallPrompt />
     </div>
   );
 }

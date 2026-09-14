@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline · SpikeLedger</title>
+    <meta name="theme-color" content="#0b1a33" />
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #f4f6f9;
+        color: #0f172a;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .wrap {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        gap: 14px;
+      }
+      img { width: 200px; max-width: 70%; height: auto; }
+      h1 { font-size: 20px; margin: 8px 0 0; color: #0f172a; }
+      p { margin: 0; color: #475569; font-size: 14px; max-width: 320px; line-height: 1.5; }
+      .pill {
+        margin-top: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(251, 191, 36, 0.4);
+        background: rgba(251, 191, 36, 0.1);
+        color: #b45309;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .dot { width: 7px; height: 7px; border-radius: 999px; background: #e4520b; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <img src="/logo-full.png" alt="SpikeLedger" />
+      <h1>You're offline</h1>
+      <p>
+        This page isn't cached yet. Reconnect to load it — any stats you record
+        on the courtside entry page are saved on your device and will sync once
+        you're back online.
+      </p>
+      <span class="pill"><span class="dot"></span> Offline — stats will sync when connected</span>
+    </div>
+  </body>
+</html>
