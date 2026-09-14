@@ -12,7 +12,7 @@ export default function ContactPage() {
       <p className="mt-4 text-base leading-relaxed text-slate-700">
         Questions or feedback? Email us at{" "}
         <a
-          className="font-semibold text-orange-700 hover:text-orange-800"
+          className="font-semibold text-cyan-700 hover:text-cyan-800"
           href="mailto:support@spikeledger.com"
         >
           support@spikeledger.com

@@ -125,7 +125,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
             <Upload size={20} strokeWidth={2} aria-hidden />
           </span>
           <span className="text-sm text-slate-700">
-            <span className="font-semibold text-orange-700">Choose a file</span>{" "}
+            <span className="font-semibold text-cyan-700">Choose a file</span>{" "}
             - CSV or .xlsx
           </span>
           <span className="max-w-md text-xs text-slate-500">
@@ -287,7 +287,7 @@ export function ImportClient({ teamId }: { teamId: string }) {
                             key={h}
                             className={cn(
                               "whitespace-nowrap px-2 py-2 text-left align-top font-semibold",
-                              mapped ? "text-orange-700" : "text-slate-500",
+                              mapped ? "text-cyan-700" : "text-slate-500",
                             )}
                           >
                             {h}

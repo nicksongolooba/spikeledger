@@ -43,7 +43,7 @@ export default async function InvitePage({
   return (
     <main className="flex min-h-screen items-center justify-center bg-paper px-4">
       <div className="card w-full max-w-md p-8 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-white">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-cyan-500 text-navy-950">
           <Volleyball size={24} strokeWidth={2.25} aria-hidden />
         </div>
         {invalid ? (

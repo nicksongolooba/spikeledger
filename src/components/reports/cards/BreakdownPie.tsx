@@ -17,12 +17,12 @@ import {
 // The engine has six deposit categories and five withdrawal categories, so
 // nothing wraps.
 const DEPOSIT_PALETTE = [
-  "#065f46",
-  "#047857",
-  "#059669",
-  "#10b981",
-  "#6ee7b7",
-  "#a7f3d0",
+  "#17633c",
+  "#1a7f4a",
+  "#1b9757",
+  "#25e380",
+  "#6eecab",
+  "#a5f3ca",
 ];
 const WITHDRAWAL_PALETTE = [
   "#991b1b",

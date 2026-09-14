@@ -62,7 +62,7 @@ export default async function SharePage({
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <header className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/60 px-3 py-1 text-xs font-medium text-slate-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+            <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
             Match report
           </div>
           <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl mt-4 text-slate-900">
@@ -100,7 +100,7 @@ export default async function SharePage({
           - free for coaches at{" "}
           <a
             href="/"
-            className="text-orange-700 hover:text-orange-800"
+            className="text-cyan-700 hover:text-cyan-800"
           >
             spikeledger.app
           </a>

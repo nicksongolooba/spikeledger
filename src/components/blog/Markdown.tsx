@@ -42,7 +42,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-orange-700 underline decoration-orange-700 underline-offset-2 hover:text-orange-800"
+            className="font-medium text-cyan-700 underline decoration-cyan-700 underline-offset-2 hover:text-cyan-800"
           >
             {label}
           </a>,
@@ -52,7 +52,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
           <Link
             key={`${keyPrefix}-l-${i}`}
             href={href}
-            className="font-medium text-orange-700 underline decoration-orange-700 underline-offset-2 hover:text-orange-800"
+            className="font-medium text-cyan-700 underline decoration-cyan-700 underline-offset-2 hover:text-cyan-800"
           >
             {label}
           </Link>,
@@ -156,7 +156,7 @@ export function Markdown({ content }: { content: string }) {
               <ul key={key} className="ml-1 space-y-2">
                 {b.lines.map((li, j) => (
                   <li key={j} className="flex gap-3">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-200" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-200" />
                     <span>{renderInline(li, `${key}-${j}`)}</span>
                   </li>
                 ))}
@@ -167,7 +167,7 @@ export function Markdown({ content }: { content: string }) {
               <ol key={key} className="ml-1 space-y-2">
                 {b.lines.map((li, j) => (
                   <li key={j} className="flex gap-3">
-                    <span className="stat-number mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-orange-700">
+                    <span className="stat-number mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-cyan-700">
                       {j + 1}
                     </span>
                     <span>{renderInline(li, `${key}-${j}`)}</span>
@@ -179,7 +179,7 @@ export function Markdown({ content }: { content: string }) {
             return (
               <blockquote
                 key={key}
-                className="border-l-2 border-orange-300 bg-white/40 py-2 pl-4 pr-3 italic text-slate-700"
+                className="border-l-2 border-cyan-300 bg-white/40 py-2 pl-4 pr-3 italic text-slate-700"
               >
                 {b.lines.map((q, j) => (
                   <Fragment key={j}>{renderInline(q, `${key}-${j}`)} </Fragment>

@@ -75,7 +75,7 @@ function PieCard({
   slices: Slice[];
   tone: "emerald" | "red";
 }) {
-  const totalColor = tone === "emerald" ? "text-emerald-700" : "text-red-700";
+  const totalColor = tone === "emerald" ? "text-green-700" : "text-red-700";
   return (
     <div className="card p-4">
       <div className="mb-2 flex items-center justify-between">

@@ -30,7 +30,7 @@ export interface TrendPoint {
 }
 
 // Lazy-loaded via ./PlayerTrendChart. Bank Account is the navy line on the
-// left axis; the position metric is the orange line on the right axis.
+// left axis; the position metric is the cyan line on the right axis.
 export default function PlayerTrendChart({
   data,
   primaryLabel,

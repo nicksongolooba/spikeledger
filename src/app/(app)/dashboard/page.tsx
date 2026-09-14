@@ -104,7 +104,7 @@ export default async function DashboardPage() {
       {membership && membership.club.name.endsWith("'s Club") && (
         <Link
           href="/club/setup"
-          className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-900 hover:bg-orange-100"
+          className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-cyan-300 bg-cyan-50 px-4 py-3 text-sm text-cyan-900 hover:bg-cyan-100"
         >
           <span>
             <span className="font-bold">Finish setting up your club</span> - name
@@ -237,7 +237,7 @@ function FeaturedTeam({
       <div className="bg-navy-900 px-6 py-5 text-white">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="eyebrow text-orange-300">
+            <div className="eyebrow text-cyan-500">
               {last ? "Most recent activity" : "Newest team"}
             </div>
             <h2 className="mt-1 font-display text-3xl font-bold leading-none sm:text-4xl">
@@ -338,7 +338,7 @@ function TeamCard({
     <Link href={`/team/${team.id}`} className="card card-hover group flex flex-col p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-display text-xl font-bold text-slate-900 group-hover:text-orange-700">
+          <h3 className="truncate font-display text-xl font-bold text-slate-900 group-hover:text-cyan-700">
             {team.name}
           </h3>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
@@ -354,7 +354,7 @@ function TeamCard({
         <ArrowRight
           size={18}
           strokeWidth={2}
-          className="shrink-0 text-slate-300 transition-colors group-hover:text-orange-600"
+          className="shrink-0 text-slate-300 transition-colors group-hover:text-cyan-600"
           aria-hidden
         />
       </div>
@@ -434,7 +434,7 @@ function RecentMatches({
           {matches.map((m) => {
             const tone =
               m.result === "WIN"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-green-50 text-green-700"
                 : m.result === "LOSS"
                   ? "bg-red-50 text-red-700"
                   : "bg-slate-100 text-slate-600";
@@ -496,7 +496,7 @@ function OnboardingStep({
     <li
       className={cn(
         "rounded-lg border p-4",
-        active ? "border-orange-300 bg-orange-50" : "border-slate-200 bg-slate-50",
+        active ? "border-cyan-300 bg-cyan-50" : "border-slate-200 bg-slate-50",
       )}
     >
       <div className="flex items-center gap-3">
@@ -504,9 +504,9 @@ function OnboardingStep({
           className={cn(
             "stat-number flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base font-bold",
             done
-              ? "bg-emerald-600 text-white"
+              ? "bg-green-600 text-white"
               : active
-                ? "bg-orange-500 text-white"
+                ? "bg-cyan-500 text-navy-950"
                 : "bg-slate-200 text-slate-600",
           )}
         >

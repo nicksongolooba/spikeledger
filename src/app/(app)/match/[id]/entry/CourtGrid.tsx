@@ -24,8 +24,8 @@ const COURT_LAYOUT: Record<number, { col: 0 | 1 | 2; row: 0 | 1 }> = {
 const GROUP_RING: Record<PositionGroup, string> = {
   hitter: "ring-navy-200",
   middle: "ring-sky-200",
-  setter: "ring-orange-200",
-  libero: "ring-emerald-200",
+  setter: "ring-cyan-200",
+  libero: "ring-green-200",
 };
 
 // Renders the six on-court players in real volleyball formation. Each card is
@@ -145,7 +145,7 @@ function CourtCard({
         "ring-1",
         neutral ? "ring-slate-200" : GROUP_RING[group],
         selected
-          ? "border-orange-500 bg-orange-50 ring-2 ring-orange-500"
+          ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-500"
           : isServer
             ? "border-amber-400"
             : "border-slate-200",

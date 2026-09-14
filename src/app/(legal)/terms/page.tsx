@@ -65,7 +65,7 @@ export default function TermsPage() {
         rights needed to operate the service (storing, processing, and
         displaying the data, including AI-generated insights you request).
         Our handling of personal information is described in the{" "}
-        <a className="text-orange-700 hover:text-orange-800" href="/privacy">
+        <a className="text-cyan-700 hover:text-cyan-800" href="/privacy">
           Privacy Policy
         </a>
         .
@@ -108,7 +108,7 @@ export default function TermsPage() {
       <H2>Contact</H2>
       <P>
         Questions about these terms:{" "}
-        <a className="text-orange-700 hover:text-orange-800" href="mailto:support@spikeledger.com">
+        <a className="text-cyan-700 hover:text-cyan-800" href="mailto:support@spikeledger.com">
           support@spikeledger.com
         </a>
         .

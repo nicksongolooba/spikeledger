@@ -85,7 +85,7 @@ export function TeamIntelligenceCard({
           <ul className="space-y-3">
             {data.insights.map((line, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-800">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-500" />
                 <span className="leading-relaxed">{line}</span>
               </li>
             ))}

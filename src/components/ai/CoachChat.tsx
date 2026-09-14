@@ -53,7 +53,7 @@ function MessageBody({ content }: { content: string }) {
             href={youtubeSearchUrl(part)}
             target="_blank"
             rel="noopener noreferrer"
-            className="my-0.5 inline-flex items-center gap-1 rounded border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-800 hover:bg-orange-100"
+            className="my-0.5 inline-flex items-center gap-1 rounded border border-cyan-200 bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-800 hover:bg-cyan-100"
           >
             <CirclePlay size={12} strokeWidth={2} aria-hidden />
             Watch drill videos
