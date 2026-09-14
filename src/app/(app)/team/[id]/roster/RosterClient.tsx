@@ -3,10 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Player, Position } from "@prisma/client";
+import {
+  AlertTriangle,
+  Archive,
+  ArchiveRestore,
+  Pencil,
+  Plus,
+} from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { POSITIONS, POSITION_LABELS } from "@/lib/positions";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { cn } from "@/lib/utils";
 
 type EditingPlayer = Pick<
   Player,
@@ -107,12 +115,28 @@ export function RosterClient({
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
-        <button onClick={openAdd} className="btn-primary">
-          <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-          </svg>
-          Add Player
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        {initialPlayers.length > 0 && (
+          <p className="text-sm text-slate-500">
+            <span className="font-semibold text-slate-900">
+              {activePlayers.length}
+            </span>{" "}
+            active
+            {inactivePlayers.length > 0 && (
+              <>
+                {" "}
+                ·{" "}
+                <span className="font-semibold text-slate-900">
+                  {inactivePlayers.length}
+                </span>{" "}
+                inactive
+              </>
+            )}
+          </p>
+        )}
+        <button onClick={openAdd} className="btn-primary ml-auto">
+          <Plus size={18} strokeWidth={2} aria-hidden />
+          Add player
         </button>
       </div>
 
@@ -122,7 +146,8 @@ export function RosterClient({
           description="Add your first player to start building the roster."
           action={
             <button onClick={openAdd} className="btn-primary">
-              Add Player
+              <Plus size={18} strokeWidth={2} aria-hidden />
+              Add player
             </button>
           }
         />
@@ -130,10 +155,11 @@ export function RosterClient({
         <>
           <PlayerTable players={activePlayers} onEdit={openEdit} onToggle={toggleActive} />
           {inactivePlayers.length > 0 && (
-            <div className="mt-8">
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Inactive
-              </h3>
+            <div className="mt-10">
+              <div className="mb-3 flex items-center gap-2">
+                <h3 className="eyebrow text-slate-500">Inactive</h3>
+                <span className="chip">{inactivePlayers.length}</span>
+              </div>
               <PlayerTable
                 players={inactivePlayers}
                 onEdit={openEdit}
@@ -226,8 +252,14 @@ export function RosterClient({
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-300">
-              {error}
+            <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <AlertTriangle
+                size={16}
+                strokeWidth={2}
+                className="mt-0.5 shrink-0"
+                aria-hidden
+              />
+              <span>{error}</span>
             </div>
           )}
 
@@ -249,6 +281,20 @@ export function RosterClient({
   );
 }
 
+function Th({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <th className={cn("eyebrow px-4 py-2.5 text-left text-slate-500", className)}>
+      {children}
+    </th>
+  );
+}
+
 function PlayerTable({
   players,
   onEdit,
@@ -261,48 +307,56 @@ function PlayerTable({
   dim?: boolean;
 }) {
   return (
-    <div className={`card overflow-hidden ${dim ? "opacity-60" : ""}`}>
+    <div className={cn("card overflow-hidden", dim && "opacity-60")}>
       {/* Desktop table */}
       <table className="hidden w-full text-sm sm:table">
-        <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
+        <thead className="border-b border-slate-200 bg-slate-50">
           <tr>
-            <th className="px-4 py-2.5 text-left">#</th>
-            <th className="px-4 py-2.5 text-left">Name</th>
-            <th className="px-4 py-2.5 text-left">Primary</th>
-            <th className="px-4 py-2.5 text-left">Secondary</th>
-            <th className="px-4 py-2.5 text-right">Actions</th>
+            <Th className="w-16">#</Th>
+            <Th>Name</Th>
+            <Th>Primary</Th>
+            <Th>Secondary</Th>
+            <Th className="text-right">Actions</Th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800">
+        <tbody className="divide-y divide-slate-100">
           {players.map((p) => (
-            <tr key={p.id} className="transition-colors hover:bg-slate-800/40">
-              <td className="px-4 py-2.5 stat-number font-bold text-slate-300">
+            <tr key={p.id} className="transition-colors hover:bg-slate-50">
+              <td className="stat-number px-4 py-3 text-lg font-bold text-slate-900">
                 {p.number ?? "-"}
               </td>
-              <td className="px-4 py-2.5 font-medium text-slate-100">{p.name}</td>
-              <td className="px-4 py-2.5">
+              <td className="px-4 py-3 font-semibold text-slate-900">{p.name}</td>
+              <td className="px-4 py-3">
                 <PositionBadge position={p.primaryPosition} />
               </td>
-              <td className="px-4 py-2.5">
+              <td className="px-4 py-3">
                 {p.secondaryPosition ? (
                   <PositionBadge position={p.secondaryPosition} />
                 ) : (
-                  <span className="text-slate-600">-</span>
+                  <span className="text-slate-400">-</span>
                 )}
               </td>
-              <td className="px-4 py-2.5 text-right">
-                <button
-                  onClick={() => onEdit(p)}
-                  className="btn-ghost px-2.5 py-1 text-xs"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => onToggle(p)}
-                  className="btn-ghost px-2.5 py-1 text-xs"
-                >
-                  {p.isActive ? "Deactivate" : "Reactivate"}
-                </button>
+              <td className="px-4 py-3 text-right">
+                <div className="inline-flex gap-1">
+                  <button
+                    onClick={() => onEdit(p)}
+                    className="btn-ghost px-2.5 py-1 text-xs"
+                  >
+                    <Pencil size={14} strokeWidth={2} aria-hidden />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => onToggle(p)}
+                    className="btn-ghost px-2.5 py-1 text-xs"
+                  >
+                    {p.isActive ? (
+                      <Archive size={14} strokeWidth={2} aria-hidden />
+                    ) : (
+                      <ArchiveRestore size={14} strokeWidth={2} aria-hidden />
+                    )}
+                    {p.isActive ? "Deactivate" : "Reactivate"}
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -310,14 +364,14 @@ function PlayerTable({
       </table>
 
       {/* Mobile cards */}
-      <ul className="divide-y divide-slate-800 sm:hidden">
+      <ul className="divide-y divide-slate-100 sm:hidden">
         {players.map((p) => (
           <li key={p.id} className="flex items-center gap-3 px-4 py-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-800 stat-number text-sm font-bold">
+            <div className="stat-number flex h-10 w-10 shrink-0 items-center justify-center rounded bg-navy-900 text-base font-bold text-white">
               {p.number ?? "-"}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate font-medium text-slate-100">{p.name}</div>
+              <div className="truncate font-semibold text-slate-900">{p.name}</div>
               <div className="mt-0.5 flex flex-wrap gap-1">
                 <PositionBadge position={p.primaryPosition} size="xs" />
                 {p.secondaryPosition && (
@@ -330,12 +384,18 @@ function PlayerTable({
                 onClick={() => onEdit(p)}
                 className="btn-ghost px-2 py-1 text-xs"
               >
+                <Pencil size={14} strokeWidth={2} aria-hidden />
                 Edit
               </button>
               <button
                 onClick={() => onToggle(p)}
                 className="btn-ghost px-2 py-1 text-xs"
               >
+                {p.isActive ? (
+                  <Archive size={14} strokeWidth={2} aria-hidden />
+                ) : (
+                  <ArchiveRestore size={14} strokeWidth={2} aria-hidden />
+                )}
                 {p.isActive ? "Off" : "On"}
               </button>
             </div>

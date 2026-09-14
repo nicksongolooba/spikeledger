@@ -46,16 +46,16 @@ function ToastItem({
 
   const toneClass =
     toast.tone === "success"
-      ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-200"
+      ? "border-emerald-300 bg-emerald-50 text-emerald-800"
       : toast.tone === "danger"
-        ? "border-red-400/40 bg-red-400/15 text-red-200"
-        : "border-volt-400/40 bg-volt-400/15 text-volt-200";
+        ? "border-red-300 bg-red-50 text-red-800"
+        : "border-navy-200 bg-navy-50 text-navy-800";
   return (
     <div
       className={cn(
-        "pointer-events-auto inline-flex max-w-[90%] items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold shadow-lg backdrop-blur transition-all",
+        "pointer-events-auto inline-flex max-w-[90%] items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold shadow-lift transition-all",
         toneClass,
-        visible ? "opacity-100 translate-y-0" : "-translate-y-2 opacity-0",
+        visible ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0",
       )}
     >
       {toast.text}

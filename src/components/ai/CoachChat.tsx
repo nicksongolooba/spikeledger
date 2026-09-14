@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { CirclePlay, Lock, MessageSquareText, Send, X } from "lucide-react";
 import { youtubeSearchUrl } from "@/lib/youtube";
 
 const UNAVAILABLE = "AI chat is temporarily unavailable. Try again in a moment.";
@@ -20,14 +21,6 @@ interface ChatMessage {
   error?: boolean;
 }
 
-function Sparkle({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6zM19 14l.9 2.4 2.4.9-2.4.9L19 20.6l-.9-2.4-2.4-.9 2.4-.9z" />
-    </svg>
-  );
-}
-
 // Render **bold** spans within a plain-text segment.
 function BoldText({ text }: { text: string }) {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
@@ -35,7 +28,7 @@ function BoldText({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         i % 2 === 1 ? (
-          <strong key={i} className="font-bold text-slate-100">
+          <strong key={i} className="font-bold text-slate-900">
             {p}
           </strong>
         ) : (
@@ -60,11 +53,9 @@ function MessageBody({ content }: { content: string }) {
             href={youtubeSearchUrl(part)}
             target="_blank"
             rel="noopener noreferrer"
-            className="my-0.5 inline-flex items-center gap-1 rounded-md border border-red-400/40 bg-red-400/10 px-2 py-0.5 text-xs font-semibold text-red-200 hover:bg-red-400/20"
+            className="my-0.5 inline-flex items-center gap-1 rounded border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-800 hover:bg-orange-100"
           >
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3">
-              <path d="M8 5v14l11-7z" />
-            </svg>
+            <CirclePlay size={12} strokeWidth={2} aria-hidden />
             Watch drill videos
           </a>
         ) : (
@@ -221,9 +212,9 @@ export function CoachChat({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-[90] inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-gold-300 shadow-xl shadow-gold-950/50 transition hover:bg-slate-800 hover:text-gold-200"
+          className="fixed bottom-20 right-4 z-[90] inline-flex items-center gap-2 rounded-full bg-navy-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lift transition hover:bg-navy-800 lg:bottom-5 lg:right-5"
         >
-          <Sparkle className="h-4 w-4" />
+          <MessageSquareText size={18} strokeWidth={2} aria-hidden />
           Ask Coach AI
         </button>
       )}
@@ -232,26 +223,24 @@ export function CoachChat({
       {open && (
         <div className="fixed inset-0 z-[95]">
           <div
-            className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-navy-950/50 backdrop-blur-[2px]"
             onMouseDown={close}
           />
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Ask Coach AI"
-            className={`absolute right-0 top-0 flex h-full w-full flex-col border-l border-slate-800 bg-slate-900 shadow-2xl transition-transform duration-200 sm:w-[420px] ${
+            className={`absolute right-0 top-0 flex h-full w-full flex-col border-l border-slate-200 bg-white shadow-2xl transition-transform duration-200 sm:w-[420px] ${
               shown ? "translate-x-0" : "translate-x-full"
             }`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <div className="flex items-center gap-2">
-                <Sparkle className="h-4 w-4 text-gold-300" />
-                <span className="text-sm font-bold text-slate-100">Coach AI</span>
+                <MessageSquareText size={18} strokeWidth={2} className="text-navy-700" aria-hidden />
+                <span className="font-display text-lg font-bold text-slate-900">Ask Coach AI</span>
                 {remaining !== null && (
-                  <span className="text-[11px] text-slate-500">
-                    {remaining} left today
-                  </span>
+                  <span className="chip">{remaining} left today</span>
                 )}
               </div>
               <div className="flex items-center gap-1">
@@ -259,7 +248,7 @@ export function CoachChat({
                   <button
                     type="button"
                     onClick={() => setMessages([])}
-                    className="rounded-md px-2 py-1 text-xs text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                    className="rounded-md px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                   >
                     Clear chat
                   </button>
@@ -268,11 +257,9 @@ export function CoachChat({
                   type="button"
                   onClick={close}
                   aria-label="Close chat"
-                  className="rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                    <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                  </svg>
+                  <X size={18} strokeWidth={2} aria-hidden />
                 </button>
               </div>
             </div>
@@ -280,17 +267,19 @@ export function CoachChat({
             {!canChat ? (
               /* Upgrade prompt for free plan */
               <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-                <Sparkle className="h-8 w-8 text-gold-300/60" />
-                <div className="text-sm font-bold text-slate-100">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-navy-50 text-navy-700">
+                  <Lock size={22} strokeWidth={2} aria-hidden />
+                </span>
+                <div className="font-display text-xl font-bold text-slate-900">
                   Ask Coach AI is a Coach Pro feature
                 </div>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-600">
                   {upgradeText ??
                     "Chat with an AI assistant that knows your team's stats - lineups, matchups, practice plans. Coach Pro and up."}
                 </p>
                 <Link
                   href="/settings/billing"
-                  className="mt-1 rounded-lg bg-gold-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-gold-300"
+                  className="btn-primary mt-1"
                 >
                   Upgrade to Coach Pro
                 </Link>
@@ -299,7 +288,7 @@ export function CoachChat({
               <>
                 {/* Messages */}
                 <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-                  <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-slate-800 px-3.5 py-2.5 text-sm text-slate-200">
+                  <div className="max-w-[85%] rounded-lg rounded-tl-sm border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800">
                     {greeting}
                   </div>
                   {messages.length === 0 && (
@@ -309,7 +298,7 @@ export function CoachChat({
                           key={s}
                           type="button"
                           onClick={() => send(s)}
-                          className="rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-300 hover:border-gold-400/40 hover:text-gold-200"
+                          className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-navy-400 hover:text-navy-800"
                         >
                           {s}
                         </button>
@@ -320,17 +309,17 @@ export function CoachChat({
                     m.role === "user" ? (
                       <div
                         key={i}
-                        className="ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-gold-400 px-3.5 py-2.5 text-sm font-medium text-slate-950"
+                        className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm bg-navy-900 px-3.5 py-2.5 text-sm font-medium text-white"
                       >
                         <div className="whitespace-pre-wrap break-words">{m.content}</div>
                       </div>
                     ) : (
                       <div
                         key={i}
-                        className={`max-w-[85%] rounded-2xl rounded-tl-md px-3.5 py-2.5 text-sm ${
+                        className={`max-w-[85%] rounded-lg rounded-tl-sm border px-3.5 py-2.5 text-sm ${
                           m.error
-                            ? "border border-amber-400/30 bg-amber-400/10 text-amber-200"
-                            : "bg-slate-800 text-slate-200"
+                            ? "border-amber-300 bg-amber-50 text-amber-800"
+                            : "border-slate-200 bg-slate-50 text-slate-800"
                         }`}
                       >
                         <MessageBody content={m.content} />
@@ -338,7 +327,7 @@ export function CoachChat({
                     ),
                   )}
                   {busy && (
-                    <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-slate-800 px-3.5 py-2.5">
+                    <div className="max-w-[85%] rounded-lg rounded-tl-sm border border-slate-200 bg-slate-50 px-3.5 py-2.5">
                       <TypingDots />
                     </div>
                   )}
@@ -346,7 +335,7 @@ export function CoachChat({
 
                 {/* Input */}
                 <form
-                  className="flex items-end gap-2 border-t border-slate-800 p-3"
+                  className="flex items-end gap-2 border-t border-slate-200 p-3"
                   onSubmit={(e) => {
                     e.preventDefault();
                     send(input);
@@ -365,17 +354,15 @@ export function CoachChat({
                     rows={1}
                     maxLength={2000}
                     placeholder="Ask about your team..."
-                    className="max-h-28 flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-gold-400/60 focus:outline-none"
+                    className="input max-h-28 flex-1 resize-none py-2.5"
                   />
                   <button
                     type="submit"
                     disabled={busy || input.trim().length === 0}
                     aria-label="Send"
-                    className="rounded-xl bg-gold-400 p-2.5 text-slate-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="btn-primary h-[42px] w-[42px] p-0"
                   >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                      <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" />
-                    </svg>
+                    <Send size={18} strokeWidth={2} aria-hidden />
                   </button>
                 </form>
               </>

@@ -2,7 +2,18 @@ import { POSITION_GROUP_MAP } from "@/engine/bank-account";
 import { fmtNum, fmtPct } from "@/engine/derived-stats";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
-import { REPORT_CARD_BG, REPORT_MUTED, type ReportCardData } from "./types";
+import {
+  REPORT_BG,
+  REPORT_BODY,
+  REPORT_BORDER,
+  REPORT_FONT_DISPLAY,
+  REPORT_GREEN,
+  REPORT_MUTED,
+  REPORT_NAVY,
+  REPORT_ORANGE_DEEP,
+  REPORT_RED,
+  type ReportCardData,
+} from "./types";
 
 interface Row {
   label: string;
@@ -134,6 +145,12 @@ function sectionsFor(data: ReportCardData): Section[] {
   );
 }
 
+function valueColor(emphasis: Row["emphasis"]) {
+  if (emphasis === "good") return REPORT_GREEN;
+  if (emphasis === "bad") return REPORT_RED;
+  return REPORT_NAVY;
+}
+
 export function YourNumbers({ data }: { data: ReportCardData }) {
   const sections = sectionsFor(data);
   return (
@@ -160,25 +177,26 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
           <div
             key={section.title}
             style={{
-              background: REPORT_CARD_BG,
-              border: "1px solid #1b2742",
-              borderRadius: "16px",
+              background: REPORT_BG,
+              border: `1px solid ${REPORT_BORDER}`,
+              borderRadius: "12px",
               padding: "20px 22px",
             }}
           >
             <div
               style={{
-                fontSize: "14px",
-                color: REPORT_MUTED,
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "17px",
+                color: REPORT_ORANGE_DEEP,
                 textTransform: "uppercase",
-                letterSpacing: "0.08em",
+                letterSpacing: "0.12em",
                 fontWeight: 700,
-                marginBottom: "12px",
+                marginBottom: "6px",
               }}
             >
               {section.title}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ display: "flex", flexDirection: "column" }}>
               {section.rows.map((row, i) => (
                 <div
                   key={i}
@@ -187,9 +205,14 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
                     justifyContent: "space-between",
                     alignItems: "baseline",
                     gap: "12px",
+                    padding: "9px 0",
+                    borderBottom:
+                      i < section.rows.length - 1
+                        ? `1px solid ${REPORT_BORDER}`
+                        : "none",
                   }}
                 >
-                  <span style={{ fontSize: "17px", color: "#b6c0d1" }}>
+                  <span style={{ fontSize: "17px", color: REPORT_BODY }}>
                     {row.label}
                   </span>
                   <span
@@ -201,21 +224,17 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
                   >
                     <span
                       style={{
-                        fontFamily: '"JetBrains Mono", monospace',
-                        fontSize: "26px",
+                        fontFamily: REPORT_FONT_DISPLAY,
+                        fontSize: "30px",
                         fontWeight: 700,
-                        color:
-                          row.emphasis === "good"
-                            ? "#34d399"
-                            : row.emphasis === "bad"
-                              ? "#f87171"
-                              : "#f4f3ed",
+                        lineHeight: 1,
+                        color: valueColor(row.emphasis),
                       }}
                     >
                       {row.total}
                     </span>
                     {row.perMatch && (
-                      <span style={{ fontSize: "14px", color: "#5d6d8f" }}>
+                      <span style={{ fontSize: "14px", color: REPORT_MUTED }}>
                         {row.perMatch}
                       </span>
                     )}

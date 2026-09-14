@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 export interface Crumb {
   label: string;
@@ -7,22 +8,24 @@ export interface Crumb {
 
 export function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
-    <nav className="flex flex-wrap items-center gap-1.5 text-sm text-slate-400">
+    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-slate-500">
       {items.map((item, i) => {
         const isLast = i === items.length - 1;
         return (
-          <span key={i} className="flex items-center gap-1.5">
+          <span key={i} className="flex items-center gap-1">
             {item.href && !isLast ? (
               <Link
                 href={item.href}
-                className="transition-colors hover:text-volt-400"
+                className="transition-colors hover:text-orange-700"
               >
                 {item.label}
               </Link>
             ) : (
-              <span className={isLast ? "text-slate-200" : ""}>{item.label}</span>
+              <span className={isLast ? "font-medium text-slate-800" : ""}>{item.label}</span>
             )}
-            {!isLast && <span className="text-slate-600">/</span>}
+            {!isLast && (
+              <ChevronRight size={14} strokeWidth={2} className="text-slate-400" aria-hidden />
+            )}
           </span>
         );
       })}

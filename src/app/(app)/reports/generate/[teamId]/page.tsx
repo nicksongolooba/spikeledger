@@ -137,21 +137,22 @@ export default async function GeneratePage({
         items={[
           { label: "Dashboard", href: "/dashboard" },
           { label: team.name, href: `/team/${team.id}` },
-          { label: "Generate report cards" },
+          { label: "Report cards" },
         ]}
       />
 
       <header className="mt-4">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Generate report cards
+        <div className="eyebrow">{team.name}</div>
+        <h1 className="mt-1 font-display text-3xl font-bold leading-none tracking-tight text-slate-900 sm:text-4xl">
+          Report cards
         </h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Six images per player. WhatsApp-ready (1080×1350). Download
-          individually, as a ZIP, or as a single PDF.
+        <p className="mt-3 max-w-xl text-slate-600">
+          Six images per player, sized for WhatsApp (1080 x 1350). Download
+          them one at a time, as a ZIP, or as a single PDF.
         </p>
       </header>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <GenerateClient
           teamName={team.name}
           scopeOptions={scopeOptions}

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AlertTriangle, Plus } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 
 export function AddMatchButton({
@@ -53,10 +54,8 @@ export function AddMatchButton({
         onClick={() => setOpen(true)}
         className={variant === "prominent" ? "btn-primary px-5 py-2.5" : "btn-primary"}
       >
-        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-          <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-        </svg>
-        Add Match
+        <Plus size={18} strokeWidth={2} aria-hidden />
+        Add match
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title="Add match">
         <form onSubmit={onSubmit} className="space-y-4">
@@ -84,13 +83,19 @@ export function AddMatchButton({
               className="input stat-number"
             />
             <p className="mt-1.5 text-xs text-slate-500">
-              Sets and result can be entered after the match in Phase 2 stat entry.
+              Sets and the result get filled in during stat entry.
             </p>
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-300">
-              {error}
+            <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <AlertTriangle
+                size={16}
+                strokeWidth={2}
+                className="mt-0.5 shrink-0"
+                aria-hidden
+              />
+              <span>{error}</span>
             </div>
           )}
 

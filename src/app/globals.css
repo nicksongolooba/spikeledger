@@ -2,68 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
-
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html,
   body {
-    background-color: #0c1220; /* deep navy ink */
-    color: #f4f3ed; /* warm white */
+    background-color: #f4f6f9; /* paper */
+    color: #0f172a; /* slate-900 */
     min-height: 100%;
   }
 
   body {
-    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background: rgba(203, 240, 60, 0.3);
+    background: rgba(228, 82, 11, 0.18);
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-slate-800 bg-slate-900;
+    @apply rounded-lg border border-slate-200 bg-white shadow-card;
   }
 
   .card-hover {
-    @apply transition-colors hover:border-slate-700 hover:bg-slate-800/60;
+    @apply transition-all duration-150 hover:-translate-y-px hover:border-slate-300 hover:shadow-lift;
   }
 
   .input {
-    @apply w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-volt-400 focus:ring-1 focus:ring-volt-400/40;
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-navy-600 focus:ring-2 focus:ring-navy-600/15;
   }
 
   .label {
-    @apply mb-1.5 block text-sm font-medium text-slate-300;
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
-    @apply btn bg-volt-400 text-volt-950 shadow-[0_0_18px_rgba(203,240,60,0.18)] hover:bg-volt-300;
+    @apply btn bg-orange-500 text-white hover:bg-orange-600;
   }
 
   .btn-secondary {
-    @apply btn border border-slate-700 bg-slate-900 text-slate-100 hover:border-slate-600 hover:bg-slate-800;
+    @apply btn border border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-50;
+  }
+
+  .btn-navy {
+    @apply btn bg-navy-900 text-white hover:bg-navy-800;
   }
 
   .btn-ghost {
-    @apply btn text-slate-300 hover:bg-slate-800/60 hover:text-slate-100;
+    @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900;
   }
 
   .btn-danger {
-    @apply btn border border-red-400/40 bg-red-400/10 text-red-300 hover:bg-red-400/20;
+    @apply btn border border-red-200 bg-red-50 text-red-700 hover:bg-red-100;
   }
 
+  /* Scoreboard numbers: condensed display face, lining tabular figures. */
   .stat-number {
-    @apply font-mono tabular-nums;
+    @apply font-display tabular-nums;
+  }
+
+  /* Small-caps section label in the accent color. */
+  .eyebrow {
+    @apply font-display text-xs font-bold uppercase tracking-[0.16em] text-orange-700;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700;
   }
 }

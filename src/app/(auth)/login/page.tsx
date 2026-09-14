@@ -16,12 +16,12 @@ export default function LoginPage() {
 function LoginSkeleton() {
   return (
     <div className="card p-7">
-      <div className="h-7 w-40 animate-pulse-soft rounded bg-slate-800" />
-      <div className="mt-2 h-4 w-64 animate-pulse-soft rounded bg-slate-800" />
+      <div className="h-7 w-40 animate-pulse-soft rounded bg-slate-100" />
+      <div className="mt-2 h-4 w-64 animate-pulse-soft rounded bg-slate-100" />
       <div className="mt-6 space-y-4">
-        <div className="h-10 animate-pulse-soft rounded bg-slate-800" />
-        <div className="h-10 animate-pulse-soft rounded bg-slate-800" />
-        <div className="h-10 animate-pulse-soft rounded bg-slate-800" />
+        <div className="h-10 animate-pulse-soft rounded bg-slate-100" />
+        <div className="h-10 animate-pulse-soft rounded bg-slate-100" />
+        <div className="h-10 animate-pulse-soft rounded bg-slate-100" />
       </div>
     </div>
   );
@@ -58,8 +58,8 @@ function LoginForm() {
 
   return (
     <div className="card p-7">
-      <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-      <p className="mt-1 text-sm text-slate-400">Log in to your SpikeLedger account.</p>
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">Welcome back</h1>
+      <p className="mt-1 text-sm text-slate-600">Log in to your SpikeLedger account.</p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
@@ -90,7 +90,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+          <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -103,16 +103,16 @@ function LoginForm() {
           <button
             type="button"
             onClick={() => setShowReset((v) => !v)}
-            className="text-xs text-slate-400 underline-offset-2 hover:text-slate-200 hover:underline"
+            className="text-xs text-slate-600 underline-offset-2 hover:text-slate-800 hover:underline"
           >
             Forgot password?
           </button>
           {showReset && (
-            <p className="mt-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
+            <p className="mt-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700">
               Email{" "}
               <a
                 href="mailto:support@spikeledger.com"
-                className="font-semibold text-volt-300 hover:text-volt-200"
+                className="font-semibold text-orange-700 hover:text-orange-800"
               >
                 support@spikeledger.com
               </a>{" "}
@@ -122,9 +122,9 @@ function LoginForm() {
         </div>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-400">
+      <p className="mt-6 text-center text-sm text-slate-600">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-medium text-volt-300 hover:text-volt-200">
+        <Link href="/register" className="font-medium text-orange-700 hover:text-orange-800">
           Create one
         </Link>
       </p>

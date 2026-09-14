@@ -573,12 +573,14 @@ export function MatchEntry({
 
       <header className="mt-3 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+          <div className="eyebrow">{tournament.name}</div>
+          <h1 className="mt-0.5 font-display text-3xl font-bold leading-none tracking-tight text-slate-900 sm:text-4xl">
             vs {match.opponent}
           </h1>
-          <div className="text-xs text-slate-500">
-            Stats auto-save · Last save{" "}
-            {queueSize > 0 ? `(${queueSize} pending)` : "✓"}
+          <div className="mt-1.5 text-xs text-slate-500">
+            {queueSize > 0
+              ? `Stats auto-save · ${queueSize} pending sync`
+              : "Stats auto-save · all synced"}
           </div>
         </div>
         <button

@@ -3,9 +3,15 @@ import { fmtNum, fmtPct, fmtSigned } from "@/engine/derived-stats";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
 import {
+  REPORT_BG,
+  REPORT_BODY,
+  REPORT_BORDER,
   REPORT_CARD_BG,
-  REPORT_DIM,
+  REPORT_FONT_DISPLAY,
   REPORT_MUTED,
+  REPORT_NAVY,
+  REPORT_ORANGE_DEEP,
+  REPORT_TEXT,
   type ReportCardData,
 } from "./types";
 
@@ -68,137 +74,129 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
         secondaryPosition={data.player.secondaryPosition}
       />
 
-      {/* Bank Account hero */}
+      {/* Bank Account hero - the rating color carries the top rule, the big number and the pill */}
       <div
         style={{
-          marginTop: "44px",
-          borderRadius: "24px",
-          background: REPORT_CARD_BG,
-          border: `2px solid ${ba.ratingColor}55`,
-          padding: "32px 36px",
-          position: "relative",
-          overflow: "hidden",
+          marginTop: "40px",
+          borderRadius: "12px",
+          background: REPORT_BG,
+          border: `1px solid ${REPORT_BORDER}`,
+          borderTop: `8px solid ${ba.ratingColor}`,
+          padding: "28px 36px 30px",
         }}
       >
         <div
           style={{
-            position: "absolute",
-            inset: 0,
-            background: `linear-gradient(135deg, ${ba.ratingColor}1f 0%, transparent 50%)`,
+            fontFamily: REPORT_FONT_DISPLAY,
+            fontSize: "16px",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: REPORT_ORANGE_DEEP,
+            fontWeight: 700,
           }}
-        />
-        <div style={{ position: "relative" }}>
-          <div
+        >
+          Bank Account
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: "24px",
+            marginTop: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <span
             style={{
-              fontSize: "16px",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: REPORT_MUTED,
-              fontWeight: 600,
+              fontFamily: REPORT_FONT_DISPLAY,
+              fontSize: "136px",
+              fontWeight: 800,
+              color: ba.ratingColor,
+              lineHeight: 0.95,
+              letterSpacing: "-0.01em",
             }}
           >
-            Bank Account
+            {fmtSigned(ba.balance)}
+          </span>
+          <div>
+            <span
+              style={{
+                display: "inline-block",
+                padding: "6px 14px",
+                borderRadius: "6px",
+                background: ba.ratingColor,
+                color: "#ffffff",
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "24px",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                lineHeight: 1.1,
+              }}
+            >
+              {ba.rating}
+            </span>
+            <div
+              style={{
+                marginTop: "10px",
+                fontSize: "22px",
+                fontWeight: 600,
+                color: REPORT_TEXT,
+              }}
+            >
+              {ba.ratingLabel}
+            </div>
           </div>
+        </div>
+        <div
+          style={{
+            marginTop: "10px",
+            fontSize: "16px",
+            color: REPORT_MUTED,
+          }}
+        >
+          {ba.deposits} deposits · {ba.withdrawals} withdrawals ·{" "}
+          {(ba.ratio * 100).toFixed(0)}% ratio
+        </div>
+        {data.aiSummary && (
           <div
             style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: "20px",
-              marginTop: "10px",
-              flexWrap: "wrap",
+              marginTop: "18px",
+              paddingTop: "18px",
+              borderTop: `1px solid ${REPORT_BORDER}`,
+              fontSize: "18px",
+              lineHeight: 1.45,
+              color: REPORT_BODY,
             }}
           >
             <span
               style={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontSize: "120px",
-                fontWeight: 800,
-                color: ba.ratingColor,
-                lineHeight: 1,
+                display: "inline-block",
+                marginRight: "10px",
+                padding: "3px 10px",
+                background: REPORT_NAVY,
+                borderRadius: "999px",
+                color: "#ffffff",
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "13px",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                lineHeight: 1.2,
+                verticalAlign: "middle",
               }}
             >
-              {fmtSigned(ba.balance)}
+              AI summary
             </span>
-            <div>
-              <span
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "10px",
-                  background: `${ba.ratingColor}1f`,
-                  border: `1px solid ${ba.ratingColor}66`,
-                  color: ba.ratingColor,
-                  fontSize: "22px",
-                  fontWeight: 700,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {ba.rating}
-              </span>
-              <div
-                style={{
-                  marginTop: "8px",
-                  fontSize: "22px",
-                  fontWeight: 600,
-                  color: "#dbe0e8",
-                }}
-              >
-                {ba.ratingLabel}
-              </div>
-            </div>
+            {data.aiSummary}
           </div>
-          <div
-            style={{
-              marginTop: "8px",
-              fontSize: "16px",
-              color: REPORT_DIM,
-            }}
-          >
-            {ba.deposits} deposits · {ba.withdrawals} withdrawals ·{" "}
-            {(ba.ratio * 100).toFixed(0)}% ratio
-          </div>
-          {data.aiSummary && (
-            <div
-              style={{
-                marginTop: "16px",
-                paddingTop: "16px",
-                borderTop: "1px solid #1b2742",
-                fontSize: "18px",
-                lineHeight: 1.4,
-                color: "#dbe0e8",
-                fontStyle: "italic",
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  marginRight: "8px",
-                  padding: "2px 8px",
-                  background: "rgba(167, 139, 250, 0.15)",
-                  border: "1px solid rgba(167, 139, 250, 0.35)",
-                  borderRadius: "6px",
-                  color: "#c4b5fd",
-                  fontSize: "11px",
-                  fontStyle: "normal",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  verticalAlign: "middle",
-                }}
-              >
-                ✨ AI Coach
-              </span>
-              {data.aiSummary}
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Stat callouts */}
       <div
         style={{
-          marginTop: "36px",
+          marginTop: "32px",
           display: "grid",
           gridTemplateColumns: "repeat(5, 1fr)",
           gap: "14px",
@@ -209,31 +207,32 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
             key={c.label}
             style={{
               background: REPORT_CARD_BG,
-              border: "1px solid #1b2742",
-              borderRadius: "16px",
-              padding: "18px 14px",
+              border: `1px solid ${REPORT_BORDER}`,
+              borderRadius: "12px",
+              padding: "20px 12px",
               textAlign: "center",
             }}
           >
             <div
               style={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontSize: "40px",
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "52px",
                 fontWeight: 700,
-                color: "#cbf03c",
-                lineHeight: 1.1,
+                color: REPORT_NAVY,
+                lineHeight: 1,
               }}
             >
               {c.value}
             </div>
             <div
               style={{
-                marginTop: "8px",
-                fontSize: "13px",
+                marginTop: "10px",
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "15px",
                 color: REPORT_MUTED,
                 textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                fontWeight: 600,
+                letterSpacing: "0.1em",
+                fontWeight: 700,
               }}
             >
               {c.label}
@@ -246,8 +245,8 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
       <div
         style={{
           marginTop: "auto",
-          paddingTop: "32px",
-          borderTop: "1px solid #1b2742",
+          paddingTop: "24px",
+          borderTop: `1px solid ${REPORT_BORDER}`,
           display: "flex",
           justifyContent: "space-between",
           fontSize: "16px",

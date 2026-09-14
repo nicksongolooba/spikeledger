@@ -8,17 +8,17 @@ export const metadata: Metadata = {
 const UPDATED = "June 11, 2026";
 
 function H2({ children }: { children: React.ReactNode }) {
-  return <h2 className="mt-10 text-lg font-bold text-slate-100">{children}</h2>;
+  return <h2 className="font-display text-2xl font-bold tracking-tight mt-10 text-slate-900">{children}</h2>;
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="mt-3 text-sm leading-relaxed text-slate-300">{children}</p>;
+  return <p className="mt-3 text-sm leading-relaxed text-slate-700">{children}</p>;
 }
 
 export default function TermsPage() {
   return (
     <article>
-      <h1 className="text-3xl font-bold tracking-tight">Terms of Service</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">Terms of Service</h1>
       <p className="mt-2 text-sm text-slate-500">Last updated: {UPDATED}</p>
 
       <P>
@@ -65,7 +65,7 @@ export default function TermsPage() {
         rights needed to operate the service (storing, processing, and
         displaying the data, including AI-generated insights you request).
         Our handling of personal information is described in the{" "}
-        <a className="text-volt-300 hover:text-volt-200" href="/privacy">
+        <a className="text-orange-700 hover:text-orange-800" href="/privacy">
           Privacy Policy
         </a>
         .
@@ -108,7 +108,7 @@ export default function TermsPage() {
       <H2>Contact</H2>
       <P>
         Questions about these terms:{" "}
-        <a className="text-volt-300 hover:text-volt-200" href="mailto:support@spikeledger.com">
+        <a className="text-orange-700 hover:text-orange-800" href="mailto:support@spikeledger.com">
           support@spikeledger.com
         </a>
         .

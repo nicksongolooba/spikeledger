@@ -69,7 +69,7 @@ npm run dev                               # http://localhost:3000
 
 If `STRIPE_SECRET_KEY` is missing, billing routes return `503` and the UI hides the upgrade buttons gracefully.
 
-If `ANTHROPIC_API_KEY` is not set, AI insight calls silently fall back to the rule-based engine (coaches see a "Standard" badge instead of "✨ AI"), and the coach chat returns a graceful "unavailable" message.
+If `ANTHROPIC_API_KEY` is not set, AI insight calls silently fall back to the rule-based engine (coaches see a "Standard" badge instead of "AI"), and the coach chat returns a graceful "unavailable" message.
 
 ---
 

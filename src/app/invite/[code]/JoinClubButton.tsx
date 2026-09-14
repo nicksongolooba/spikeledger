@@ -38,7 +38,7 @@ export function JoinClubButton({ code }: { code: string }) {
       >
         {busy ? "Joining…" : "Join club"}
       </button>
-      {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
     </div>
   );
 }

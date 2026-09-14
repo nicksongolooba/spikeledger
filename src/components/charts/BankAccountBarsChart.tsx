@@ -14,6 +14,7 @@ import type { Position } from "@prisma/client";
 import { POSITION_GROUP_MAP, type PositionGroup } from "@/engine/bank-account";
 import { POSITION_LABELS } from "@/lib/positions";
 import { fmtSigned } from "@/engine/derived-stats";
+import { AXIS_LINE, AXIS_TICK, CHART } from "./chartTheme";
 
 export interface BankAccountBarDatum {
   name: string;          // display name (e.g. "Maya #7")
@@ -40,12 +41,12 @@ function ChartTooltip({ active, payload }: {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs shadow-lg">
-      <div className="font-semibold text-slate-100">{d.name}</div>
-      <div className="text-slate-400">
+    <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-lift">
+      <div className="font-semibold text-slate-900">{d.name}</div>
+      <div className="text-slate-600">
         {POSITION_LABELS[d.position]} · {d.ratingLabel}
       </div>
-      <div className="mt-1 font-mono">
+      <div className="stat-number mt-1 text-sm font-bold">
         Balance: <span style={{ color: d.ratingColor }}>{fmtSigned(d.balance)}</span>
         {"  "}
         Ratio: {(d.ratio * 100).toFixed(0)}%
@@ -93,7 +94,7 @@ export default function BankAccountBars({
         );
         return (
           <div key={g} className="card p-4">
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
               {GROUP_TITLES[g]}
             </h3>
             <div style={{ width: "100%", height: height ?? chartHeight }}>
@@ -103,28 +104,26 @@ export default function BankAccountBars({
                   layout="vertical"
                   margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
                 >
-                  <CartesianGrid stroke="#1b2742" horizontal={false} />
+                  <CartesianGrid stroke={CHART.grid} horizontal={false} />
                   <XAxis
                     type="number"
-                    stroke="#8a97ad"
-                    fontSize={11}
+                    tick={AXIS_TICK}
                     tickLine={false}
-                    axisLine={{ stroke: "#2a3a5e" }}
+                    axisLine={AXIS_LINE}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    stroke="#b6c0d1"
-                    fontSize={12}
+                    tick={{ fill: CHART.ink, fontSize: 12 }}
                     tickLine={false}
                     axisLine={false}
                     width={108}
                   />
                   <Tooltip
-                    cursor={{ fill: "#1b274240" }}
+                    cursor={{ fill: CHART.cursor }}
                     content={<ChartTooltip />}
                   />
-                  <Bar dataKey="balance" radius={[0, 6, 6, 0]}>
+                  <Bar dataKey="balance" radius={[0, 4, 4, 0]}>
                     {players.map((p, i) => (
                       <Cell key={i} fill={p.ratingColor} />
                     ))}

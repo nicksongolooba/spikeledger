@@ -1,11 +1,20 @@
 import Link from "next/link";
+import {
+  ArrowRight,
+  FileImage,
+  Lock,
+  MapPin,
+  Plus,
+  Upload,
+  Users,
+} from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { getTeamForCoach } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate, pluralize } from "@/lib/utils";
 import { BankAccountBars } from "@/components/charts/BankAccountBars";
 import { NetProductionSparkline } from "@/components/charts/NetProductionSparkline";
 import {
@@ -86,25 +95,35 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
   const losses = matches.filter((m) => m.result === "LOSS").length;
   const hasData = statLines.length > 0;
 
+  const latestNet =
+    netPoints.length > 0 ? netPoints[netPoints.length - 1].net : null;
+  const eyebrow =
+    [team.ageGroup, team.season].filter(Boolean).join(" · ") || "Team";
+  const recentTournaments = [...tournaments].sort(
+    (a, b) => b.startDate.getTime() - a.startDate.getTime(),
+  );
+
   return (
     <div>
       <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: team.name }]} />
 
-      <header className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <header className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
-          <div className="mt-1.5 flex flex-wrap gap-2 text-sm text-slate-400">
-            {team.ageGroup && (
-              <span className="rounded-md bg-slate-800 px-2 py-0.5 text-slate-300">
-                {team.ageGroup}
-              </span>
-            )}
-            {team.season && <span>{team.season}</span>}
-          </div>
+          <div className="eyebrow">{eyebrow}</div>
+          <h1 className="mt-1 font-display text-3xl font-bold leading-none tracking-tight text-slate-900 sm:text-4xl">
+            {team.name}
+          </h1>
+          {!canManage && (
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600">
+              <Lock size={12} strokeWidth={2} aria-hidden />
+              Shared club team - view only
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {canManage && (
             <Link href={`/team/${team.id}/import`} className="btn-secondary">
+              <Upload size={16} strokeWidth={2} aria-hidden />
               Import stats
             </Link>
           )}
@@ -113,188 +132,248 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
               href={`/reports/generate/${team.id}`}
               className="btn-secondary"
             >
+              <FileImage size={16} strokeWidth={2} aria-hidden />
               Season reports
             </Link>
           )}
           {canManage && (
             <Link href={`/team/${team.id}/roster`} className="btn-secondary">
-              Manage Roster
+              <Users size={16} strokeWidth={2} aria-hidden />
+              Manage roster
             </Link>
           )}
-          {canManage ? (
+          {canManage && (
             <Link href={`/team/${team.id}/tournament/new`} className="btn-primary">
-              Add Tournament
+              <Plus size={18} strokeWidth={2} aria-hidden />
+              Add tournament
             </Link>
-          ) : (
-            <span className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-400">
-              Shared club team - view only
-            </span>
           )}
         </div>
       </header>
 
-      {/* Roster preview */}
-      <section className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Roster</h2>
-          <Link
-            href={`/team/${team.id}/roster`}
-            className="text-sm text-volt-300 hover:text-volt-200"
-          >
-            View all →
-          </Link>
-        </div>
-        {activePlayers.length === 0 ? (
-          <EmptyState
-            title="No players yet"
-            description="Add players so you can start tracking stats."
-            action={
-              <Link href={`/team/${team.id}/roster`} className="btn-primary">
-                Add players
-              </Link>
-            }
-          />
-        ) : (
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {activePlayers.map((p) => (
-              <Link
-                key={p.id}
-                href={`/reports/player/${p.id}`}
-                className="card card-hover flex items-center gap-3 p-3"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-800 stat-number text-sm font-bold">
-                  {p.number ?? "-"}
-                </div>
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-slate-100">
-                    {p.name}
-                  </div>
-                  <div className="mt-0.5 flex flex-wrap gap-1">
-                    <PositionBadge position={p.primaryPosition} size="xs" />
-                    {p.secondaryPosition && (
-                      <PositionBadge position={p.secondaryPosition} size="xs" />
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Quick Stats */}
+      {/* Season at a glance: four headline tiles, then the wide trend card */}
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold">Quick Stats</h2>
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+            Season at a glance
+          </h2>
+          {hasData && (
+            <span className="text-sm text-slate-500">
+              {totalMatchesPlayed} {pluralize(totalMatchesPlayed, "match", "matches")}{" "}
+              logged
+            </span>
+          )}
+        </div>
         {!hasData ? (
           <EmptyState
+            className="mt-4"
             title="Play your first tournament to see stats here"
-            description="Once matches are logged, totals, Bank Account, and trends appear here."
+            description="Once a match is logged, the record, kills per match, pass rating and Bank Account all show up here."
           />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile label="Record" value={`${wins}-${losses}`} accent="cyan" />
-            <StatTile label="Matches" value={totalMatchesPlayed.toString()} />
-            <StatTile
-              label="Avg Kills/Match"
-              value={
-                totalMatchesPlayed > 0
-                  ? fmtNum(totalKills / totalMatchesPlayed, 1)
-                  : "-"
-              }
-              accent="emerald"
-            />
-            <StatTile
-              label="Team SR Avg"
-              value={srAtt > 0 ? fmtNum(srAvg, 2) : "-"}
-              accent="cyan"
-            />
-            <div className="card p-4 sm:col-span-2 lg:col-span-4">
-              <div className="mb-1 flex items-center justify-between text-xs uppercase tracking-wide">
-                <span className="text-slate-500">Net production trend</span>
-                <span className="text-slate-400">
-                  {netPoints.length > 0
-                    ? `Latest: ${fmtSigned(netPoints[netPoints.length - 1].net)}`
-                    : "-"}
-                </span>
-              </div>
-              <NetProductionSparkline
-                data={netPoints.map((p) => ({ label: p.label, net: p.net }))}
+          <>
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <StatTile label="Record" value={`${wins}-${losses}`} featured />
+              <StatTile label="Matches" value={totalMatchesPlayed.toString()} />
+              <StatTile
+                label="Kills / match"
+                value={
+                  totalMatchesPlayed > 0
+                    ? fmtNum(totalKills / totalMatchesPlayed, 1)
+                    : "-"
+                }
+                accent="emerald"
+              />
+              <StatTile
+                label="Team SR avg"
+                value={srAtt > 0 ? fmtNum(srAvg, 2) : "-"}
+                accent="cyan"
               />
             </div>
-          </div>
+            <div className="card mt-4 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="eyebrow text-slate-500">
+                    Net production by tournament
+                  </div>
+                  <div className="mt-0.5 text-sm text-slate-600">
+                    One point per tournament, oldest to newest.
+                  </div>
+                </div>
+                {latestNet !== null && (
+                  <div className="text-right">
+                    <div className="eyebrow text-[10px] text-slate-500">Latest</div>
+                    <div
+                      className={cn(
+                        "stat-number text-2xl font-bold leading-none",
+                        latestNet >= 0 ? "text-emerald-700" : "text-red-700",
+                      )}
+                    >
+                      {fmtSigned(latestNet)}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="mt-4">
+                <NetProductionSparkline
+                  data={netPoints.map((p) => ({ label: p.label, net: p.net }))}
+                />
+              </div>
+            </div>
+          </>
         )}
       </section>
 
-      {/* Tournaments */}
-      <section className="mt-10">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Tournaments</h2>
-          <Link
-            href={`/team/${team.id}/tournament/new`}
-            className="text-sm text-volt-300 hover:text-volt-200"
-          >
-            + Add Tournament
-          </Link>
-        </div>
-        {tournaments.length === 0 ? (
-          <EmptyState
-            title="No tournaments yet"
-            description="Create a tournament to start logging matches."
-            action={
+      {/* Tournaments as a list, roster as a compact grid beside it */}
+      <section className="mt-10 grid gap-8 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+              Tournaments
+            </h2>
+            {tournaments.length > 0 && (
               <Link
                 href={`/team/${team.id}/tournament/new`}
-                className="btn-primary"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-800"
               >
+                <Plus size={14} strokeWidth={2} aria-hidden />
                 Add tournament
               </Link>
-            }
-          />
-        ) : (
-          <div className="card divide-y divide-slate-800">
-            {[...tournaments]
-              .sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
-              .map((t) => {
+            )}
+          </div>
+          {tournaments.length === 0 ? (
+            <EmptyState
+              className="mt-4"
+              title="No tournaments yet"
+              description="Create a tournament to start logging matches."
+              action={
+                <Link
+                  href={`/team/${team.id}/tournament/new`}
+                  className="btn-primary"
+                >
+                  <Plus size={18} strokeWidth={2} aria-hidden />
+                  Add tournament
+                </Link>
+              }
+            />
+          ) : (
+            <div className="card mt-4 divide-y divide-slate-100 overflow-hidden">
+              {recentTournaments.map((t) => {
                 const w = t.matches.filter((m) => m.result === "WIN").length;
                 const l = t.matches.filter((m) => m.result === "LOSS").length;
                 return (
                   <Link
                     key={t.id}
                     href={`/team/${team.id}/tournament/${t.id}`}
-                    className="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-slate-800/40"
+                    className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50"
                   >
-                    <div className="min-w-0">
-                      <div className="font-medium text-slate-100">{t.name}</div>
-                      <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500">
-                        <span>{formatDate(t.startDate)}</span>
+                    <DateBlock date={t.startDate} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-semibold text-slate-900 transition-colors group-hover:text-orange-700">
+                        {t.name}
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
                         <span>
                           {t._count.matches}{" "}
-                          {t._count.matches === 1 ? "match" : "matches"}
+                          {pluralize(t._count.matches, "match", "matches")}
                         </span>
-                        {t.location && <span>{t.location}</span>}
+                        {t.location && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin size={12} strokeWidth={2} aria-hidden />
+                            {t.location}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className="stat-number text-sm font-bold text-slate-200">
+                      <div className="stat-number text-xl font-bold leading-none text-slate-900">
                         {w}-{l}
                       </div>
-                      <div className="text-xs text-slate-500">record</div>
+                      <div className="eyebrow mt-1 text-[10px] text-slate-500">
+                        Record
+                      </div>
                     </div>
+                    <ArrowRight
+                      size={16}
+                      strokeWidth={2}
+                      className="shrink-0 text-slate-300 transition-colors group-hover:text-orange-600"
+                      aria-hidden
+                    />
                   </Link>
                 );
               })}
+            </div>
+          )}
+        </div>
+
+        <div className="lg:col-span-5">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+              Roster
+            </h2>
+            <Link
+              href={`/team/${team.id}/roster`}
+              className="inline-flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-800"
+            >
+              View all
+              <ArrowRight size={14} strokeWidth={2} aria-hidden />
+            </Link>
           </div>
-        )}
+          {activePlayers.length === 0 ? (
+            <EmptyState
+              className="mt-4"
+              title="No players yet"
+              description="Add players so you can start tracking stats."
+              action={
+                <Link href={`/team/${team.id}/roster`} className="btn-primary">
+                  <Plus size={18} strokeWidth={2} aria-hidden />
+                  Add players
+                </Link>
+              }
+            />
+          ) : (
+            <ul className="mt-4 grid grid-cols-2 gap-2.5">
+              {activePlayers.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/reports/player/${p.id}`}
+                    className="card card-hover flex items-center gap-3 p-3"
+                  >
+                    <span className="stat-number flex h-10 w-10 shrink-0 items-center justify-center rounded bg-navy-900 text-base font-bold text-white">
+                      {p.number ?? "-"}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-slate-900">
+                        {p.name}
+                      </span>
+                      <span className="mt-0.5 flex flex-wrap gap-1">
+                        <PositionBadge position={p.primaryPosition} size="xs" />
+                        {p.secondaryPosition && (
+                          <PositionBadge position={p.secondaryPosition} size="xs" />
+                        )}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
 
       {/* Season Bank Account chart */}
       {bankAccountBars.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-1 text-lg font-semibold">Season Bank Account</h2>
-          <p className="mb-3 text-sm text-slate-400">
-            Cumulative deposits vs withdrawals, grouped by position so the
-            comparison stays fair.
+          <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+            Season Bank Account
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-slate-600">
+            Deposits against withdrawals for the whole season, grouped by
+            position so a libero is never lined up next to a hitter.
           </p>
-          <BankAccountBars data={bankAccountBars.map((p) => p.bar)} />
+          <div className="mt-4">
+            <BankAccountBars data={bankAccountBars.map((p) => p.bar)} />
+          </div>
         </section>
       )}
 
@@ -320,27 +399,62 @@ function StatTile({
   label,
   value,
   accent,
+  featured,
 }: {
   label: string;
   value: string;
   accent?: "emerald" | "red" | "cyan" | "violet";
+  featured?: boolean;
 }) {
+  if (featured) {
+    return (
+      <div className="rounded-lg bg-navy-900 p-5 text-white shadow-card">
+        <div className="eyebrow text-orange-300">{label}</div>
+        <div className="stat-number mt-2 text-4xl font-bold leading-none">
+          {value}
+        </div>
+      </div>
+    );
+  }
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-300"
+      ? "text-emerald-700"
       : accent === "red"
-        ? "text-red-300"
+        ? "text-red-700"
         : accent === "cyan"
-          ? "text-volt-300"
+          ? "text-navy-700"
           : accent === "violet"
-            ? "text-violet-300"
-            : "text-slate-100";
+            ? "text-orange-700"
+            : "text-slate-900";
   return (
-    <div className="card p-4">
-      <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-      <div className={`stat-number mt-1 text-2xl font-bold ${accentClass}`}>
+    <div className="card p-5">
+      <div className="eyebrow text-slate-500">{label}</div>
+      <div
+        className={cn(
+          "stat-number mt-2 text-4xl font-bold leading-none",
+          accentClass,
+        )}
+      >
         {value}
       </div>
+    </div>
+  );
+}
+
+// Calendar-style date block for list rows: short month over the day number.
+function DateBlock({ date }: { date: Date }) {
+  const month = date.toLocaleDateString(undefined, { month: "short" });
+  return (
+    <div
+      title={formatDate(date)}
+      className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded bg-slate-100 text-slate-900"
+    >
+      <span className="font-display text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        {month}
+      </span>
+      <span className="stat-number text-xl font-bold leading-none">
+        {date.getDate()}
+      </span>
     </div>
   );
 }

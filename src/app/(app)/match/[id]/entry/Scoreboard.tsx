@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ScoreboardProps {
@@ -109,19 +110,19 @@ export function Scoreboard({
   }
 
   return (
-    <div className="card relative p-3 sm:p-4">
+    <div className="card relative overflow-hidden">
       {/* Set tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 overflow-x-auto px-3 pt-3 sm:px-4">
         {Array.from({ length: setCount }).map((_, i) => (
           <button
             key={i}
             type="button"
             onClick={() => onSetChange(i)}
             className={cn(
-              "rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors",
+              "rounded px-3 py-1 font-display text-sm font-bold uppercase tracking-wide transition-colors",
               i === setIdx
-                ? "bg-volt-400 text-volt-950"
-                : "bg-slate-800 text-slate-400 hover:text-slate-100",
+                ? "bg-navy-900 text-white"
+                : "bg-slate-100 text-slate-600 hover:text-slate-900",
             )}
           >
             Set {i + 1}
@@ -131,22 +132,22 @@ export function Scoreboard({
           <button
             type="button"
             onClick={onAddSet}
-            className="rounded-md border border-dashed border-slate-700 px-2 py-1 text-xs text-slate-400 hover:border-slate-600 hover:text-slate-100"
+            className="inline-flex h-7 w-7 items-center justify-center rounded border border-dashed border-slate-300 text-slate-500 hover:border-slate-400 hover:text-slate-900"
             aria-label="Add set"
           >
-            +
+            <Plus size={14} strokeWidth={2.5} aria-hidden />
           </button>
         )}
         {offline && (
-          <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-amber-300">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+          <span className="ml-auto inline-flex items-center gap-1.5 rounded bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">
+            <WifiOff size={12} strokeWidth={2} aria-hidden />
             Offline {syncQueueSize > 0 && `· ${syncQueueSize} queued`}
           </span>
         )}
       </div>
 
-      {/* Score */}
-      <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      {/* Score - the scoreboard band */}
+      <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-stretch bg-navy-950 text-white">
         <button
           type="button"
           onPointerDown={() => startHold("us")}
@@ -154,21 +155,19 @@ export function Scoreboard({
           onPointerCancel={() => endHold("us")}
           onClick={() => onClickScore("us")}
           className={cn(
-            "flex flex-col items-center rounded-xl border py-2 transition-colors duration-150 active:bg-slate-800",
-            lit === "us"
-              ? "border-emerald-400 bg-emerald-400/25"
-              : "border-slate-800 bg-slate-950",
+            "flex flex-col items-center py-3 transition-colors duration-150 active:bg-white/10",
+            lit === "us" && "bg-emerald-500/30",
           )}
           aria-label="Our score: tap to add, hold to subtract"
         >
-          <span className="max-w-full truncate px-1 text-[10px] font-semibold uppercase tracking-wide text-volt-300">
+          <span className="max-w-full truncate px-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
             {teamName}
           </span>
-          <span className="stat-number text-4xl font-bold text-slate-50 sm:text-5xl">
+          <span className="stat-number text-6xl font-bold leading-none sm:text-7xl">
             {us}
           </span>
         </button>
-        <span className="stat-number text-2xl font-bold text-slate-600">-</span>
+        <span className="stat-number self-center text-3xl font-bold text-navy-400">-</span>
         <button
           type="button"
           onPointerDown={() => startHold("them")}
@@ -176,45 +175,43 @@ export function Scoreboard({
           onPointerCancel={() => endHold("them")}
           onClick={() => onClickScore("them")}
           className={cn(
-            "flex flex-col items-center rounded-xl border py-2 transition-colors duration-150 active:bg-slate-800",
-            lit === "them"
-              ? "border-red-400 bg-red-400/25"
-              : "border-slate-800 bg-slate-950",
+            "flex flex-col items-center py-3 transition-colors duration-150 active:bg-white/10",
+            lit === "them" && "bg-red-500/30",
           )}
           aria-label="Opponent score: tap to add, hold to subtract"
         >
-          <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          <span className="max-w-full truncate px-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-navy-300">
             {opponent}
           </span>
-          <span className="stat-number text-4xl font-bold text-slate-50 sm:text-5xl">
+          <span className="stat-number text-6xl font-bold leading-none sm:text-7xl">
             {them}
           </span>
         </button>
       </div>
 
       {/* Rotation + serving */}
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-3 text-sm sm:px-4">
         <div
           className={cn(
-            "relative flex items-center gap-1.5 rounded-lg border px-2 py-1 transition-all duration-300",
+            "relative flex min-h-[40px] items-center gap-1 rounded-md border px-1.5 transition-all duration-300",
             rotLit
-              ? "border-volt-400 bg-volt-400/15 shadow-[0_0_0_3px_rgba(34,211,238,0.25)]"
-              : "border-slate-800 bg-slate-950",
+              ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
+              : "border-slate-300 bg-white",
           )}
         >
-          <span className="text-slate-500">Rot</span>
+          <span className="pl-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Rot</span>
           <button
             type="button"
             onClick={() => onRotation(-1)}
-            className="rounded px-1 text-slate-400 hover:text-slate-100"
+            className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
             aria-label="Previous rotation"
           >
-            ◀
+            <ChevronLeft size={16} strokeWidth={2.5} aria-hidden />
           </button>
           <span
             className={cn(
-              "stat-number inline-block w-9 text-center text-lg font-bold leading-none transition-all duration-300",
-              rotLit ? "scale-150 text-volt-300" : "text-slate-100",
+              "stat-number inline-block w-9 text-center text-xl font-bold leading-none transition-all duration-300",
+              rotLit ? "scale-125 text-orange-700" : "text-slate-900",
             )}
           >
             R{rotation}
@@ -222,13 +219,13 @@ export function Scoreboard({
           <button
             type="button"
             onClick={() => onRotation(1)}
-            className="rounded px-1 text-slate-400 hover:text-slate-100"
+            className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
             aria-label="Next rotation"
           >
-            ▶
+            <ChevronRight size={16} strokeWidth={2.5} aria-hidden />
           </button>
           {rotLit && (
-            <span className="absolute -top-2 right-1 animate-pulse rounded-full bg-volt-400 px-1.5 text-[9px] font-bold uppercase tracking-wide text-volt-950">
+            <span className="absolute -top-2 right-1 animate-pulse rounded bg-orange-500 px-1.5 font-display text-[9px] font-bold uppercase tracking-wide text-white">
               Rotated
             </span>
           )}
@@ -237,11 +234,11 @@ export function Scoreboard({
           type="button"
           onClick={onServingToggle}
           className={cn(
-            "rounded-lg border px-3 py-1 font-semibold transition-all duration-300",
+            "min-h-[40px] rounded-md border px-3 font-semibold transition-all duration-300",
             serving === "us"
-              ? "border-volt-400 bg-volt-400/10 text-volt-300"
-              : "border-amber-400 bg-amber-400/10 text-amber-300",
-            serveLit && "scale-105 shadow-[0_0_0_3px_rgba(34,211,238,0.25)]",
+              ? "border-orange-300 bg-orange-50 text-orange-800"
+              : "border-slate-300 bg-slate-100 text-slate-700",
+            serveLit && "scale-105 ring-2 ring-orange-200",
           )}
           aria-label={`Serving: ${serving === "us" ? "Us" : "Them"}`}
         >
@@ -250,7 +247,7 @@ export function Scoreboard({
         <button
           type="button"
           onClick={onEditStart}
-          className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-slate-400 hover:text-slate-100"
+          className="btn-secondary min-h-[40px] py-1.5"
           aria-label="Set who serves first and starting rotation"
           title="Set serve & rotation start"
         >

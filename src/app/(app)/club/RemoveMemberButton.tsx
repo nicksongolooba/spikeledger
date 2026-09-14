@@ -40,12 +40,12 @@ export function RemoveMemberButton({
         Remove
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title="Remove coach">
-        <p className="text-sm text-slate-300">
-          Remove <span className="font-semibold text-slate-100">{name}</span>{" "}
+        <p className="text-sm text-slate-700">
+          Remove <span className="font-semibold text-slate-900">{name}</span>{" "}
           from the club? They keep their own teams, but those teams stop being
           shared with the club and they lose access to club teams.
         </p>
-        {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
+        {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
         <div className="mt-5 flex justify-end gap-2">
           <button type="button" onClick={() => setOpen(false)} className="btn-secondary">
             Cancel

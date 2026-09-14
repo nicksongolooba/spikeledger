@@ -9,18 +9,18 @@ const UPDATED = "June 11, 2026";
 
 function H2({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-10 text-lg font-bold text-slate-100">{children}</h2>
+    <h2 className="font-display text-2xl font-bold tracking-tight mt-10 text-slate-900">{children}</h2>
   );
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="mt-3 text-sm leading-relaxed text-slate-300">{children}</p>;
+  return <p className="mt-3 text-sm leading-relaxed text-slate-700">{children}</p>;
 }
 
 export default function PrivacyPage() {
   return (
     <article>
-      <h1 className="text-3xl font-bold tracking-tight">Privacy Policy</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">Privacy Policy</h1>
       <p className="mt-2 text-sm text-slate-500">Last updated: {UPDATED}</p>
 
       <P>
@@ -95,7 +95,7 @@ export default function PrivacyPage() {
         We keep your data while your account is active. Coaches can request
         deletion of their account, their teams, or specific player data at
         any time by emailing{" "}
-        <a className="text-volt-300 hover:text-volt-200" href="mailto:support@spikeledger.com">
+        <a className="text-orange-700 hover:text-orange-800" href="mailto:support@spikeledger.com">
           support@spikeledger.com
         </a>
         . We will delete the requested data within 30 days, except where we

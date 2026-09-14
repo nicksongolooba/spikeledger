@@ -11,7 +11,7 @@ const RENDER_OPTS = {
   height: REPORT_HEIGHT,
   pixelRatio: 1,             // node is already at 1080×1350 so 1:1 is enough
   cacheBust: true,
-  backgroundColor: "#0a0f1c",
+  backgroundColor: "#ffffff", // matches REPORT_BG - white card
 };
 
 export async function nodeToPng(node: HTMLElement): Promise<Blob> {

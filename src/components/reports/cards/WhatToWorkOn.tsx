@@ -1,7 +1,20 @@
+import { Play } from "lucide-react";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
 import { youtubeSearchUrl } from "@/lib/youtube";
-import { REPORT_CARD_BG, REPORT_MUTED, type ReportCardData } from "./types";
+import {
+  REPORT_BG,
+  REPORT_BODY,
+  REPORT_BORDER,
+  REPORT_FONT_DISPLAY,
+  REPORT_GREEN,
+  REPORT_MUTED,
+  REPORT_NAVY,
+  REPORT_ORANGE,
+  REPORT_ORANGE_DEEP,
+  REPORT_TEXT,
+  type ReportCardData,
+} from "./types";
 
 export function WhatToWorkOn({ data }: { data: ReportCardData }) {
   return (
@@ -18,9 +31,11 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
       <div
         style={{
           marginTop: "32px",
-          fontSize: "26px",
-          fontWeight: 600,
-          color: "#dbe0e8",
+          fontFamily: REPORT_FONT_DISPLAY,
+          fontSize: "34px",
+          fontWeight: 700,
+          lineHeight: 1.1,
+          color: REPORT_TEXT,
         }}
       >
         {data.player.name}, here&apos;s what to focus on next:
@@ -28,10 +43,10 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
 
       <div
         style={{
-          marginTop: "28px",
+          marginTop: "24px",
           display: "flex",
           flexDirection: "column",
-          gap: "20px",
+          gap: "16px",
           flex: 1,
         }}
       >
@@ -39,10 +54,10 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
           <div
             key={i}
             style={{
-              background: REPORT_CARD_BG,
-              border: "1px solid #1b2742",
-              borderRadius: "20px",
-              padding: "26px 28px",
+              background: REPORT_BG,
+              border: `1px solid ${REPORT_BORDER}`,
+              borderRadius: "12px",
+              padding: "24px 28px 24px 30px",
               position: "relative",
               overflow: "hidden",
             }}
@@ -54,16 +69,17 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                 left: "0",
                 bottom: "0",
                 width: "6px",
-                background: "#cbf03c",
+                background: REPORT_ORANGE,
               }}
             />
             <div style={{ display: "flex", alignItems: "baseline", gap: "20px" }}>
               <span
                 style={{
-                  fontFamily: '"JetBrains Mono", monospace',
-                  fontSize: "42px",
+                  fontFamily: REPORT_FONT_DISPLAY,
+                  fontSize: "46px",
                   fontWeight: 800,
-                  color: "#cbf03c",
+                  lineHeight: 1,
+                  color: REPORT_ORANGE,
                   minWidth: "60px",
                 }}
               >
@@ -72,9 +88,11 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
-                    fontSize: "26px",
+                    fontFamily: REPORT_FONT_DISPLAY,
+                    fontSize: "32px",
                     fontWeight: 700,
-                    color: "#faf9f4",
+                    lineHeight: 1.05,
+                    color: REPORT_TEXT,
                   }}
                 >
                   {area.metric}
@@ -83,18 +101,17 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                   <div
                     style={{
                       marginTop: "8px",
-                      fontFamily: '"JetBrains Mono", monospace',
                       fontSize: "16px",
                       color: REPORT_MUTED,
                     }}
                   >
                     current{" "}
-                    <span style={{ color: "#fbbf24", fontWeight: 700 }}>
+                    <span style={{ color: REPORT_NAVY, fontWeight: 700 }}>
                       {area.current}
                     </span>
                     {"  ·  "}
                     target{" "}
-                    <span style={{ color: "#34d399", fontWeight: 700 }}>
+                    <span style={{ color: REPORT_GREEN, fontWeight: 700 }}>
                       {area.target}
                     </span>
                   </div>
@@ -103,7 +120,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                   style={{
                     marginTop: "12px",
                     fontSize: "18px",
-                    color: "#b6c0d1",
+                    color: REPORT_BODY,
                     lineHeight: 1.45,
                   }}
                 >
@@ -121,11 +138,11 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                       gap: "8px",
                       fontSize: "16px",
                       fontWeight: 600,
-                      color: "#a78bfa",
+                      color: REPORT_ORANGE_DEEP,
                       textDecoration: "none",
                     }}
                   >
-                    <span style={{ fontSize: "14px" }}>▶</span>
+                    <Play size={16} strokeWidth={2} />
                     Watch drill videos: &ldquo;volleyball {area.youtubeQuery}&rdquo;
                   </a>
                 )}

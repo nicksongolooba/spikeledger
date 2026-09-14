@@ -27,7 +27,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     if (m.index > last) nodes.push(text.slice(last, m.index));
     if (m[1] !== undefined) {
       nodes.push(
-        <strong key={`${keyPrefix}-b-${i}`} className="font-semibold text-slate-100">
+        <strong key={`${keyPrefix}-b-${i}`} className="font-semibold text-slate-900">
           {m[1]}
         </strong>,
       );
@@ -42,7 +42,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-volt-300 underline decoration-volt-400/40 underline-offset-2 hover:text-volt-200"
+            className="font-medium text-orange-700 underline decoration-orange-700 underline-offset-2 hover:text-orange-800"
           >
             {label}
           </a>,
@@ -52,7 +52,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
           <Link
             key={`${keyPrefix}-l-${i}`}
             href={href}
-            className="font-medium text-volt-300 underline decoration-volt-400/40 underline-offset-2 hover:text-volt-200"
+            className="font-medium text-orange-700 underline decoration-orange-700 underline-offset-2 hover:text-orange-800"
           >
             {label}
           </Link>,
@@ -127,7 +127,7 @@ function parseBlocks(md: string): Block[] {
 export function Markdown({ content }: { content: string }) {
   const blocks = parseBlocks(content);
   return (
-    <div className="space-y-5 text-[15px] leading-relaxed text-slate-300 sm:text-base">
+    <div className="space-y-5 text-[15px] leading-relaxed text-slate-700 sm:text-base">
       {blocks.map((b, i) => {
         const key = `blk-${i}`;
         switch (b.type) {
@@ -136,7 +136,7 @@ export function Markdown({ content }: { content: string }) {
               <h2
                 key={key}
                 id={anchorId(b.lines[0])}
-                className="scroll-mt-24 pt-4 text-2xl font-bold tracking-tight text-slate-100"
+                className="font-display text-2xl font-bold tracking-tight scroll-mt-24 pt-4 text-slate-900"
               >
                 {renderInline(b.lines[0], key)}
               </h2>
@@ -146,7 +146,7 @@ export function Markdown({ content }: { content: string }) {
               <h3
                 key={key}
                 id={anchorId(b.lines[0])}
-                className="scroll-mt-24 pt-2 text-lg font-semibold text-slate-100"
+                className="font-display text-lg font-bold scroll-mt-24 pt-2 text-slate-900"
               >
                 {renderInline(b.lines[0], key)}
               </h3>
@@ -156,7 +156,7 @@ export function Markdown({ content }: { content: string }) {
               <ul key={key} className="ml-1 space-y-2">
                 {b.lines.map((li, j) => (
                   <li key={j} className="flex gap-3">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-volt-400/70" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-200" />
                     <span>{renderInline(li, `${key}-${j}`)}</span>
                   </li>
                 ))}
@@ -167,7 +167,7 @@ export function Markdown({ content }: { content: string }) {
               <ol key={key} className="ml-1 space-y-2">
                 {b.lines.map((li, j) => (
                   <li key={j} className="flex gap-3">
-                    <span className="stat-number mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-volt-300">
+                    <span className="stat-number mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-orange-700">
                       {j + 1}
                     </span>
                     <span>{renderInline(li, `${key}-${j}`)}</span>
@@ -179,7 +179,7 @@ export function Markdown({ content }: { content: string }) {
             return (
               <blockquote
                 key={key}
-                className="border-l-2 border-volt-400/50 bg-slate-900/40 py-2 pl-4 pr-3 italic text-slate-300"
+                className="border-l-2 border-orange-300 bg-white/40 py-2 pl-4 pr-3 italic text-slate-700"
               >
                 {b.lines.map((q, j) => (
                   <Fragment key={j}>{renderInline(q, `${key}-${j}`)} </Fragment>

@@ -1,39 +1,122 @@
 import { BREAKDOWN_LABELS } from "@/engine/bank-account";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
-import { REPORT_CARD_BG, REPORT_MUTED, type ReportCardData } from "./types";
+import {
+  REPORT_BG,
+  REPORT_BODY,
+  REPORT_BORDER,
+  REPORT_FONT_DISPLAY,
+  REPORT_GREEN,
+  REPORT_MUTED,
+  REPORT_RED,
+  REPORT_TEXT,
+  type ReportCardData,
+} from "./types";
 
+// Sequential ramps, darkest first so the biggest slice reads strongest.
+// The engine has six deposit categories and five withdrawal categories, so
+// nothing wraps.
 const DEPOSIT_PALETTE = [
-  "#34d399",
-  "#cbf03c",
-  "#a78bfa",
+  "#065f46",
+  "#047857",
+  "#059669",
   "#10b981",
-  "#60a5fa",
-  "#6366f1",
+  "#6ee7b7",
+  "#a7f3d0",
 ];
 const WITHDRAWAL_PALETTE = [
-  "#f87171",
-  "#fb923c",
-  "#fbbf24",
+  "#991b1b",
+  "#b91c1c",
+  "#dc2626",
   "#ef4444",
-  "#f97316",
-  "#eab308",
+  "#fca5a5",
 ];
 
-// We render a donut chart using a single conic-gradient - avoids depending on
-// Recharts inside the html-to-image capture, which can be flaky.
-function donutGradient(values: number[], palette: string[]): string {
+const DONUT_SIZE = 260;
+const DONUT_THICKNESS = 44;
+
+function polar(r: number, angle: number): [number, number] {
+  const c = DONUT_SIZE / 2;
+  return [
+    Number((c + r * Math.cos(angle)).toFixed(2)),
+    Number((c + r * Math.sin(angle)).toFixed(2)),
+  ];
+}
+
+// Donut drawn as solid SVG ring slices - html-to-image rasterises inline SVG
+// reliably, and a white hairline between slices keeps neighbours readable.
+function Donut({ values, palette }: { values: number[]; palette: string[] }) {
   const total = values.reduce((s, v) => s + v, 0);
-  if (total === 0) return "conic-gradient(#1b2742 0deg 360deg)";
+  const c = DONUT_SIZE / 2;
+  const rOuter = c - 1;
+  const rInner = rOuter - DONUT_THICKNESS;
+  const rMid = (rOuter + rInner) / 2;
+
+  if (total === 0) {
+    return (
+      <svg width={DONUT_SIZE} height={DONUT_SIZE} viewBox={`0 0 ${DONUT_SIZE} ${DONUT_SIZE}`}>
+        <circle
+          cx={c}
+          cy={c}
+          r={rMid}
+          fill="none"
+          stroke={REPORT_BORDER}
+          strokeWidth={DONUT_THICKNESS}
+        />
+      </svg>
+    );
+  }
+
   let acc = 0;
-  const stops: string[] = [];
-  values.forEach((v, i) => {
-    const start = (acc / total) * 360;
+  const slices = values.map((v, i) => {
+    const start = (acc / total) * Math.PI * 2 - Math.PI / 2;
     acc += v;
-    const end = (acc / total) * 360;
-    stops.push(`${palette[i % palette.length]} ${start}deg ${end}deg`);
+    const end = (acc / total) * Math.PI * 2 - Math.PI / 2;
+    const color = palette[i % palette.length];
+    if (v <= 0) return null;
+    if (v === total) {
+      // A single slice is a full ring - an arc from a point to itself draws nothing.
+      return (
+        <circle
+          key={i}
+          cx={c}
+          cy={c}
+          r={rMid}
+          fill="none"
+          stroke={color}
+          strokeWidth={DONUT_THICKNESS}
+        />
+      );
+    }
+    const large = end - start > Math.PI ? 1 : 0;
+    const [x0, y0] = polar(rOuter, start);
+    const [x1, y1] = polar(rOuter, end);
+    const [xi1, yi1] = polar(rInner, end);
+    const [xi0, yi0] = polar(rInner, start);
+    const d = [
+      `M ${x0} ${y0}`,
+      `A ${rOuter} ${rOuter} 0 ${large} 1 ${x1} ${y1}`,
+      `L ${xi1} ${yi1}`,
+      `A ${rInner} ${rInner} 0 ${large} 0 ${xi0} ${yi0}`,
+      "Z",
+    ].join(" ");
+    return (
+      <path
+        key={i}
+        d={d}
+        fill={color}
+        stroke={REPORT_BG}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+    );
   });
-  return `conic-gradient(${stops.join(", ")})`;
+
+  return (
+    <svg width={DONUT_SIZE} height={DONUT_SIZE} viewBox={`0 0 ${DONUT_SIZE} ${DONUT_SIZE}`}>
+      {slices}
+    </svg>
+  );
 }
 
 export function BreakdownPie({ data }: { data: ReportCardData }) {
@@ -75,7 +158,7 @@ export function BreakdownPie({ data }: { data: ReportCardData }) {
           slices={deposits}
           values={depositValues}
           palette={DEPOSIT_PALETTE}
-          headerColor="#34d399"
+          headerColor={REPORT_GREEN}
         />
         <PieColumn
           title="Where Withdrawals Come From"
@@ -83,7 +166,7 @@ export function BreakdownPie({ data }: { data: ReportCardData }) {
           slices={withdrawals}
           values={withdrawalValues}
           palette={WITHDRAWAL_PALETTE}
-          headerColor="#f87171"
+          headerColor={REPORT_RED}
         />
       </div>
     </ReportShell>
@@ -108,9 +191,9 @@ function PieColumn({
   return (
     <div
       style={{
-        background: REPORT_CARD_BG,
-        border: "1px solid #1b2742",
-        borderRadius: "20px",
+        background: REPORT_BG,
+        border: `1px solid ${REPORT_BORDER}`,
+        borderRadius: "12px",
         padding: "22px 24px",
         display: "flex",
         flexDirection: "column",
@@ -118,11 +201,12 @@ function PieColumn({
     >
       <div
         style={{
+          fontFamily: REPORT_FONT_DISPLAY,
           fontSize: "18px",
           fontWeight: 700,
           color: headerColor,
           textTransform: "uppercase",
-          letterSpacing: "0.06em",
+          letterSpacing: "0.1em",
         }}
       >
         {title}
@@ -139,27 +223,18 @@ function PieColumn({
         <div
           style={{
             position: "relative",
-            width: "260px",
-            height: "260px",
+            width: `${DONUT_SIZE}px`,
+            height: `${DONUT_SIZE}px`,
           }}
         >
+          <div style={{ position: "absolute", inset: 0 }}>
+            <Donut values={values} palette={palette} />
+          </div>
           <div
             style={{
               position: "absolute",
-              inset: 0,
+              inset: `${DONUT_THICKNESS}px`,
               borderRadius: "50%",
-              background:
-                slices.length === 0
-                  ? "#1b2742"
-                  : donutGradient(values, palette),
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              inset: "40px",
-              borderRadius: "50%",
-              background: REPORT_CARD_BG,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -168,10 +243,10 @@ function PieColumn({
           >
             <span
               style={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontSize: "44px",
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "52px",
                 fontWeight: 800,
-                color: "#f4f3ed",
+                color: REPORT_TEXT,
                 lineHeight: 1,
               }}
             >
@@ -180,10 +255,12 @@ function PieColumn({
             <span
               style={{
                 marginTop: "4px",
-                fontSize: "12px",
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "13px",
+                fontWeight: 700,
                 color: REPORT_MUTED,
                 textTransform: "uppercase",
-                letterSpacing: "0.08em",
+                letterSpacing: "0.12em",
               }}
             >
               total
@@ -197,7 +274,6 @@ function PieColumn({
           marginTop: "20px",
           display: "flex",
           flexDirection: "column",
-          gap: "8px",
         }}
       >
         {slices.length === 0 ? (
@@ -215,6 +291,9 @@ function PieColumn({
                   alignItems: "center",
                   gap: "10px",
                   fontSize: "16px",
+                  padding: "7px 0",
+                  borderBottom:
+                    i < slices.length - 1 ? `1px solid ${REPORT_BORDER}` : "none",
                 }}
               >
                 <span
@@ -226,14 +305,16 @@ function PieColumn({
                     flexShrink: 0,
                   }}
                 />
-                <span style={{ flex: 1, color: "#dbe0e8" }}>
+                <span style={{ flex: 1, color: REPORT_BODY }}>
                   {BREAKDOWN_LABELS[k] ?? k}
                 </span>
                 <span
                   style={{
-                    fontFamily: '"JetBrains Mono", monospace',
-                    color: "#f4f3ed",
+                    fontFamily: REPORT_FONT_DISPLAY,
+                    fontSize: "20px",
                     fontWeight: 700,
+                    lineHeight: 1,
+                    color: REPORT_TEXT,
                   }}
                 >
                   {v}

@@ -2,6 +2,7 @@
 
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -9,6 +10,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  AXIS_LINE,
+  AXIS_TICK,
+  CHART,
+  LEGEND_WRAPPER_STYLE,
+  TOOLTIP_CONTENT_STYLE,
+  TOOLTIP_ITEM_STYLE,
+  TOOLTIP_LABEL_STYLE,
+  legendText,
+  seriesActiveDot,
+  seriesDot,
+} from "./chartTheme";
 
 export interface TrendPoint {
   tournamentName: string;
@@ -16,15 +29,16 @@ export interface TrendPoint {
   primary: number; // position-appropriate primary metric (kills/match, SR avg, assists/match, blocks/match)
 }
 
-// Lazy-loaded via ./PlayerTrendChart.
+// Lazy-loaded via ./PlayerTrendChart. Bank Account is the navy line on the
+// left axis; the position metric is the orange line on the right axis.
 export default function PlayerTrendChart({
   data,
   primaryLabel,
-  primaryColor,
+  primaryColor = CHART.secondary,
 }: {
   data: TrendPoint[];
   primaryLabel: string;
-  primaryColor: string;
+  primaryColor?: string;
 }) {
   if (data.length === 0) {
     return (
@@ -37,47 +51,50 @@ export default function PlayerTrendChart({
     <div style={{ width: "100%", height: 280 }}>
       <ResponsiveContainer>
         <LineChart data={data} margin={{ top: 6, right: 16, bottom: 6, left: 0 }}>
-          <CartesianGrid stroke="#1b2742" strokeDasharray="3 3" />
+          <CartesianGrid stroke={CHART.grid} strokeDasharray="3 3" />
           <XAxis
             dataKey="tournamentName"
-            stroke="#8a97ad"
-            fontSize={11}
+            tick={AXIS_TICK}
             tickLine={false}
-            axisLine={{ stroke: "#2a3a5e" }}
+            axisLine={AXIS_LINE}
           />
           <YAxis
             yAxisId="left"
-            stroke="#cbf03c"
-            fontSize={11}
+            tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             yAxisId="right"
             orientation="right"
-            stroke={primaryColor}
-            fontSize={11}
+            tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
           />
           <Tooltip
-            contentStyle={{
-              background: "#121b30",
-              border: "1px solid #1b2742",
-              borderRadius: 6,
-              fontSize: 12,
-              color: "#dbe0e8",
-            }}
-            labelStyle={{ color: "#8a97ad" }}
+            cursor={{ stroke: CHART.cursor }}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
+          />
+          <Legend
+            verticalAlign="top"
+            align="right"
+            height={24}
+            iconType="plainline"
+            iconSize={12}
+            wrapperStyle={LEGEND_WRAPPER_STYLE}
+            formatter={legendText}
           />
           <Line
             yAxisId="left"
             type="monotone"
             dataKey="bankBalance"
             name="Bank Account"
-            stroke="#cbf03c"
+            stroke={CHART.primary}
             strokeWidth={2}
-            dot={{ r: 3, fill: "#cbf03c" }}
+            dot={seriesDot(CHART.primary)}
+            activeDot={seriesActiveDot(CHART.primary)}
           />
           <Line
             yAxisId="right"
@@ -86,7 +103,8 @@ export default function PlayerTrendChart({
             name={primaryLabel}
             stroke={primaryColor}
             strokeWidth={2}
-            dot={{ r: 3, fill: primaryColor }}
+            dot={seriesDot(primaryColor)}
+            activeDot={seriesActiveDot(primaryColor)}
           />
         </LineChart>
       </ResponsiveContainer>

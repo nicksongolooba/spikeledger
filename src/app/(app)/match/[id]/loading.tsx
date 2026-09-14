@@ -10,7 +10,7 @@ export default function Loading() {
   return (
     <div className="space-y-6">
       <SkeletonHeader />
-      <Skeleton className="h-28 rounded-xl" />
+      <Skeleton className="h-28 rounded-lg" />
       <SkeletonStatTiles count={5} />
       <SkeletonTable rows={6} />
     </div>

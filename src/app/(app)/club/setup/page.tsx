@@ -16,8 +16,8 @@ export default async function ClubSetupPage() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="text-2xl font-bold tracking-tight">Set up your club</h1>
-      <p className="mt-1 text-sm text-slate-400">
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">Set up your club</h1>
+      <p className="mt-1 text-sm text-slate-600">
         This is how your club appears to the coaches you invite. You can change
         it any time.
       </p>

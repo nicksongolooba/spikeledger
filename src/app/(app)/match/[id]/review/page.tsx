@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Position } from "@prisma/client";
+import { ArrowLeft, FileImage, Pencil } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -14,6 +15,7 @@ import { BankAccountBars } from "@/components/charts/BankAccountBars";
 import { CoachChat } from "@/components/ai/CoachChat";
 import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
 import { getEffectivePlan } from "@/lib/club";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +117,17 @@ export default async function MatchReviewPage({
       : match.result === "DRAW"
         ? "Draw"
         : "Pending";
+  const resultTone =
+    match.result === "WIN"
+      ? "bg-emerald-600 text-white"
+      : match.result === "LOSS"
+        ? "bg-red-600 text-white"
+        : match.result === "DRAW"
+          ? "bg-amber-600 text-white"
+          : "bg-slate-200 text-slate-700";
+
+  const tournamentHref = `/team/${match.tournament.team.id}/tournament/${match.tournament.id}`;
+  const reportHref = `/reports/generate/${match.tournament.team.id}?tournament=${match.tournament.id}`;
 
   return (
     <div>
@@ -127,127 +140,168 @@ export default async function MatchReviewPage({
           },
           {
             label: match.tournament.name,
-            href: `/team/${match.tournament.team.id}/tournament/${match.tournament.id}`,
+            href: tournamentHref,
           },
           { label: `Match ${match.matchNumber} review` },
         ]}
       />
 
-      <header className="mt-4 flex flex-wrap items-end justify-between gap-3">
+      <header className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            vs {match.opponent} - {resultLabel}
-          </h1>
-          <div className="mt-1 text-sm text-slate-400">
-            Match {match.matchNumber} · sets {match.setsWon}-{match.setsLost}
+          <div className="eyebrow">
+            {match.tournament.name} · Match {match.matchNumber}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <h1 className="font-display text-3xl font-bold leading-none tracking-tight text-slate-900 sm:text-4xl">
+              vs {match.opponent}
+            </h1>
+            <span
+              className={cn(
+                "rounded px-2 py-0.5 font-display text-sm font-bold uppercase tracking-wide",
+                resultTone,
+              )}
+            >
+              {resultLabel}
+            </span>
+          </div>
+          <div className="mt-2 text-sm text-slate-600">
+            Sets{" "}
+            <span className="stat-number text-base font-bold text-slate-900">
+              {match.setsWon}-{match.setsLost}
+            </span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href={tournamentHref} className="btn-secondary">
+            <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+            Back to tournament
+          </Link>
           <Link href={`/match/${match.id}/entry`} className="btn-secondary">
+            <Pencil size={16} strokeWidth={2} aria-hidden />
             Edit stats
           </Link>
-          <Link
-            href={`/reports/generate/${match.tournament.team.id}?tournament=${match.tournament.id}`}
-            className="btn-secondary"
-          >
-            Generate report cards
-          </Link>
-          <Link
-            href={`/team/${match.tournament.team.id}/tournament/${match.tournament.id}`}
-            className="btn-primary"
-          >
-            Back to tournament
+          <Link href={reportHref} className="btn-primary">
+            <FileImage size={18} strokeWidth={2} aria-hidden />
+            Report cards
           </Link>
         </div>
       </header>
 
-      {/* Team summary bar */}
-      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-        <SumTile label="Total Kills" value={totalKills.toString()} accent="emerald" />
-        <SumTile label="Total Errors" value={totalErrors.toString()} accent="red" />
-        <SumTile
-          label="Net Production"
-          value={fmtSigned(net)}
-          accent={net >= 0 ? "emerald" : "red"}
-        />
-        <SumTile
-          label="Team SR Avg"
-          value={srAtt > 0 ? fmtNum(teamSr, 2) : "-"}
-          accent="cyan"
-        />
-        <SumTile
-          label="Opponent Errors"
-          value={match.opponentErrors.toString()}
-          accent="violet"
-        />
-      </section>
-      <p className="mt-2 text-xs text-slate-500">
-        {match.opponentErrors} of our points came from opponent mistakes - the
-        rest were earned.
-      </p>
-
-      <section className="mt-3 card p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              Team Bank Account
-            </div>
-            <div className="mt-1 flex items-center gap-3">
-              <span
-                className="stat-number text-2xl font-bold"
-                style={{ color: teamBA.ratingColor }}
-              >
-                {fmtSigned(teamBA.balance)}
-              </span>
-              <span
-                className="rounded-md border px-2 py-0.5 text-xs font-semibold"
-                style={{
-                  color: teamBA.ratingColor,
-                  borderColor: `${teamBA.ratingColor}55`,
-                  backgroundColor: `${teamBA.ratingColor}1a`,
-                }}
-              >
-                {teamBA.ratingLabel}
-              </span>
-            </div>
+      {/* Team summary: Bank Account featured, totals beside it */}
+      <section className="mt-10 grid gap-4 lg:grid-cols-12">
+        <article className="card p-5 lg:col-span-4">
+          <div className="eyebrow text-slate-500">Team Bank Account</div>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <span
+              className="stat-number text-5xl font-bold leading-none"
+              style={{ color: teamBA.ratingColor }}
+            >
+              {fmtSigned(teamBA.balance)}
+            </span>
+            <span
+              className="rounded border px-2 py-0.5 text-xs font-semibold"
+              style={{
+                color: teamBA.ratingColor,
+                borderColor: `${teamBA.ratingColor}55`,
+                backgroundColor: `${teamBA.ratingColor}1a`,
+              }}
+            >
+              {teamBA.ratingLabel}
+            </span>
           </div>
-          <div className="text-right text-xs text-slate-400">
-            {teamBA.deposits} deposits · {teamBA.withdrawals} withdrawals
-            <br />
-            {(teamBA.ratio * 100).toFixed(0)}% ratio
+          <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4">
+            <div>
+              <dt className="eyebrow text-[10px] text-slate-500">Deposits</dt>
+              <dd className="stat-number mt-0.5 text-2xl font-bold leading-none text-emerald-700">
+                {teamBA.deposits}
+              </dd>
+            </div>
+            <div>
+              <dt className="eyebrow text-[10px] text-slate-500">Withdrawals</dt>
+              <dd className="stat-number mt-0.5 text-2xl font-bold leading-none text-red-700">
+                {teamBA.withdrawals}
+              </dd>
+            </div>
+            <div>
+              <dt className="eyebrow text-[10px] text-slate-500">Ratio</dt>
+              <dd className="stat-number mt-0.5 text-2xl font-bold leading-none text-slate-900">
+                {(teamBA.ratio * 100).toFixed(0)}%
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <div className="lg:col-span-8">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <SumTile label="Kills" value={totalKills.toString()} accent="emerald" />
+            <SumTile label="Errors" value={totalErrors.toString()} accent="red" />
+            <SumTile
+              label="Net production"
+              value={fmtSigned(net)}
+              accent={net >= 0 ? "emerald" : "red"}
+            />
+            <SumTile
+              label="Team SR avg"
+              value={srAtt > 0 ? fmtNum(teamSr, 2) : "-"}
+              accent="cyan"
+            />
+          </div>
+          <div className="mt-3 flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 px-5 py-3">
+            <div className="stat-number text-3xl font-bold leading-none text-orange-700">
+              {match.opponentErrors}
+            </div>
+            <div className="text-sm text-slate-600">
+              <span className="font-semibold text-slate-900">Opponent errors.</span>{" "}
+              {match.opponentErrors} of our points came from their mistakes -
+              the rest we earned.
+            </div>
           </div>
         </div>
       </section>
 
       {/* Player table */}
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold">Player stats</h2>
-        <ReviewTable rows={rows} />
+      <section className="mt-10">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+          Player stats
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Click a column to sort. Greyed numbers are stats that position
+          doesn&apos;t get judged on.
+        </p>
+        <div className="mt-4">
+          <ReviewTable rows={rows} />
+        </div>
       </section>
 
       {/* Bank Account leaderboard */}
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold">
+      <section className="mt-10">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900">
           Bank Account leaderboard
         </h2>
-        <p className="mb-3 text-sm text-slate-400">
+        <p className="mt-1 max-w-2xl text-sm text-slate-600">
           Players grouped by position so comparisons are fair - a libero&apos;s
           number isn&apos;t lined up next to a hitter&apos;s.
         </p>
-        <BankAccountBars data={barData} />
+        <div className="mt-4">
+          <BankAccountBars data={barData} />
+        </div>
       </section>
 
-      {/* Quick actions */}
-      <section className="mt-8 card p-5">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Quick actions
-        </h3>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link
-            href={`/reports/generate/${match.tournament.team.id}?tournament=${match.tournament.id}`}
-            className="btn-primary"
-          >
-            Generate report cards (this tournament)
+      {/* Next step */}
+      <section className="mt-10 overflow-hidden rounded-lg bg-navy-900 text-white shadow-card">
+        <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="eyebrow text-orange-300">Next step</div>
+            <h2 className="mt-1 font-display text-2xl font-bold leading-none">
+              Turn this tournament into report cards
+            </h2>
+            <p className="mt-2 text-sm text-navy-200">
+              Six images per player, sized for WhatsApp.
+            </p>
+          </div>
+          <Link href={reportHref} className="btn bg-white text-navy-900 hover:bg-navy-50">
+            <FileImage size={18} strokeWidth={2} aria-hidden />
+            Generate report cards
           </Link>
         </div>
       </section>
@@ -275,18 +329,23 @@ function SumTile({
 }) {
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-300"
+      ? "text-emerald-700"
       : accent === "red"
-        ? "text-red-300"
+        ? "text-red-700"
         : accent === "cyan"
-          ? "text-volt-300"
+          ? "text-navy-700"
           : accent === "violet"
-            ? "text-violet-300"
-            : "text-slate-100";
+            ? "text-orange-700"
+            : "text-slate-900";
   return (
-    <div className="card p-4">
-      <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-      <div className={`stat-number mt-1 text-2xl font-bold ${accentClass}`}>
+    <div className="card p-5">
+      <div className="eyebrow text-slate-500">{label}</div>
+      <div
+        className={cn(
+          "stat-number mt-2 text-4xl font-bold leading-none",
+          accentClass,
+        )}
+      >
         {value}
       </div>
     </div>

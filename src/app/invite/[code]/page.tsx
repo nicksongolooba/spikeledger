@@ -2,6 +2,7 @@
 // to register with the code attached (register auto-joins after signup).
 
 import Link from "next/link";
+import { Volleyball } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -40,17 +41,17 @@ export default async function InvitePage({
       : false;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-paper px-4">
       <div className="card w-full max-w-md p-8 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gold-400/10 text-2xl">
-          🏐
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-white">
+          <Volleyball size={24} strokeWidth={2.25} aria-hidden />
         </div>
         {invalid ? (
           <>
-            <h1 className="text-xl font-bold text-slate-100">
+            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">
               This invite isn&apos;t valid
             </h1>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-slate-600">
               The link may have expired or already been used. Ask your club
               owner to send a fresh invite.
             </p>
@@ -60,7 +61,7 @@ export default async function InvitePage({
           </>
         ) : alreadyMember ? (
           <>
-            <h1 className="text-xl font-bold text-slate-100">
+            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">
               You&apos;re already in {invite!.club.name}
             </h1>
             <Link href="/club" className="btn-primary mt-6 inline-flex">
@@ -69,12 +70,12 @@ export default async function InvitePage({
           </>
         ) : (
           <>
-            <h1 className="text-xl font-bold text-slate-100">
+            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">
               Join {invite!.club.name} on SpikeLedger
             </h1>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-slate-600">
               You&apos;ve been invited to coach with{" "}
-              <span className="font-semibold text-slate-200">
+              <span className="font-semibold text-slate-800">
                 {invite!.club.name}
               </span>
               . You&apos;ll see the club&apos;s teams and get full Coach Pro

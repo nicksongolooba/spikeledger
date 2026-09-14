@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { Lightbulb } from "lucide-react";
 import type { Position } from "@prisma/client";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import {
@@ -219,7 +220,7 @@ export function GenerateClient({
     <div className="space-y-6">
       {/* Step 1: Scope */}
       <div className="card p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
           1. Choose scope
         </h2>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -231,8 +232,8 @@ export function GenerateClient({
               className={
                 "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors " +
                 (scopeKey === s.key
-                  ? "border-volt-400 bg-volt-400/10 text-volt-200"
-                  : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600")
+                  ? "border-orange-500 bg-orange-50 text-orange-800"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-slate-300")
               }
             >
               {s.label}
@@ -247,7 +248,7 @@ export function GenerateClient({
       {/* Step 2: Players */}
       <div className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+          <h2 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
             2. Choose players
           </h2>
           <div className="flex gap-2">
@@ -272,17 +273,17 @@ export function GenerateClient({
                 className={
                   "flex items-center gap-3 rounded-lg border p-2.5 text-left transition-colors " +
                   (selected
-                    ? "border-volt-400 bg-volt-400/10"
+                    ? "border-orange-500 bg-orange-50"
                     : hasData
-                      ? "border-slate-800 bg-slate-900 hover:border-slate-700"
-                      : "cursor-not-allowed border-slate-900 bg-slate-900/40 opacity-50")
+                      ? "border-slate-200 bg-white hover:border-slate-300"
+                      : "cursor-not-allowed border-slate-200 bg-white/40 opacity-50")
                 }
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-800 stat-number text-sm font-bold">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 stat-number text-sm font-bold">
                   {p.number ?? "-"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-slate-100">
+                  <div className="truncate text-sm font-medium text-slate-900">
                     {p.name}
                   </div>
                   <div className="mt-0.5 flex flex-wrap gap-1">
@@ -303,14 +304,14 @@ export function GenerateClient({
 
       {/* Step 3: Reports */}
       <div className="card p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
           3. Choose reports
         </h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {REPORT_CARDS.filter((c) => c.key !== "comparison").map((c) => (
             <label
               key={c.key}
-              className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-800 bg-slate-900 p-3"
+              className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3"
             >
               <input
                 type="checkbox"
@@ -319,7 +320,7 @@ export function GenerateClient({
                 className="mt-0.5 h-4 w-4"
               />
               <span>
-                <span className="text-sm font-medium text-slate-100">
+                <span className="text-sm font-medium text-slate-900">
                   {c.label}
                 </span>
                 <span className="block text-xs text-slate-500">{c.caption}</span>
@@ -328,7 +329,7 @@ export function GenerateClient({
           ))}
         </div>
 
-        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-lg border border-amber-400/30 bg-amber-400/5 p-3">
+        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
           <input
             type="checkbox"
             checked={includeComparison}
@@ -336,17 +337,17 @@ export function GenerateClient({
             className="mt-0.5 h-4 w-4"
           />
           <span>
-            <span className="text-sm font-medium text-amber-200">
+            <span className="text-sm font-medium text-amber-800">
               Include team comparison (image 6)
             </span>
-            <span className="mt-0.5 block text-xs text-amber-100/70">
+            <span className="mt-0.5 block text-xs text-amber-800">
               Shows how each player ranks against teammates in the same
               position group. Some coaches share this only privately - opt-in.
             </span>
           </span>
         </label>
 
-        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-lg border border-violet-400/30 bg-violet-400/5 p-3">
+        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-md border border-navy-200 bg-navy-50 p-3">
           <input
             type="checkbox"
             checked={useAI}
@@ -354,13 +355,11 @@ export function GenerateClient({
             className="mt-0.5 h-4 w-4"
           />
           <span>
-            <span className="flex items-center gap-2 text-sm font-medium text-violet-200">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
-                <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
-              </svg>
-              Enhance with AI insights
+            <span className="flex items-center gap-2 text-sm font-semibold text-navy-900">
+              <Lightbulb size={16} strokeWidth={2} className="text-navy-700" aria-hidden />
+              Add AI coaching notes
             </span>
-            <span className="mt-0.5 block text-xs text-violet-100/70">
+            <span className="mt-0.5 block text-xs text-navy-700">
               Adds an AI-generated coaching summary on the Performance Overview
               and replaces &quot;What To Work On&quot; with data-grounded drills.
               Falls back silently if AI is unavailable. ~5-30s per player.
@@ -371,19 +370,19 @@ export function GenerateClient({
 
       {/* Step 4: Preview & generate */}
       <div className="card p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
           4. Preview & generate
         </h2>
 
         <div className="mt-3 flex flex-col gap-3 lg:flex-row">
           <div className="flex-1">
-            <div className="text-sm text-slate-300">
-              Scope: <span className="text-volt-300">{scopeLabel}</span>
+            <div className="text-sm text-slate-700">
+              Scope: <span className="text-orange-700">{scopeLabel}</span>
             </div>
-            <div className="text-sm text-slate-300">
+            <div className="text-sm text-slate-700">
               {selectedPlayers.size} player(s) · {finalCards.length} image(s) each
               ={" "}
-              <span className="font-bold text-slate-100">
+              <span className="font-bold text-slate-900">
                 {selectedPlayers.size * finalCards.length}
               </span>{" "}
               images
@@ -405,9 +404,9 @@ export function GenerateClient({
                 : "Generate"}
             </button>
             {busy && (
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className="h-full bg-volt-400 transition-all"
+                  className="h-full bg-orange-500 transition-all"
                   style={{
                     width:
                       progress.total > 0
@@ -425,7 +424,7 @@ export function GenerateClient({
                 Preview · {previewData.player.name}
               </div>
               <div
-                className="overflow-hidden rounded-lg border border-slate-800"
+                className="overflow-hidden rounded-lg border border-slate-200"
                 style={{ width: 200 }}
               >
                 <div
@@ -453,7 +452,7 @@ export function GenerateClient({
       {/* Rendered output */}
       {rendered.length > 0 && (
         <div className="card p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+          <h2 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
             5. Download
           </h2>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -468,10 +467,10 @@ export function GenerateClient({
             {rendered.map((r) => (
               <div
                 key={r.playerId}
-                className="rounded-lg border border-slate-800 bg-slate-900 p-4"
+                className="rounded-lg border border-slate-200 bg-white p-4"
               >
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <div className="font-medium text-slate-100">
+                  <div className="font-medium text-slate-900">
                     {r.playerName}
                     <span className="ml-2 text-xs text-slate-500">
                       {r.blobs.length} image{r.blobs.length === 1 ? "" : "s"}
@@ -515,7 +514,7 @@ export function GenerateClient({
                           // Revoke after the click - browsers usually finish the download first.
                           setTimeout(() => URL.revokeObjectURL(url), 5000);
                         }}
-                        className="group relative overflow-hidden rounded-md border border-slate-800 transition-colors hover:border-volt-400/60"
+                        className="group relative overflow-hidden rounded-md border border-slate-200 transition-colors hover:border-orange-300"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -524,7 +523,7 @@ export function GenerateClient({
                           className="block w-full"
                           style={{ aspectRatio: `${REPORT_WIDTH} / ${REPORT_HEIGHT}` }}
                         />
-                        <div className="absolute inset-x-0 bottom-0 truncate bg-slate-950/80 px-2 py-1 text-center text-[10px] text-slate-300">
+                        <div className="absolute inset-x-0 bottom-0 truncate bg-navy-950/80 px-2 py-1 text-center text-[10px] text-slate-700">
                           {b.label}
                         </div>
                       </a>
@@ -633,14 +632,14 @@ function ShareLink({
 
   return (
     <div className="card p-5">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+      <h2 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
         6. Share link (no login needed to view)
       </h2>
       <p className="mt-1 text-xs text-slate-500">
         Generates a public read-only URL per player you can text to parents.
       </p>
       {error && (
-        <div className="mt-2 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+        <div className="mt-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -650,9 +649,9 @@ function ShareLink({
           return (
             <div
               key={r.playerId}
-              className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm"
+              className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
             >
-              <span className="font-medium text-slate-100">{r.playerName}</span>
+              <span className="font-medium text-slate-900">{r.playerName}</span>
               {link ? (
                 <>
                   <input

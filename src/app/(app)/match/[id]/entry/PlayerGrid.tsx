@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Position } from "@prisma/client";
+import { Pencil } from "lucide-react";
 import { POSITION_GROUP, type PositionGroup } from "@/lib/positions";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { Modal } from "@/components/ui/Modal";
@@ -9,11 +10,12 @@ import { cn } from "@/lib/utils";
 import { CourtFormation } from "./CourtGrid";
 import type { PositionByPlayer, RosterPlayer } from "./types";
 
+// Subtle position-group tint on each tile's ring, matching PositionBadge.
 const GROUP_RING: Record<PositionGroup, string> = {
-  hitter: "ring-amber-400/40",
-  middle: "ring-violet-400/40",
-  setter: "ring-volt-400/40",
-  libero: "ring-emerald-400/40",
+  hitter: "ring-navy-200",
+  middle: "ring-sky-200",
+  setter: "ring-orange-200",
+  libero: "ring-emerald-200",
 };
 
 export function PlayerGrid({
@@ -90,20 +92,21 @@ export function PlayerGrid({
   return (
     <div className="card p-3 sm:p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          On Court ({onCourt.length}/6)
+        <h3 className="font-display text-base font-bold uppercase tracking-wide text-slate-700">
+          On court{" "}
+          <span className="stat-number text-slate-500">({onCourt.length}/6)</span>
         </h3>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {hasLibero && (
             <button
               type="button"
               onClick={handleLiberoButton}
               aria-pressed={liberoActive}
               className={cn(
-                "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-colors",
+                "min-h-[36px] rounded-full border px-3 font-display text-xs font-bold uppercase tracking-wide transition-colors",
                 liberoActive
-                  ? "border-emerald-400 bg-emerald-400/15 text-emerald-300"
-                  : "border-slate-700 bg-slate-900 text-slate-400 hover:border-emerald-400/50 hover:text-emerald-300",
+                  ? "border-emerald-600 bg-emerald-600 text-white"
+                  : "border-slate-300 bg-white text-slate-600 hover:border-emerald-500 hover:text-emerald-700",
               )}
             >
               {liberoActive ? "Libero out" : "Libero"}
@@ -112,8 +115,9 @@ export function PlayerGrid({
           <button
             type="button"
             onClick={onOpenLineup}
-            className="text-xs text-volt-300 hover:text-volt-200"
+            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-2 text-sm font-semibold text-orange-700 hover:text-orange-800"
           >
+            <Pencil size={14} strokeWidth={2} aria-hidden />
             Edit lineup
           </button>
         </div>
@@ -129,10 +133,10 @@ export function PlayerGrid({
 
       {bench.length > 0 && (
         <>
-          <div className="my-3 flex items-center gap-2 text-xs text-slate-500">
-            <span className="h-px flex-1 bg-slate-800" />
-            <span className="uppercase tracking-wide">Bench</span>
-            <span className="h-px flex-1 bg-slate-800" />
+          <div className="my-3 flex items-center gap-2 font-display text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span>Bench · tap to sub</span>
+            <span className="h-px flex-1 bg-slate-200" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             {bench.map((id) => {
@@ -183,25 +187,15 @@ export function PlayerGrid({
         {liberoStep === "libero" ? (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {benchLiberos.map((p) => (
-              <button
+              <PickTile
                 key={p.id}
-                type="button"
+                player={p}
+                positionPlayed={p.primaryPosition}
                 onClick={() => {
                   setChosenLibero(p.id);
                   setLiberoStep("court");
                 }}
-                className="flex flex-col items-center rounded-lg border border-slate-800 bg-slate-900 py-2 transition-colors hover:border-emerald-400/50"
-              >
-                <div className="stat-number text-sm font-bold text-slate-100">
-                  #{p.number ?? "-"}
-                </div>
-                <div className="truncate text-xs text-slate-200">{p.name}</div>
-                <PositionBadge
-                  position={p.primaryPosition}
-                  size="xs"
-                  className="mt-1"
-                />
-              </button>
+              />
             ))}
           </div>
         ) : (
@@ -210,28 +204,20 @@ export function PlayerGrid({
               {liberoEligibleCourt.map((p) => {
                 const pos = positions[p.id] ?? p.primaryPosition;
                 return (
-                  <button
+                  <PickTile
                     key={p.id}
-                    type="button"
+                    player={p}
+                    positionPlayed={pos}
                     onClick={() => {
                       if (chosenLibero) onLiberoIn(chosenLibero, p.id);
                       closeLiberoPicker();
                     }}
-                    className="flex flex-col items-center rounded-lg border border-slate-800 bg-slate-900 py-2 transition-colors hover:border-emerald-400/50"
-                  >
-                    <div className="stat-number text-sm font-bold text-slate-100">
-                      #{p.number ?? "-"}
-                    </div>
-                    <div className="truncate text-xs text-slate-200">
-                      {p.name}
-                    </div>
-                    <PositionBadge position={pos} size="xs" className="mt-1" />
-                  </button>
+                  />
                 );
               })}
             </div>
             {liberoEligibleCourt.length === 0 && (
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-600">
                 No eligible court players to replace.
               </p>
             )}
@@ -248,6 +234,33 @@ export function PlayerGrid({
         </div>
       </Modal>
     </div>
+  );
+}
+
+// Compact pick tile used inside the sub / libero modals.
+function PickTile({
+  player,
+  positionPlayed,
+  onClick,
+}: {
+  player: RosterPlayer;
+  positionPlayed: Position;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-[72px] flex-col items-center justify-center rounded-md border-2 border-slate-200 bg-white py-2 transition-colors hover:border-orange-500 active:bg-orange-50"
+    >
+      <div className="stat-number text-lg font-bold leading-none text-slate-900">
+        #{player.number ?? "-"}
+      </div>
+      <div className="mt-1 max-w-full truncate px-1 text-xs font-semibold text-slate-700">
+        {player.name}
+      </div>
+      <PositionBadge position={positionPlayed} size="xs" className="mt-1" />
+    </button>
   );
 }
 
@@ -270,19 +283,19 @@ function PlayerCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex min-h-[64px] flex-col items-center justify-center rounded-xl border bg-slate-900 px-2 py-2 text-center transition-all active:scale-[0.98]",
+        "flex min-h-[64px] flex-col items-center justify-center rounded-md border-2 bg-white px-2 py-2 text-center transition-all active:scale-[0.98]",
         "ring-1",
         GROUP_RING[group],
         selected
-          ? "border-volt-400 ring-2 ring-volt-400 shadow-[0_0_0_2px_rgba(34,211,238,0.2)]"
-          : "border-slate-800",
-        dim && !selected ? "opacity-50" : "",
+          ? "border-orange-500 bg-orange-50 ring-2 ring-orange-500"
+          : "border-slate-200",
+        dim && !selected ? "opacity-70" : "",
       )}
     >
-      <div className="stat-number text-base font-bold text-slate-100">
+      <div className="stat-number text-lg font-bold leading-none text-slate-900">
         #{player.number ?? "-"}
       </div>
-      <div className="mt-0.5 truncate text-xs font-medium text-slate-200">
+      <div className="mt-1 max-w-full truncate text-xs font-semibold text-slate-700">
         {player.name}
       </div>
       <PositionBadge position={positionPlayed} size="xs" className="mt-1" />
@@ -322,10 +335,10 @@ function SubFor({
                 type="button"
                 onClick={() => setChosenPos(p)}
                 className={cn(
-                  "flex-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
+                  "min-h-[44px] flex-1 rounded-md border-2 px-3 py-2 font-display text-base font-bold uppercase tracking-wide transition-colors",
                   chosenPos === p
-                    ? "border-volt-400 bg-volt-400/10 text-volt-300"
-                    : "border-slate-800 bg-slate-900 text-slate-300",
+                    ? "border-navy-900 bg-navy-900 text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-400",
                 )}
               >
                 {p}
@@ -341,18 +354,12 @@ function SubFor({
           {onCourtPlayers.map((p) => {
             const pos = positions[p.id] ?? p.primaryPosition;
             return (
-              <button
+              <PickTile
                 key={p.id}
-                type="button"
+                player={p}
+                positionPlayed={pos}
                 onClick={() => onPick(p.id, chosenPos)}
-                className="flex flex-col items-center rounded-lg border border-slate-800 bg-slate-900 py-2 transition-colors hover:border-slate-700"
-              >
-                <div className="stat-number text-sm font-bold text-slate-100">
-                  #{p.number ?? "-"}
-                </div>
-                <div className="truncate text-xs text-slate-200">{p.name}</div>
-                <PositionBadge position={pos} size="xs" className="mt-1" />
-              </button>
+              />
             );
           })}
         </div>

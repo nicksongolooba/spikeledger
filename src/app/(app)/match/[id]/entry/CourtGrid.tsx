@@ -20,11 +20,12 @@ const COURT_LAYOUT: Record<number, { col: 0 | 1 | 2; row: 0 | 1 }> = {
   6: { col: 1, row: 1 },
 };
 
+// Subtle position-group tint on each tile's ring, matching PositionBadge.
 const GROUP_RING: Record<PositionGroup, string> = {
-  hitter: "ring-amber-400/40",
-  middle: "ring-violet-400/40",
-  setter: "ring-volt-400/40",
-  libero: "ring-emerald-400/40",
+  hitter: "ring-navy-200",
+  middle: "ring-sky-200",
+  setter: "ring-orange-200",
+  libero: "ring-emerald-200",
 };
 
 // Renders the six on-court players in real volleyball formation. Each card is
@@ -58,17 +59,19 @@ export function CourtFormation({
 
   return (
     <div>
-      <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-700" />
+      <div className="mb-1 flex items-center gap-2 font-display text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+        <span className="h-0.5 flex-1 bg-slate-300" />
         Net
-        <span className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-700" />
+        <span className="h-0.5 flex-1 bg-slate-300" />
       </div>
       <div
         className={cn(
-          "relative w-full rounded-xl border border-slate-800 bg-slate-950/40",
-          compact ? "h-36" : "h-48 sm:h-56",
+          "relative w-full rounded-lg border border-slate-200 bg-slate-50",
+          compact ? "h-36" : "h-52 sm:h-60",
         )}
       >
+        {/* Attack line (3 m line) between front and back row */}
+        <div className="pointer-events-none absolute inset-x-2 top-1/2 border-t border-dashed border-slate-300" />
         {slots.map(({ id, courtPos }) => {
           const p = playerById(id);
           if (!p) return null;
@@ -131,44 +134,41 @@ function CourtCard({
       onClick={onClick}
       disabled={!interactive}
       className={cn(
-        "relative flex h-full w-full flex-col items-center justify-center rounded-lg border bg-slate-900 px-1 text-center transition-all",
+        "relative flex h-full w-full flex-col items-center justify-center rounded-md border-2 bg-white px-1 text-center transition-all",
         interactive && "active:scale-[0.97]",
         "ring-1",
         GROUP_RING[group],
         selected
-          ? "border-volt-400 ring-2 ring-volt-400 shadow-[0_0_0_2px_rgba(34,211,238,0.25)]"
+          ? "border-orange-500 bg-orange-50 ring-2 ring-orange-500"
           : isServer
-            ? "border-amber-400/80"
-            : "border-slate-800",
+            ? "border-amber-400"
+            : "border-slate-200",
       )}
     >
       {/* Court position number, top-left */}
-      <span className="absolute left-1 top-0.5 stat-number text-[9px] font-bold text-slate-600">
+      <span className="stat-number absolute left-1.5 top-0.5 text-[10px] font-bold text-slate-400">
         {courtPos}
       </span>
       {/* Server badge, top-right */}
       {isServer && (
-        <span className="absolute right-0.5 top-0.5 flex items-center gap-0.5 rounded bg-amber-400 px-1 text-[8px] font-bold uppercase tracking-wide text-amber-950">
-          <svg viewBox="0 0 24 24" fill="currentColor" className="h-2 w-2">
-            <circle cx="12" cy="12" r="9" />
-          </svg>
+        <span className="absolute right-1 top-1 rounded bg-amber-400 px-1 font-display text-[9px] font-bold uppercase tracking-wide text-amber-950">
           Srv
         </span>
       )}
       <div
         className={cn(
-          "stat-number font-bold text-slate-100",
-          compact ? "text-sm" : "text-base",
+          "stat-number font-bold leading-none text-slate-900",
+          compact ? "text-base" : "text-xl",
         )}
       >
         #{player.number ?? "-"}
       </div>
       {!compact && (
-        <div className="mt-0.5 max-w-full truncate px-1 text-xs font-medium text-slate-200">
+        <div className="mt-1 max-w-full truncate px-1 text-xs font-semibold text-slate-700">
           {player.name}
         </div>
       )}
-      <PositionBadge position={positionPlayed} size="xs" className="mt-0.5" />
+      <PositionBadge position={positionPlayed} size="xs" className="mt-1" />
     </button>
   );
 }

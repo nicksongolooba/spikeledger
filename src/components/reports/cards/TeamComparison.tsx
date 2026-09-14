@@ -2,8 +2,17 @@ import { fmtNum } from "@/engine/derived-stats";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
 import {
+  REPORT_BG,
+  REPORT_BODY,
+  REPORT_BORDER,
   REPORT_CARD_BG,
+  REPORT_FONT_DISPLAY,
   REPORT_MUTED,
+  REPORT_NAVY,
+  REPORT_NAVY_LIGHT,
+  REPORT_ORANGE,
+  REPORT_ORANGE_DEEP,
+  REPORT_ORANGE_TINT,
   type ReportCardData,
 } from "./types";
 
@@ -18,22 +27,24 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
   return (
     <div
       style={{
-        background: REPORT_CARD_BG,
-        border: "1px solid #1b2742",
-        borderRadius: "16px",
+        background: REPORT_BG,
+        border: `1px solid ${REPORT_BORDER}`,
+        borderRadius: "12px",
         padding: "18px 20px",
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "4px",
       }}
     >
       <div
         style={{
+          fontFamily: REPORT_FONT_DISPLAY,
           fontSize: "16px",
           fontWeight: 700,
-          color: "#b6c0d1",
+          color: REPORT_ORANGE_DEEP,
           textTransform: "uppercase",
-          letterSpacing: "0.06em",
+          letterSpacing: "0.12em",
+          marginBottom: "6px",
         }}
       >
         {label}
@@ -48,13 +59,30 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
               alignItems: "center",
               gap: "10px",
               fontSize: "16px",
+              margin: "0 -8px",
+              padding: "5px 8px",
+              borderRadius: "6px",
+              background: r.isMe ? REPORT_ORANGE_TINT : "transparent",
             }}
           >
+            {/* Orange marker on the featured player's row */}
+            <span
+              style={{
+                width: "4px",
+                height: "18px",
+                borderRadius: "2px",
+                background: r.isMe ? REPORT_ORANGE : "transparent",
+                flexShrink: 0,
+              }}
+            />
             <span
               style={{
                 width: "110px",
-                color: r.isMe ? "#cbf03c" : "#8a97ad",
+                color: r.isMe ? REPORT_NAVY : REPORT_MUTED,
                 fontWeight: r.isMe ? 700 : 500,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}
             >
               {r.player}
@@ -63,8 +91,8 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
               style={{
                 flex: 1,
                 height: "16px",
-                background: "#121b30",
-                borderRadius: "8px",
+                background: REPORT_CARD_BG,
+                borderRadius: "4px",
                 overflow: "hidden",
               }}
             >
@@ -72,8 +100,8 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
                 style={{
                   width: `${width}%`,
                   height: "100%",
-                  background: r.isMe ? "#cbf03c" : "#3c4f78",
-                  borderRadius: "8px",
+                  background: r.isMe ? REPORT_NAVY : REPORT_NAVY_LIGHT,
+                  borderRadius: "4px",
                   minWidth: "4px",
                 }}
               />
@@ -82,9 +110,11 @@ function chart(rows: ChartRow[], label: string, fmt: (n: number) => string) {
               style={{
                 width: "70px",
                 textAlign: "right",
-                fontFamily: '"JetBrains Mono", monospace',
-                color: r.isMe ? "#cbf03c" : "#b6c0d1",
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "20px",
                 fontWeight: 700,
+                lineHeight: 1,
+                color: r.isMe ? REPORT_NAVY : REPORT_MUTED,
               }}
             >
               {fmt(r.value)}
@@ -145,7 +175,7 @@ export function TeamComparison({ data }: { data: ReportCardData }) {
         style={{
           marginTop: "28px",
           fontSize: "18px",
-          color: REPORT_MUTED,
+          color: REPORT_BODY,
           lineHeight: 1.4,
         }}
       >

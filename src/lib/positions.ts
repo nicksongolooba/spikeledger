@@ -26,15 +26,17 @@ export const POSITION_GROUP: Record<Position, PositionGroup> = {
   DS: "libero",
 };
 
-// Tailwind class strings for position badges.
-// Hitters: amber. Middles: violet. Setters: volt. Liberos: emerald.
+// Tailwind class strings for position badges. Four position groups, four
+// solid chips: hitters navy, middles steel blue, setters orange (they run the
+// offense, so they get the accent), liberos green. Report cards derive their
+// inline colors from these strings, so keep the color names in sync.
 export const POSITION_BADGE_CLASS: Record<Position, string> = {
-  OH: "bg-amber-400 text-amber-950",
-  RS: "bg-amber-400 text-amber-950",
-  OPP: "bg-amber-400 text-amber-950",
-  UTIL: "bg-amber-400 text-amber-950",
-  MB: "bg-violet-400 text-violet-950",
-  S: "bg-volt-400 text-volt-950",
-  L: "bg-emerald-400 text-emerald-950",
-  DS: "bg-emerald-400 text-emerald-950",
+  OH: "bg-navy-800 text-white",
+  RS: "bg-navy-800 text-white",
+  OPP: "bg-navy-800 text-white",
+  UTIL: "bg-navy-800 text-white",
+  MB: "bg-sky-700 text-white",
+  S: "bg-orange-500 text-white",
+  L: "bg-emerald-600 text-white",
+  DS: "bg-emerald-600 text-white",
 };

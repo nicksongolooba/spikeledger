@@ -24,17 +24,18 @@ export default async function RosterPage({ params }: { params: { id: string } })
         ]}
       />
 
-      <header className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Roster</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Add, edit, and deactivate players. Inactive players keep their stat
-            history but won&apos;t appear in new match entry.
-          </p>
-        </div>
+      <header className="mt-4">
+        <div className="eyebrow">{team.name}</div>
+        <h1 className="mt-1 font-display text-3xl font-bold leading-none tracking-tight text-slate-900 sm:text-4xl">
+          Roster
+        </h1>
+        <p className="mt-3 max-w-xl text-slate-600">
+          Add, edit and deactivate players. Inactive players keep their stat
+          history but won&apos;t show up in match entry.
+        </p>
       </header>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <RosterClient teamId={team.id} initialPlayers={players} />
       </div>
     </div>

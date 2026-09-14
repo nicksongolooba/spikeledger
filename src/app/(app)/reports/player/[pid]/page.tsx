@@ -195,12 +195,12 @@ export default async function PlayerReportPage({
         : "Kills/Match";
   const primaryColor =
     group === "libero_ds"
-      ? "#34d399"
+      ? "#e4520b"
       : group === "setter_middle"
         ? mostPlayed === "S"
-          ? "#cbf03c"
-          : "#a78bfa"
-        : "#fbbf24";
+          ? "#e4520b"
+          : "#e4520b"
+        : "#e4520b";
 
   const tiles = statTilesFor(group, overall);
 
@@ -217,11 +217,11 @@ export default async function PlayerReportPage({
       {/* Header */}
       <header className="mt-4 flex flex-wrap items-end justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 stat-number text-2xl font-bold">
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 stat-number text-2xl font-bold">
             #{player.number ?? "-"}
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">
               {player.name}
             </h1>
             <div className="mt-1.5 flex flex-wrap gap-1.5 text-sm">
@@ -229,7 +229,7 @@ export default async function PlayerReportPage({
               {player.secondaryPosition && (
                 <PositionBadge position={player.secondaryPosition} />
               )}
-              <span className="text-slate-400">
+              <span className="text-slate-600">
                 · {player.team.name}
               </span>
             </div>
@@ -252,7 +252,7 @@ export default async function PlayerReportPage({
 
       {statLines.length === 0 ? (
         <div className="mt-8 card p-8 text-center">
-          <p className="text-slate-400">
+          <p className="text-slate-600">
             {player.name} hasn&apos;t logged any stats yet. Stats from match
             entry will populate this report automatically.
           </p>
@@ -281,8 +281,8 @@ export default async function PlayerReportPage({
                   {(overall.bankAccount.ratio * 100).toFixed(0)}% ratio
                 </div>
               </div>
-              <div className="text-right text-xs text-slate-400">
-                <div>Evaluated as: <span className="text-slate-200">{POSITION_LABELS[mostPlayed]}</span></div>
+              <div className="text-right text-xs text-slate-600">
+                <div>Evaluated as: <span className="text-slate-800">{POSITION_LABELS[mostPlayed]}</span></div>
                 <div>{overall.matchesPlayed} matches · {overall.setsPlayed} sets</div>
               </div>
             </div>
@@ -302,7 +302,7 @@ export default async function PlayerReportPage({
 
           {/* Breakdown pies */}
           <section className="mt-8">
-            <h2 className="mb-3 text-lg font-semibold">Bank Account breakdown</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight mb-3 text-slate-900">Bank Account breakdown</h2>
             <BankAccountBreakdownPie
               deposits={overall.bankAccount.depositBreakdown}
               withdrawals={overall.bankAccount.withdrawalBreakdown}
@@ -311,7 +311,7 @@ export default async function PlayerReportPage({
 
           {/* Trend */}
           <section className="mt-8">
-            <h2 className="mb-3 text-lg font-semibold">Tournament trend</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight mb-3 text-slate-900">Tournament trend</h2>
             <div className="card p-4">
               <PlayerTrendChart
                 data={trendData}
@@ -323,10 +323,10 @@ export default async function PlayerReportPage({
 
           {/* Per-tournament breakdown table */}
           <section className="mt-8">
-            <h2 className="mb-3 text-lg font-semibold">Per-tournament breakdown</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight mb-3 text-slate-900">Per-tournament breakdown</h2>
             <div className="card overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
+                <thead className="bg-white/80 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th className="px-3 py-2.5 text-left">Tournament</th>
                     <th className="px-3 py-2.5 text-left">Pos</th>
@@ -341,10 +341,10 @@ export default async function PlayerReportPage({
                     <th className="px-3 py-2.5 text-right">Bank</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-200">
                   {breakdown.map((b) => (
                     <tr key={b.tournamentId}>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-100">
+                      <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
                         {b.tournamentName}
                       </td>
                       <td className="px-3 py-2.5">
@@ -394,16 +394,16 @@ export default async function PlayerReportPage({
 function StatTile({ label, value, accent }: StatTileItem) {
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-300"
+      ? "text-emerald-700"
       : accent === "red"
-        ? "text-red-300"
+        ? "text-red-700"
         : accent === "cyan"
-          ? "text-volt-300"
+          ? "text-orange-700"
           : accent === "violet"
-            ? "text-violet-300"
+            ? "text-orange-700"
             : accent === "amber"
-              ? "text-amber-300"
-              : "text-slate-100";
+              ? "text-amber-700"
+              : "text-slate-900";
   return (
     <div className="card p-4">
       <div className="text-xs uppercase tracking-wide text-slate-500">
