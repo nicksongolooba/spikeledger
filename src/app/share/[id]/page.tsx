@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Wordmark } from "@/components/layout/Wordmark";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 
@@ -90,6 +91,9 @@ export default async function SharePage({
         </div>
 
         <footer className="mt-14 border-t border-slate-200 pt-6 text-center text-sm text-slate-500">
+          <div className="mb-3 flex justify-center">
+            <Wordmark size="sm" />
+          </div>
           <span className="font-medium text-slate-700">
             Powered by SpikeLedger
           </span>{" "}

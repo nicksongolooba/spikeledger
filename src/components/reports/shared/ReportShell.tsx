@@ -14,6 +14,7 @@ import {
   REPORT_TEXT,
   REPORT_WIDTH,
 } from "../cards/types";
+import { LOGO_RATIO } from "@/components/layout/Wordmark";
 
 // Position-group accent for the stripe under the header band. Same families
 // as the position badges in src/lib/positions.ts: hitters navy, setters and
@@ -26,6 +27,10 @@ const GROUP_ACCENT: Record<PositionGroup, string> = {
 
 const HEADER_HEIGHT = 88;
 const STRIPE_HEIGHT = 10;
+// White-text logo on the navy band. Same-origin PNG, so html-to-image can
+// inline it when the card is rasterised.
+const LOGO_HEIGHT = 44;
+const LOGO_WIDTH = Math.round(LOGO_HEIGHT * LOGO_RATIO);
 
 interface Props {
   position: Position;
@@ -70,18 +75,14 @@ export function ReportShell({ position, accentOverride, cardKey, children }: Pro
           boxSizing: "border-box",
         }}
       >
-        <div
-          style={{
-            fontFamily: REPORT_FONT_DISPLAY,
-            fontSize: "30px",
-            textTransform: "uppercase",
-            letterSpacing: "0.02em",
-            lineHeight: 1,
-          }}
-        >
-          <span style={{ fontWeight: 800 }}>Spike</span>
-          <span style={{ fontWeight: 500 }}>Ledger</span>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-full-on-dark.png"
+          alt="SpikeLedger"
+          width={LOGO_WIDTH}
+          height={LOGO_HEIGHT}
+          style={{ display: "block", width: `${LOGO_WIDTH}px`, height: `${LOGO_HEIGHT}px` }}
+        />
         <div
           style={{
             fontFamily: REPORT_FONT_DISPLAY,

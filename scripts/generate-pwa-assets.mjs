@@ -1,11 +1,23 @@
-// Generates PWA icons (manifest) and iOS splash screens from existing brand art.
+// Generates every derived brand asset: first the base art out of the logo
+// sheet (see scripts/extract-brand-assets.mjs), then the PWA manifest icons
+// and iOS splash screens from that.
 // Run: node scripts/generate-pwa-assets.mjs
-// Sources: public/logo-icon.png (512x512 orange mark) and public/logo-full.png (wordmark).
+// Sources: "spikeledger logo update.png" at the repo root (or LOGO_SHEET=...).
+// If the sheet is missing, the existing public/logo-icon.png (512 circular
+// icon) and public/logo-full.png (horizontal logo) are used as-is.
 
 import sharp from "sharp";
+import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
+import { BRAND_NAVY, SHEET, extractBrandAssets } from "./extract-brand-assets.mjs";
 
-const MASKABLE_BG = "#0b1a33"; // navy-900 behind the orange mark
+if (existsSync(SHEET)) {
+  await extractBrandAssets(SHEET);
+} else {
+  console.log(`(no logo sheet at "${SHEET}" - reusing the current public/logo-*.png)`);
+}
+
+const MASKABLE_BG = BRAND_NAVY; // the sheet's navy behind the circular mark
 const SPLASH_BG = "#f4f6f9"; // paper - matches the light app shell
 const ICON_SRC = "public/logo-icon.png";
 const WORDMARK_SRC = "public/logo-full.png";
