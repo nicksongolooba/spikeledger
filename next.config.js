@@ -26,6 +26,24 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  // IMAGE OPTIMIZATION IS OFF (since 2026-09-15) to stay inside Vercel's free
+  // Hobby allowance. On Hobby, every size and format Next.js generates for an
+  // image counts as an "image transformation" (5,000 a month included, used
+  // on each cache miss). Past the limit, new images fail with a 402 and
+  // visitors see the alt text instead of the photo.
+  //
+  // What this means now: <Image> serves each committed file as-is, with no
+  // per-screen resizing, no WebP and no srcset. Lazy loading and blur
+  // placeholders still work. The photos in src/assets/photos are pre-sized
+  // by scripts/optimize-photos.mjs, so pages stay reasonable, but phones
+  // download the same files as laptops (the landing hero is about 400 KB).
+  //
+  // TO RE-ENABLE: delete the `images` line below (or set unoptimized: false),
+  // commit and redeploy. Nothing else changes: every image already uses
+  // next/image with a `sizes` prop, so responsive WebP comes back on its own.
+  // Worth doing once real traffic makes page speed matter more than the free
+  // tier limit, or when the project moves to Vercel Pro.
+  images: { unoptimized: true },
   // Keep these as native Node `require()` calls — don't let webpack bundle
   // them. Bundling `ws` strips its optional native-addon fallback (bufferutil)
   // and the WebSocket Sender.frame() then crashes mid-handshake. Neon's
