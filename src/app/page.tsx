@@ -455,7 +455,7 @@ export default function LandingPage() {
             <ol className="mt-7 grid gap-x-8 gap-y-3 sm:grid-cols-2">
               {CARDS.map((c) => (
                 <li key={c.n} className="flex gap-3">
-                  <span className="stat-number text-2xl font-bold leading-none text-cyan-500">{c.n}</span>
+                  <span className="stat-number text-2xl font-bold leading-none text-cyan-700">{c.n}</span>
                   <div>
                     <div className="font-semibold leading-tight">{c.label}</div>
                     <div className="mt-0.5 text-sm text-slate-500">{c.caption}</div>
