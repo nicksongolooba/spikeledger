@@ -95,8 +95,8 @@ export default async function ParentDashboard() {
                     {c.live?.status === "live" && (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-950 px-2.5 py-1 font-display text-xs font-bold uppercase tracking-widest text-white">
                         <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500" />
                         </span>
                         Live
                       </span>
@@ -149,10 +149,10 @@ export default async function ParentDashboard() {
                   {c.viewable ? (
                     <Link
                       href={`/parent/player/${c.player.id}`}
-                      className={cn("card card-hover block p-5", c.live?.status === "live" && "border-orange-300")}
+                      className={cn("card card-hover block p-5", c.live?.status === "live" && "border-cyan-300")}
                     >
                       {inner}
-                      <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-orange-700">
+                      <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-cyan-700">
                         Open
                         <ArrowRight size={14} strokeWidth={2} aria-hidden />
                       </div>

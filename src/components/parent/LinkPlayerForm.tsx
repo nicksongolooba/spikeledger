@@ -70,7 +70,7 @@ export function LinkPlayerForm({ compact = false }: { compact?: boolean }) {
         </div>
       )}
       {linked && (
-        <div className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700">
+        <div className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-green-700">
           <Check size={16} strokeWidth={2.5} aria-hidden />
           Linked to {linked}.
         </div>

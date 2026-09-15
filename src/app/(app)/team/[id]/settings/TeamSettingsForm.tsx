@@ -116,7 +116,7 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
             type="checkbox"
             checked={allowParentView}
             onChange={(e) => setAllowParentView(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-orange-500"
+            className="mt-1 h-4 w-4 accent-cyan-500"
           />
           <span>
             <span className="block font-semibold text-slate-900">Allow parent live view</span>
@@ -133,7 +133,7 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
             checked={allowParentView && notifyParentsOnStart}
             disabled={!allowParentView}
             onChange={(e) => setNotifyParentsOnStart(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-orange-500"
+            className="mt-1 h-4 w-4 accent-cyan-500"
             name="notifyParentsOnStart"
           />
           <span>
@@ -161,7 +161,7 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
           {busy ? "Saving…" : "Save settings"}
         </button>
         {saved && (
-          <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-700">
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-green-700">
             <Check size={16} strokeWidth={2.5} aria-hidden />
             Saved
           </span>

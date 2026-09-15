@@ -138,13 +138,13 @@ export function LiveMatchCard({
   const isFinal = snap.status === "final";
   const stats = snap.stats;
   const resultTone =
-    m.result === "WIN" ? "bg-emerald-50 text-emerald-700" : m.result === "LOSS" ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600";
+    m.result === "WIN" ? "bg-green-50 text-green-700" : m.result === "LOSS" ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600";
 
   return (
-    <section className={cn("card overflow-hidden", isLive && "border-orange-300")}>
+    <section className={cn("card overflow-hidden", isLive && "border-cyan-300")}>
       <div className={cn("flex flex-wrap items-center justify-between gap-3 px-5 py-4", isLive ? "bg-navy-950 text-white" : "border-b border-slate-200")}>
         <div>
-          <div className={cn("eyebrow", isLive ? "text-orange-300" : "text-slate-500")}>
+          <div className={cn("eyebrow", isLive ? "text-cyan-500" : "text-slate-500")}>
             {isLive ? "Happening now" : isFinal ? "Latest match" : "Next up"}
           </div>
           <div className="mt-1 font-display text-2xl font-bold leading-none">
@@ -157,8 +157,8 @@ export function LiveMatchCard({
         {isLive ? (
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-display text-sm font-bold uppercase tracking-widest text-white">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-500" />
             </span>
             Live
           </span>
@@ -182,7 +182,7 @@ export function LiveMatchCard({
               key={s.setNumber}
               className={cn(
                 "stat-number text-base font-bold",
-                s.decided === "us" ? "text-emerald-700" : s.decided === "them" ? "text-red-700" : "text-slate-900",
+                s.decided === "us" ? "text-green-700" : s.decided === "them" ? "text-red-700" : "text-slate-900",
               )}
               title={`Set ${s.setNumber}`}
             >
@@ -297,7 +297,7 @@ function SetWinChanceBar({ current }: { current: NonNullable<LiveSnapshot["curre
           <span
             className={cn(
               "stat-number text-2xl font-bold leading-none",
-              pct === null ? "text-slate-400" : good ? "text-emerald-700" : "text-red-700",
+              pct === null ? "text-slate-400" : good ? "text-green-700" : "text-red-700",
             )}
           >
             {pct === null ? "\u2014" : `${pct}%`}
@@ -308,7 +308,7 @@ function SetWinChanceBar({ current }: { current: NonNullable<LiveSnapshot["curre
         <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct ?? undefined} aria-label="Set win chance">
           <div className="absolute inset-y-0 left-1/2 w-px bg-slate-300" aria-hidden />
           <div
-            className={cn("h-full rounded-full transition-[width] duration-500", good ? "bg-emerald-600" : "bg-red-600")}
+            className={cn("h-full rounded-full transition-[width] duration-500", good ? "bg-green-600" : "bg-red-600")}
             style={{ width: `${pct ?? 0}%` }}
           />
         </div>
