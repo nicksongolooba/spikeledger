@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { invalidateLive } from "@/lib/live-cache";
 
 const CreateMatchSchema = z.object({
   opponent: z.string().min(1).max(120),
@@ -54,6 +55,8 @@ export async function POST(
       matchNumber: parsed.data.matchNumber,
     },
   });
+  // A new match becomes the one parents watch.
+  invalidateLive({ teamId: tournament.teamId });
 
   return NextResponse.json(match);
 }

@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertCoachOwnsMatch } from "@/lib/match-access";
+import { invalidateLive } from "@/lib/live-cache";
 
 const UpdateMatchSchema = z.object({
   setsWon: z.number().int().min(0).max(5).optional(),
@@ -34,6 +35,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     where: { id: params.id },
     data: parsed.data,
   });
+  // Score totals and the result feed the parent view and the team's rally
+  // history, so drop both cache entries.
+  invalidateLive({ matchId: params.id, teamId: owns.tournament.teamId });
 
   return NextResponse.json(updated);
 }

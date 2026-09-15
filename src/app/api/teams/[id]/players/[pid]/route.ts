@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertTeamOwnership } from "@/lib/access";
+import { invalidateLive } from "@/lib/live-cache";
 
 const PositionEnum = z.nativeEnum(Position);
 
@@ -77,6 +78,7 @@ export async function PATCH(
       ...(parsed.data.isActive !== undefined && { isActive: parsed.data.isActive }),
     },
   });
+  invalidateLive({ teamId: params.id });
 
   return NextResponse.json(updated);
 }

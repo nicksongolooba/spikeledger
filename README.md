@@ -120,7 +120,8 @@ For local webhook testing: `stripe listen --forward-to localhost:3000/api/stripe
 ```bash
 node --import tsx scripts/verify-bank-account.mjs    # 32 unit tests of the Bank Account engine
 node --import tsx scripts/verify-win-probability.mjs  # 39 unit tests of the live set win probability engine
-node --import tsx scripts/verify-parent-flow.mts      # 74 DB-backed checks: parent codes, limits, live view (creates + deletes test rows)
+node --import tsx scripts/verify-parent-flow.mts      # 84 DB-backed checks: parent codes, limits, live view + its cache (creates + deletes test rows)
+DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --parents 200 --seconds 120   # parent live view load test against a running dev server
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
 ```
 

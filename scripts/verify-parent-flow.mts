@@ -22,8 +22,11 @@ import {
   teamPrefix,
   unlinkParent,
 } from "@/lib/parent";
-import { buildLiveSnapshot, buildParentPlayerView, matchStatus } from "@/lib/parent-view";
+import { buildLiveSnapshot, buildParentPlayerView, getTeamLive, matchStatus } from "@/lib/parent-view";
 import { teamHistoricalRallyRate } from "@/lib/win-probability-data";
+import { invalidateLive, liveCacheStats, resetLiveCache } from "@/lib/live-cache";
+import { rateLimit, resetRateLimits } from "@/lib/rate-limit";
+import { weakEtag } from "@/lib/etag";
 
 async function expectParentError(fn: () => Promise<unknown>, status: number): Promise<boolean> {
   try {
@@ -185,7 +188,13 @@ async function main() {
     const match = await prisma.match.create({
       data: { tournamentId: tournament.id, opponent: "Metro Tigers", matchNumber: 1 },
     });
-    let snap = await buildLiveSnapshot(maya.id);
+    // The test writes straight to the database, so it invalidates the live
+    // cache the way the courtside routes do before each fresh read.
+    const liveNow = async () => {
+      invalidateLive({ teamId: teamA.id, matchId: match.id });
+      return buildLiveSnapshot(maya.id);
+    };
+    let snap = await liveNow();
     check("snapshot before lineup = pending", snap.status === "pending" && snap.match?.opponent === "Metro Tigers");
     await prisma.statLine.create({
       data: { matchId: match.id, playerId: maya.id, positionPlayed: "L", kills: 0, aces: 1, digs: 6, sr2: 3, sr3: 1, serveErrors: 1 },
@@ -193,7 +202,7 @@ async function main() {
     await prisma.statLine.create({
       data: { matchId: match.id, playerId: zara.id, positionPlayed: "OH", kills: 7 },
     });
-    snap = await buildLiveSnapshot(maya.id);
+    snap = await liveNow();
     check("snapshot during play = live with the child's numbers", snap.status === "live" && snap.stats?.digs === 6 && snap.stats?.aces === 1);
     check("live snapshot carries a Bank Account", snap.bankAccount !== null && snap.bankAccount!.balance === 4);
     check("no set scores yet = no current set", snap.sets.length === 0 && snap.currentSet === null);
@@ -203,14 +212,14 @@ async function main() {
     await prisma.matchSetScore.create({
       data: { matchId: match.id, setNumber: 1, us: 1, them: 1, history: [[0, 0], [1, 0], [1, 1]] },
     });
-    snap = await buildLiveSnapshot(maya.id);
+    snap = await liveNow();
     check("current set score reaches the parent", snap.currentSet?.setNumber === 1 && snap.currentSet?.us === 1 && snap.currentSet?.them === 1);
     check("win chance hidden under 3 rallies", snap.currentSet?.winChancePct === null && snap.currentSet?.rallies === 2);
     await prisma.matchSetScore.update({
       where: { matchId_setNumber: { matchId: match.id, setNumber: 1 } },
       data: { us: 20, them: 12, history: Array.from({ length: 33 }, (_, i) => [Math.min(20, Math.ceil(i * 20 / 32)), Math.min(12, Math.floor(i * 12 / 32))]) },
     });
-    snap = await buildLiveSnapshot(maya.id);
+    snap = await liveNow();
     check("leading 20-12 = high set win chance", (snap.currentSet?.winChancePct ?? 0) > 85);
     check("sparkline history has one point per rally", (snap.currentSet?.winChanceHistory.length ?? 0) > 20);
     await prisma.matchSetScore.create({
@@ -220,7 +229,7 @@ async function main() {
       where: { matchId_setNumber: { matchId: match.id, setNumber: 1 } },
       data: { us: 25, them: 15 },
     });
-    snap = await buildLiveSnapshot(maya.id);
+    snap = await liveNow();
     check("finished sets are marked decided", snap.sets.length === 2 && snap.sets[0].decided === "us" && snap.sets[1].decided === "them");
     check("a decided current set reports 0%/100%", snap.currentSet?.setNumber === 2 && snap.currentSet?.winChancePct === 0);
     let badHistory = false;
@@ -229,7 +238,7 @@ async function main() {
         where: { matchId_setNumber: { matchId: match.id, setNumber: 2 } },
         data: { history: [[1, "x"], [99, 99], "junk", [2, 2]] },
       });
-      snap = await buildLiveSnapshot(maya.id);
+      snap = await liveNow();
       badHistory = snap.currentSet !== null; // garbage rows ignored, no crash
     } catch {
       badHistory = false;
@@ -237,13 +246,46 @@ async function main() {
     check("malformed score history is ignored, not fatal", badHistory);
 
     await prisma.match.update({ where: { id: match.id }, data: { result: "WIN", setsWon: 3, setsLost: 1 } });
-    snap = await buildLiveSnapshot(maya.id);
+    snap = await liveNow();
     check("snapshot after End match = final", snap.status === "final" && snap.match?.setsWon === 3);
     const hist = await teamHistoricalRallyRate(teamA.id);
     check("finished match feeds the historical rally rate", hist !== null && hist > 0.5 && hist < 0.6);
     check("excluding the live match removes its history", (await teamHistoricalRallyRate(teamA.id, match.id)) === null);
 
+    // 4c. Live cache: shared reads, invalidation, coalescing, ETag, rate limit
+    resetLiveCache();
+    const a = await liveNow();
+    const fillsAfterFirst = liveCacheStats().fills;
+    const b = await buildLiveSnapshot(maya.id);
+    check("second read within the TTL is served from cache", liveCacheStats().fills === fillsAfterFirst && b.etag === a.etag);
+    await prisma.matchSetScore.update({
+      where: { matchId_setNumber: { matchId: match.id, setNumber: 2 } },
+      data: { us: 26, them: 27 },
+    });
+    const c = await buildLiveSnapshot(maya.id);
+    check("a write without invalidation is not seen until the TTL (by design)", c.currentSet?.us === b.currentSet?.us);
+    invalidateLive({ matchId: match.id });
+    const d = await buildLiveSnapshot(maya.id);
+    check("invalidating the match makes the next read fresh", d.currentSet?.us === 26 && d.etag !== c.etag);
+    check("lastUpdated follows the set-score write", d.lastUpdated !== null && d.lastUpdated! > (c.lastUpdated ?? ""));
+    resetLiveCache();
+    const fillsBefore = liveCacheStats().fills;
+    await Promise.all(Array.from({ length: 50 }, () => buildLiveSnapshot(maya.id)));
+    check("50 concurrent reads coalesce into one load per key", liveCacheStats().fills - fillsBefore === 2);
+    const teamLive = await getTeamLive(teamA.id);
+    check("team context carries the gate data for the poll", teamLive?.allowParentView === true && teamLive.players[maya.id]?.parentIds.includes(parent.id) === true && teamLive.players[zara.id]?.parentIds.length === 0);
+    check("etag is content-based", weakEtag({ a: 1 }) === weakEtag({ a: 1 }) && weakEtag({ a: 1 }) !== weakEtag({ a: 2 }));
+    resetRateLimits();
+    const t0 = 1_000_000;
+    let passed8 = 0;
+    for (let i = 0; i < 8; i += 1) if (rateLimit("p1", { max: 8, windowMs: 60_000, now: t0 + i * 1000 }).ok) passed8 += 1;
+    const ninth = rateLimit("p1", { max: 8, windowMs: 60_000, now: t0 + 8_000 });
+    check("8 polls a minute pass, the 9th is refused with Retry-After", passed8 === 8 && !ninth.ok && ninth.retryAfterSec >= 52);
+    check("another parent is not affected", rateLimit("p2", { max: 8, windowMs: 60_000, now: t0 + 8_000 }).ok);
+    check("the window slides", rateLimit("p1", { max: 8, windowMs: 60_000, now: t0 + 61_000 }).ok);
+
     // 5. Full view never leaks teammates
+    invalidateLive({ teamId: teamA.id, matchId: match.id });
     const view = await buildParentPlayerView(maya.id);
     check("view built for the child", view?.player.name === "Maya" && view.hasStats);
     const dump = JSON.stringify(view);

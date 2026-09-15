@@ -19,6 +19,8 @@ import { getEffectivePlan } from "@/lib/club";
 import { hasFeature } from "@/lib/plan-limits";
 import { computeSetWinChance, setWinner, setRulesFor } from "@/engine/win-probability";
 import { parseScoreHistory, teamHistoricalRallyRate } from "@/lib/win-probability-data";
+import { cachedLive, matchLiveKey, teamLiveKey } from "@/lib/live-cache";
+import { weakEtag } from "@/lib/etag";
 import type { ReportCardData } from "@/components/reports/cards/types";
 import type { ImprovementArea } from "@/components/reports/utils/improvement-rules";
 
@@ -81,7 +83,12 @@ export interface LiveSnapshot {
     winChanceHistory: number[]; // 0..1 after each point, for the sparkline
     rallies: number;
   } | null;
+  // When the match data last changed (latest set-score write, else match
+  // creation) and when it was read from the database.
+  lastUpdated: string | null; // ISO
   updatedAt: string; // ISO
+  // Weak ETag of the substantive fields; the poll answers 304 to it.
+  etag: string;
 }
 
 function liveStatsFrom(line: StatLine): LiveStats {
@@ -99,56 +106,173 @@ function liveStatsFrom(line: StatLine): LiveStats {
   };
 }
 
-// The child's current / most recent match. Polled by the parent view.
-export async function buildLiveSnapshot(playerId: string): Promise<LiveSnapshot> {
-  const player = await prisma.player.findUnique({
-    where: { id: playerId },
+// ---------------------------------------------------------------------------
+// Live data for parents. Two cached reads (see src/lib/live-cache.ts) feed
+// every parent poll: the team context (who may watch whom, which match is
+// current, the team's rally history) and the current match (stat lines, set
+// scores). 200 parents on one match share one set of queries per 10-second
+// window; the courtside routes invalidate the keys when they write.
+// ---------------------------------------------------------------------------
+
+export interface TeamLive {
+  teamId: string;
+  fetchedAt: string;
+  allowParentView: boolean;
+  usesPositions: boolean;
+  players: Record<
+    string,
+    { name: string; primaryPosition: Position; isActive: boolean; parentIds: string[] }
+  >;
+  latestMatchId: string | null;
+  // Rally win rate from finished matches, excluding the current one.
+  historicalRallyRate: number | null;
+}
+
+export interface MatchLive {
+  fetchedAt: string;
+  id: string;
+  opponent: string;
+  matchNumber: number;
+  tournamentName: string;
+  tournamentDate: string;
+  result: MatchResult | null;
+  setsWon: number;
+  setsLost: number;
+  createdAt: string;
+  statCount: number;
+  lines: Record<string, StatLine>; // by playerId
+  setScores: { setNumber: number; us: number; them: number; history: [number, number][]; updatedAt: string }[];
+}
+
+const LATEST_MATCH_ORDER = [
+  { tournament: { startDate: "desc" as const } },
+  { matchNumber: "desc" as const },
+  { createdAt: "desc" as const },
+];
+
+async function loadTeamLive(teamId: string): Promise<TeamLive | null> {
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
     select: {
-      id: true,
-      primaryPosition: true,
-      teamId: true,
-      team: { select: { usesPositions: true } },
+      allowParentView: true,
+      usesPositions: true,
+      players: {
+        select: {
+          id: true,
+          name: true,
+          primaryPosition: true,
+          isActive: true,
+          parentLinks: { select: { parentId: true } },
+        },
+      },
     },
   });
-  const updatedAt = new Date().toISOString();
-  const empty: LiveSnapshot = {
-    status: "none",
+  if (!team) return null;
+  const latest = await prisma.match.findFirst({
+    where: { tournament: { teamId } },
+    orderBy: LATEST_MATCH_ORDER,
+    select: { id: true },
+  });
+  const historicalRallyRate = await teamHistoricalRallyRate(teamId, latest?.id);
+  const players: TeamLive["players"] = {};
+  for (const p of team.players) {
+    players[p.id] = {
+      name: p.name,
+      primaryPosition: p.primaryPosition,
+      isActive: p.isActive,
+      parentIds: p.parentLinks.map((l) => l.parentId),
+    };
+  }
+  return {
+    teamId,
+    fetchedAt: new Date().toISOString(),
+    allowParentView: team.allowParentView,
+    usesPositions: team.usesPositions,
+    players,
+    latestMatchId: latest?.id ?? null,
+    historicalRallyRate,
+  };
+}
+
+async function loadMatchLive(matchId: string): Promise<MatchLive | null> {
+  const m = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: {
+      tournament: { select: { name: true, startDate: true } },
+      statLines: true,
+      setScores: { orderBy: { setNumber: "asc" } },
+    },
+  });
+  if (!m) return null;
+  const lines: MatchLive["lines"] = {};
+  for (const l of m.statLines) lines[l.playerId] = l;
+  return {
+    fetchedAt: new Date().toISOString(),
+    id: m.id,
+    opponent: m.opponent,
+    matchNumber: m.matchNumber,
+    tournamentName: m.tournament.name,
+    tournamentDate: m.tournament.startDate.toISOString(),
+    result: m.result,
+    setsWon: m.setsWon,
+    setsLost: m.setsLost,
+    createdAt: m.createdAt.toISOString(),
+    statCount: m.statLines.length,
+    lines,
+    setScores: m.setScores.map((sc) => ({
+      setNumber: sc.setNumber,
+      us: sc.us,
+      them: sc.them,
+      history: parseScoreHistory(sc.history),
+      updatedAt: sc.updatedAt.toISOString(),
+    })),
+  };
+}
+
+export function getTeamLive(teamId: string): Promise<TeamLive | null> {
+  return cachedLive(teamLiveKey(teamId), () => loadTeamLive(teamId));
+}
+
+export function getMatchLive(matchId: string): Promise<MatchLive | null> {
+  return cachedLive(matchLiveKey(matchId), () => loadMatchLive(matchId));
+}
+
+function emptySnapshot(): LiveSnapshot {
+  const base = {
+    status: "none" as const,
     match: null,
     stats: null,
     bankAccount: null,
     sets: [],
     currentSet: null,
-    updatedAt,
+    lastUpdated: null,
   };
-  if (!player) return empty;
+  return { ...base, updatedAt: new Date().toISOString(), etag: weakEtag(base) };
+}
 
-  const latest = await prisma.match.findFirst({
-    where: { tournament: { teamId: player.teamId } },
-    orderBy: [{ tournament: { startDate: "desc" } }, { matchNumber: "desc" }, { createdAt: "desc" }],
-    include: {
-      tournament: { select: { name: true, startDate: true } },
-      _count: { select: { statLines: true } },
-      statLines: { where: { playerId } },
-      setScores: { orderBy: { setNumber: "asc" } },
-    },
-  });
-  if (!latest) return empty;
+// Pure: one player's view of the cached match data. No database access, so
+// it can run for every poll.
+export function buildLivePayload(
+  team: TeamLive,
+  match: MatchLive | null,
+  playerId: string,
+): LiveSnapshot {
+  const player = team.players[playerId];
+  if (!player || !match) return emptySnapshot();
 
-  // Set scores + the win probability for the set in progress.
-  const sets = latest.setScores.map((sc) => ({
+  const sets = match.setScores.map((sc) => ({
     setNumber: sc.setNumber,
     us: sc.us,
     them: sc.them,
     decided: setWinner(sc.us, sc.them, setRulesFor(sc.setNumber)),
   }));
-  const lastSet = latest.setScores[latest.setScores.length - 1] ?? null;
+  const lastSet = match.setScores[match.setScores.length - 1] ?? null;
   let currentSet: LiveSnapshot["currentSet"] = null;
   if (lastSet) {
-    const historicalRate = await teamHistoricalRallyRate(player.teamId, latest.id);
-    const history = parseScoreHistory(lastSet.history);
-    const wc = computeSetWinChance(history.length > 0 ? history : [[lastSet.us, lastSet.them]], {
+    const history = lastSet.history.length > 0 ? lastSet.history : [[lastSet.us, lastSet.them] as [number, number]];
+    const wc = computeSetWinChance(history, {
       setNumber: lastSet.setNumber,
-      historicalRate,
+      historicalRate: team.historicalRallyRate,
     });
     currentSet = {
       setNumber: lastSet.setNumber,
@@ -160,24 +284,28 @@ export async function buildLiveSnapshot(playerId: string): Promise<LiveSnapshot>
     };
   }
 
-  const status = matchStatus(latest, latest._count.statLines > 0);
-  const line = latest.statLines[0] ?? null;
-  const mode: BankAccountMode = player.team.usesPositions ? "positions" : "universal";
+  const status = matchStatus({ result: match.result, createdAt: new Date(match.createdAt) }, match.statCount > 0);
+  const line = match.lines[playerId] ?? null;
+  const mode: BankAccountMode = team.usesPositions ? "positions" : "universal";
   const ba = line
     ? calculateBankAccount(line, (line.positionPlayed ?? player.primaryPosition) as Position, mode)
     : null;
+  const lastUpdated = match.setScores.reduce(
+    (latest, sc) => (sc.updatedAt > latest ? sc.updatedAt : latest),
+    match.createdAt,
+  );
 
-  return {
+  const content = {
     status,
     match: {
-      id: latest.id,
-      opponent: latest.opponent,
-      matchNumber: latest.matchNumber,
-      tournamentName: latest.tournament.name,
-      tournamentDate: latest.tournament.startDate.toISOString(),
-      result: latest.result,
-      setsWon: latest.setsWon,
-      setsLost: latest.setsLost,
+      id: match.id,
+      opponent: match.opponent,
+      matchNumber: match.matchNumber,
+      tournamentName: match.tournamentName,
+      tournamentDate: match.tournamentDate,
+      result: match.result,
+      setsWon: match.setsWon,
+      setsLost: match.setsLost,
     },
     stats: line ? liveStatsFrom(line) : null,
     bankAccount: ba
@@ -190,8 +318,21 @@ export async function buildLiveSnapshot(playerId: string): Promise<LiveSnapshot>
       : null,
     sets,
     currentSet,
-    updatedAt,
   };
+  return { ...content, lastUpdated, updatedAt: match.fetchedAt, etag: weakEtag(content) };
+}
+
+// The child's current / most recent match, for the page's first render. The
+// poll endpoint builds the same payload from the same caches.
+export async function buildLiveSnapshot(playerId: string): Promise<LiveSnapshot> {
+  const player = await prisma.player.findUnique({
+    where: { id: playerId },
+    select: { teamId: true },
+  });
+  const team = player ? await getTeamLive(player.teamId) : null;
+  if (!team || !team.players[playerId]) return emptySnapshot();
+  const match = team.latestMatchId ? await getMatchLive(team.latestMatchId) : null;
+  return buildLivePayload(team, match, playerId);
 }
 
 export interface TeamComparisonRow {
