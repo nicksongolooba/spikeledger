@@ -23,3 +23,7 @@ node_modules
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Full-size photo originals. Web copies are generated into src/assets/photos
+# by scripts/optimize-photos.mjs; the originals stay local.
+/public/images/

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
@@ -10,6 +11,9 @@ import {
 } from "@/content/blog/types";
 import { Markdown } from "@/components/blog/Markdown";
 import { BlogCTA } from "@/components/blog/BlogCTA";
+import headerPhoto from "@/assets/photos/player-set-wide.jpg";
+
+const HEADER_ALT = "A setter reaching for the ball at the net, with the stands behind";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL || "https://www.spikeledger.com";
 
@@ -37,11 +41,13 @@ export function generateMetadata({
       url,
       publishedTime: post.date,
       authors: [BLOG_AUTHOR],
+      images: [{ url: `${BASE}${headerPhoto.src}`, width: headerPhoto.width, height: headerPhoto.height, alt: HEADER_ALT }],
     },
     twitter: {
       card: "summary_large_image",
       title: post.metaTitle,
       description: post.metaDescription,
+      images: [`${BASE}${headerPhoto.src}`],
     },
   };
 }
@@ -85,6 +91,17 @@ export default function BlogPostPage({
       </nav>
 
       <header className="border-b border-slate-200 pb-6">
+        <div className="relative mb-6 aspect-[16/9] overflow-hidden rounded-lg bg-navy-900">
+          <Image
+            src={headerPhoto}
+            alt={HEADER_ALT}
+            fill
+            priority
+            placeholder="blur"
+            sizes="(min-width: 768px) 736px, 100vw"
+            className="object-cover"
+          />
+        </div>
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">
           {post.title}
         </h1>
