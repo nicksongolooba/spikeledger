@@ -185,7 +185,7 @@ export default function LandingPage() {
             name: "SpikeLedger",
             applicationCategory: "SportsApplication",
             operatingSystem: "Web",
-            offers: { "@type": "Offer", price: "0", priceCurrency: "CAD" },
+            offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
             description:
               "Volleyball stats that are fair to every position. Courtside stat entry, the Bank Account system, and six-image report cards for coaches.",
           }),
