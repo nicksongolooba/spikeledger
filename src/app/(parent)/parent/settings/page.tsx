@@ -1,5 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { requireParent } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { MatchAlertsSettings } from "@/components/parent/MatchAlertsSettings";
 import { getParentPlayers } from "@/lib/parent";
 import { LinkPlayerForm } from "@/components/parent/LinkPlayerForm";
 import { UnlinkButton } from "@/components/parent/UnlinkButton";
@@ -13,7 +15,11 @@ export default async function ParentSettingsPage({
   searchParams?: { codeError?: string };
 }) {
   const user = await requireParent();
-  const players = await getParentPlayers(user.id);
+  const [players, prefs, activeDevices] = await Promise.all([
+    getParentPlayers(user.id),
+    prisma.user.findUnique({ where: { id: user.id }, select: { emailMatchAlerts: true } }),
+    prisma.pushSubscription.count({ where: { parentId: user.id, active: true } }),
+  ]);
 
   return (
     <div>
@@ -70,6 +76,12 @@ export default async function ParentSettingsPage({
       <div className="mt-6">
         <LinkPlayerForm />
       </div>
+
+      <MatchAlertsSettings
+        vapidPublicKey={process.env.VAPID_PUBLIC_KEY ?? null}
+        emailMatchAlerts={prefs?.emailMatchAlerts ?? true}
+        activeDevices={activeDevices}
+      />
     </div>
   );
 }

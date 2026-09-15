@@ -136,6 +136,9 @@ export function MatchEntry({
   const [configuredSets, setConfiguredSets] = useState<number[]>([]);
   const [showSetStart, setShowSetStart] = useState<boolean>(false);
   const [pointLog, setPointLog] = useState<PointLog>({});
+  // Start match bookkeeping (see notifyStart).
+  const startSentRef = useRef(false);
+  const pendingStartRef = useRef<string[] | null>(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -180,6 +183,8 @@ export function MatchEntry({
       // Keep the lineup modal up only if there's still no lineup set.
       const hasLineup = (persisted.onCourt?.length ?? 0) > 0;
       setShowLineup(!hasLineup);
+      // A saved lineup means Start match already ran on this device.
+      if (hasLineup) startSentRef.current = true;
       // Once the lineup exists but the current set's serve/rotation start was
       // never set, prompt for it so auto-rotation begins from the truth.
       const curSet = persisted.setIdx ?? 0;
@@ -415,6 +420,40 @@ export function MatchEntry({
   }
 
   // ---- Lineup handling ----
+  // ---- Start match: alert parents of the starters ----
+  // The server decides who actually gets alerted (only starters' parents, one
+  // alert per match, nothing once play is underway); this just reports it.
+  const notifyStart = useCallback(
+    async (playerIds: string[]) => {
+      if (playerIds.length === 0) return;
+      try {
+        const res = await fetch(`/api/matches/${matchId}/start`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerIds }),
+        });
+        startSentRef.current = true;
+        pendingStartRef.current = null;
+        if (!res.ok) return;
+        const data = (await res.json()) as { notified?: number };
+        const n = data.notified ?? 0;
+        if (n > 0) pushToast(`${n} ${n === 1 ? "parent" : "parents"} notified`, "info");
+      } catch {
+        // Offline: try again when the connection is back.
+        pendingStartRef.current = [...new Set([...(pendingStartRef.current ?? []), ...playerIds])];
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [matchId],
+  );
+  useEffect(() => {
+    const retry = () => {
+      if (pendingStartRef.current) void notifyStart(pendingStartRef.current);
+    };
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+  }, [notifyStart]);
+
   async function applyLineup(
     newOnCourt: string[],
     newPositions: PositionByPlayer,
@@ -440,6 +479,7 @@ export function MatchEntry({
     } catch {
       pushToast("Lineup queued - will sync when online", "info");
     }
+    void notifyStart(newOnCourt);
   }
 
   function persistPositionPlayed(playerId: string, position: Position) {
@@ -490,6 +530,15 @@ export function MatchEntry({
       `Libero ${lib.name} in for ${playerById(courtId)?.name}`,
       "success",
     );
+    // A libero on court before the first rally is a starter too.
+    const firstSet = sets[0];
+    if (setIdx === 0 && firstSet && firstSet.us + firstSet.them === 0) {
+      if (pendingStartRef.current) {
+        pendingStartRef.current = [...new Set([...pendingStartRef.current, liberoId])];
+      } else if (startSentRef.current) {
+        void notifyStart([liberoId]);
+      }
+    }
   }
 
   // Send the libero back out, restoring the exact player they replaced.

@@ -49,6 +49,7 @@ export default async function TeamSettingsPage({ params }: { params: { id: strin
               season: team.season,
               usesPositions: team.usesPositions,
               allowParentView: team.allowParentView,
+              notifyParentsOnStart: team.notifyParentsOnStart,
               playerCount: team._count.players,
             }}
           />

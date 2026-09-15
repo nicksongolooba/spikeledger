@@ -102,3 +102,68 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// ---------------------------------------------------------------------------
+// Match-start alerts (web push). Payload shape: src/lib/push.ts PushMessage.
+// ---------------------------------------------------------------------------
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || "SpikeLedger";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || "",
+      icon: data.icon || "/icons/icon-192.png",
+      // Same tag = the same match; a repeat replaces instead of stacking.
+      tag: data.tag || undefined,
+      data: { url: data.url || "/parent" },
+    }),
+  );
+});
+
+// Tap: go straight to the player's live view. Reuse an open SpikeLedger
+// window when there is one, otherwise open the app.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const path = (event.notification.data && event.notification.data.url) || "/parent";
+  const target = new URL(path, self.location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const exact = windows.find((c) => c.url === target);
+      if (exact) return exact.focus();
+      const app = windows.find((c) => new URL(c.url).origin === self.location.origin);
+      if (app && "navigate" in app) {
+        await app.focus();
+        return app.navigate(target);
+      }
+      return self.clients.openWindow(target);
+    })(),
+  );
+});
+
+// The browser rotated the subscription (Firefox does this; others rarely).
+// Subscribe again with the same options and tell the server.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      const options = event.oldSubscription && event.oldSubscription.options;
+      const sub = event.newSubscription || (options ? await self.registration.pushManager.subscribe(options) : null);
+      if (!sub) return;
+      await fetch("/api/push/subscriptions", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...sub.toJSON(),
+          renewed: true,
+          replaces: event.oldSubscription ? event.oldSubscription.endpoint : undefined,
+        }),
+      });
+    })().catch(() => undefined),
+  );
+});

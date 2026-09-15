@@ -12,6 +12,7 @@ interface TeamSettings {
   season: string | null;
   usesPositions: boolean;
   allowParentView: boolean;
+  notifyParentsOnStart: boolean;
   playerCount: number;
 }
 
@@ -22,6 +23,7 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
   const [season, setSeason] = useState(team.season ?? "");
   const [usesPositions, setUsesPositions] = useState(team.usesPositions);
   const [allowParentView, setAllowParentView] = useState(team.allowParentView);
+  const [notifyParentsOnStart, setNotifyParentsOnStart] = useState(team.notifyParentsOnStart);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
     const res = await fetch(`/api/teams/${team.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, ageGroup, season, usesPositions, allowParentView }),
+      body: JSON.stringify({ name, ageGroup, season, usesPositions, allowParentView, notifyParentsOnStart }),
     });
     setBusy(false);
     if (!res.ok) {
@@ -122,6 +124,26 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
               Linked parents can see their own child&apos;s stats, live during
               matches and across the season. Turn it off to pause every
               parent&apos;s view without unlinking anyone.
+            </span>
+          </span>
+        </label>
+        <label className={cn("mt-4 flex items-start gap-3", allowParentView ? "cursor-pointer" : "cursor-not-allowed opacity-60")}>
+          <input
+            type="checkbox"
+            checked={allowParentView && notifyParentsOnStart}
+            disabled={!allowParentView}
+            onChange={(e) => setNotifyParentsOnStart(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-orange-500"
+            name="notifyParentsOnStart"
+          />
+          <span>
+            <span className="block font-semibold text-slate-900">Notify parents when matches start</span>
+            <span className="block text-sm text-slate-600">
+              When you tap Start match, parents of the players in your starting
+              lineup get one alert: a phone notification if they turned alerts
+              on, otherwise an email. Never both, and never twice for the same
+              match.
+              {!allowParentView && " Needs parent live view on."}
             </span>
           </span>
         </label>

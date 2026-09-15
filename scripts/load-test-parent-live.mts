@@ -26,10 +26,11 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const DEV_LOG = process.env.DEV_LOG;
 const POLL_MS = 15_000;
 const WRITE_MS = WRITE_EVERY * 1000;
-// One cache refill is 9 Prisma queries: team context 5 (team, players,
-// parent links, latest match, finished-match record) + match 4 (match,
-// tournament, stat lines, set scores). Relations load as separate queries.
-const REFILL_QUERIES = 9;
+// One cache refill is about 10 Prisma queries: team context 6 (team,
+// players, parent links, started-match lookup, latest match when none is
+// started, finished-match record) + match 4 (match, tournament, stat lines,
+// set scores). Relations load as separate queries.
+const REFILL_QUERIES = 10;
 // The endpoint this replaces ran, per poll: the parent-link gate (3 queries)
 // plus a fresh snapshot (player + team, match with tournament / stat lines /
 // set scores / count, finished-match record) - about 10 queries.

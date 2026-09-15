@@ -18,8 +18,10 @@ export function ToastStack({
   toasts: ToastMsg[];
   onDismiss: (id: string) => void;
 }) {
+  // Above modals (z-[100]): "3 parents notified" lands while the set-start
+  // modal is open, and would otherwise be hidden behind its backdrop.
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-16 z-40 flex flex-col items-center gap-1.5 px-3 lg:top-4">
+    <div className="pointer-events-none fixed inset-x-0 top-16 z-[110] flex flex-col items-center gap-1.5 px-3 lg:top-4">
       {toasts.map((t) => (
         <ToastItem key={t.id} toast={t} onDismiss={onDismiss} />
       ))}
