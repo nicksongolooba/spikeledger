@@ -77,8 +77,8 @@ If `ANTHROPIC_API_KEY` is not set, AI insight calls silently fall back to the ru
 
 1. Create an account at [stripe.com](https://stripe.com).
 2. **Products → Add product:**
-   - "SpikeLedger Coach Pro" — recurring CAD prices at **$9.99/month** and **$99.99/year**
-   - "SpikeLedger Club" — recurring CAD prices at **$49.99/month** and **$499.99/year**
+   - "SpikeLedger Coach Pro" — recurring USD prices at **$9.99/month** and **$99.99/year**
+   - "SpikeLedger Club" — recurring USD prices at **$49.99/month** and **$499.99/year**
 3. Copy the four `price_...` IDs into your `.env`.
 4. **Developers → Webhooks → Add endpoint:**
    - URL: `https://yourdomain.com/api/stripe/webhook`

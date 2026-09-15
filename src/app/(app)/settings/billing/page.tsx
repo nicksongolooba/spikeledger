@@ -9,7 +9,7 @@ import {
   PLAN_LIMITS,
   PLAN_PRICING,
   isUnlimited,
-  fmtCAD,
+  fmtUSD,
 } from "@/lib/plan-limits";
 import { cn } from "@/lib/utils";
 import { BillingClient } from "./BillingClient";
@@ -284,7 +284,7 @@ function PlanColumn({
               !recommended && "text-slate-900",
             )}
           >
-            {pricing ? fmtCAD(pricing.monthlyCents) : "$0"}
+            {pricing ? fmtUSD(pricing.monthlyCents) : "$0"}
           </span>
           <span
             className={cn(
@@ -302,7 +302,7 @@ function PlanColumn({
               recommended ? "text-navy-300" : "text-slate-500",
             )}
           >
-            or {fmtCAD(pricing.yearlyCents)} / year
+            or {fmtUSD(pricing.yearlyCents)} / year
           </div>
         )}
       </div>

@@ -74,7 +74,7 @@ export const PLAN_LABEL: Record<Plan, string> = {
 };
 
 export interface PlanPrice {
-  monthlyCents: number;     // CAD cents
+  monthlyCents: number;     // USD cents
   yearlyCents: number;
   monthlyPriceId?: string;
   yearlyPriceId?: string;
@@ -95,8 +95,8 @@ export const PLAN_PRICING: Record<Exclude<Plan, "FREE">, PlanPrice> = {
   },
 };
 
-export function fmtCAD(cents: number): string {
-  return `$${(cents / 100).toFixed(2)} CAD`;
+export function fmtUSD(cents: number): string {
+  return `$${(cents / 100).toFixed(2)} USD`;
 }
 
 export function isUnlimited(n: number) {

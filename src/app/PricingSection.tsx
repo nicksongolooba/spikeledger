@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Check, Minus } from "lucide-react";
-import { PLAN_PRICING, fmtCAD } from "@/lib/plan-limits";
+import { PLAN_PRICING, fmtUSD } from "@/lib/plan-limits";
 import { cn } from "@/lib/utils";
 
 interface Tier {
@@ -79,7 +79,7 @@ export function PricingSection() {
 
   function priceLabel(cents: number) {
     if (cents === 0) return "Free";
-    return fmtCAD(cents);
+    return fmtUSD(cents);
   }
 
   return (
@@ -138,7 +138,7 @@ export function PricingSection() {
                 </div>
                 {cents > 0 && (
                   <div className="mt-1 text-xs text-slate-500">
-                    CAD, cancel any time
+                    USD, cancel any time
                   </div>
                 )}
 

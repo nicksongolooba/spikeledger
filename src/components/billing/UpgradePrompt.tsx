@@ -7,7 +7,7 @@ import { Modal } from "@/components/ui/Modal";
 import {
   PLAN_LABEL,
   PLAN_PRICING,
-  fmtCAD,
+  fmtUSD,
   type UpgradeReason,
 } from "@/lib/plan-limits";
 
@@ -135,7 +135,7 @@ export function UpgradePromptModal({
 
         <div className="mt-4 flex items-baseline gap-2">
           <span className="stat-number text-4xl font-bold leading-none text-slate-900">
-            {fmtCAD(price)}
+            {fmtUSD(price)}
           </span>
           <span className="text-sm text-slate-500">{perLabel}</span>
         </div>
