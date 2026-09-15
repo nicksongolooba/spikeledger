@@ -96,7 +96,7 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
                   <tr>
                     <th className="eyebrow px-5 py-2 text-slate-500">Stat</th>
                     <th className="eyebrow px-3 py-2 text-right text-slate-500">Team avg</th>
-                    <th className="eyebrow px-5 py-2 text-right text-orange-700">{player.name.split(" ")[0]}</th>
+                    <th className="eyebrow px-5 py-2 text-right text-cyan-700">{player.name.split(" ")[0]}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -112,7 +112,7 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
                       <td
                         className={cn(
                           "stat-number px-5 py-2.5 text-right text-lg font-bold",
-                          row.childWins === null ? "text-slate-900" : row.childWins ? "text-emerald-700" : "text-slate-900",
+                          row.childWins === null ? "text-slate-900" : row.childWins ? "text-green-700" : "text-slate-900",
                         )}
                       >
                         {row.child}
@@ -128,8 +128,8 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
           {view.parentFriendly && (
             <section className="mt-6 rounded-lg bg-navy-900 p-6 text-white">
               <div className="flex items-center gap-2">
-                <Lightbulb size={18} strokeWidth={2} className="text-orange-300" aria-hidden />
-                <span className="eyebrow text-orange-300">In plain English</span>
+                <Lightbulb size={18} strokeWidth={2} className="text-cyan-500" aria-hidden />
+                <span className="eyebrow text-cyan-500">In plain English</span>
               </div>
               <p className="mt-3 text-lg leading-relaxed">{view.parentFriendly}</p>
               <p className="mt-3 text-xs text-navy-300">
@@ -159,14 +159,14 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
               <ol className="mt-3 grid gap-3 sm:grid-cols-3">
                 {view.improvementAreas.map((area, i) => (
                   <li key={i} className="card p-4">
-                    <div className="stat-number text-3xl font-bold leading-none text-orange-500">
+                    <div className="stat-number text-3xl font-bold leading-none text-cyan-700">
                       {String(i + 1).padStart(2, "0")}
                     </div>
                     <div className="mt-2 font-display text-xl font-bold leading-tight text-slate-900">{area.metric}</div>
                     {(area.current !== "-" || area.target !== "-") && (
                       <div className="mt-1 text-xs text-slate-500">
                         now <span className="font-semibold text-slate-900">{area.current}</span> · goal{" "}
-                        <span className="font-semibold text-emerald-700">{area.target}</span>
+                        <span className="font-semibold text-green-700">{area.target}</span>
                       </div>
                     )}
                     <p className="mt-2 text-sm leading-relaxed text-slate-600">{area.detail}</p>
@@ -175,7 +175,7 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
                         href={youtubeSearchUrl(area.youtubeQuery)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-orange-700 hover:underline"
+                        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 hover:underline"
                       >
                         <CirclePlay size={16} strokeWidth={2} aria-hidden />
                         Watch drill videos

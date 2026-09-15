@@ -21,7 +21,7 @@ export function MatchRow({
   let resultClass = "bg-slate-100 text-slate-600";
   if (match.result === "WIN") {
     resultLabel = "Win";
-    resultClass = "bg-emerald-50 text-emerald-700";
+    resultClass = "bg-green-50 text-green-700";
   } else if (match.result === "LOSS") {
     resultLabel = "Loss";
     resultClass = "bg-red-50 text-red-700";
@@ -42,7 +42,7 @@ export function MatchRow({
           {match.matchNumber}
         </div>
         <div className="min-w-0">
-          <div className="truncate font-semibold text-slate-900 transition-colors group-hover:text-orange-700">
+          <div className="truncate font-semibold text-slate-900 transition-colors group-hover:text-cyan-700">
             vs {match.opponent}
           </div>
           <div className="mt-0.5 text-xs text-slate-500">
@@ -62,7 +62,7 @@ export function MatchRow({
         >
           {resultLabel}
         </span>
-        <span className="hidden items-center gap-1 text-xs font-semibold text-orange-700 sm:inline-flex">
+        <span className="hidden items-center gap-1 text-xs font-semibold text-cyan-700 sm:inline-flex">
           {ctaLabel}
           <ArrowRight size={14} strokeWidth={2} aria-hidden />
         </span>

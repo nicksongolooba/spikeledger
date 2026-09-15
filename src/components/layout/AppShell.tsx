@@ -83,7 +83,7 @@ export function AppShell({
                   )}
                 >
                   {active && (
-                    <span className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r bg-orange-500" />
+                    <span className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r bg-cyan-500" />
                   )}
                   <Icon size={18} strokeWidth={2} />
                   {item.label}
@@ -169,11 +169,11 @@ export function AppShell({
               href={item.href}
               className={cn(
                 "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-semibold",
-                active ? "text-orange-700" : "text-slate-500",
+                active ? "text-cyan-700" : "text-slate-500",
               )}
             >
               {active && (
-                <span className="absolute inset-x-6 top-0 h-0.5 rounded-b bg-orange-500" />
+                <span className="absolute inset-x-6 top-0 h-0.5 rounded-b bg-cyan-500" />
               )}
               <Icon size={20} strokeWidth={2} />
               {item.label}

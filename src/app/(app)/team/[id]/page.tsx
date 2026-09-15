@@ -223,7 +223,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
                     <div
                       className={cn(
                         "stat-number text-2xl font-bold leading-none",
-                        latestNet >= 0 ? "text-emerald-700" : "text-red-700",
+                        latestNet >= 0 ? "text-green-700" : "text-red-700",
                       )}
                     >
                       {fmtSigned(latestNet)}
@@ -251,7 +251,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
             {tournaments.length > 0 && (
               <Link
                 href={`/team/${team.id}/tournament/new`}
-                className="inline-flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-800"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 hover:text-cyan-800"
               >
                 <Plus size={14} strokeWidth={2} aria-hidden />
                 Add tournament
@@ -286,7 +286,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
                   >
                     <DateBlock date={t.startDate} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold text-slate-900 transition-colors group-hover:text-orange-700">
+                      <div className="truncate font-semibold text-slate-900 transition-colors group-hover:text-cyan-700">
                         {t.name}
                       </div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
@@ -313,7 +313,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
                     <ArrowRight
                       size={16}
                       strokeWidth={2}
-                      className="shrink-0 text-slate-300 transition-colors group-hover:text-orange-600"
+                      className="shrink-0 text-slate-300 transition-colors group-hover:text-cyan-600"
                       aria-hidden
                     />
                   </Link>
@@ -330,7 +330,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
             </h2>
             <Link
               href={`/team/${team.id}/roster`}
-              className="inline-flex items-center gap-1 text-sm font-semibold text-orange-700 hover:text-orange-800"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 hover:text-cyan-800"
             >
               View all
               <ArrowRight size={14} strokeWidth={2} aria-hidden />
@@ -430,7 +430,7 @@ function StatTile({
   if (featured) {
     return (
       <div className="rounded-lg bg-navy-900 p-5 text-white shadow-card">
-        <div className="eyebrow text-orange-300">{label}</div>
+        <div className="eyebrow text-cyan-500">{label}</div>
         <div className="stat-number mt-2 text-4xl font-bold leading-none">
           {value}
         </div>
@@ -439,13 +439,13 @@ function StatTile({
   }
   const accentClass =
     accent === "emerald"
-      ? "text-emerald-700"
+      ? "text-green-700"
       : accent === "red"
         ? "text-red-700"
         : accent === "cyan"
           ? "text-navy-700"
           : accent === "violet"
-            ? "text-orange-700"
+            ? "text-cyan-700"
             : "text-slate-900";
   return (
     <div className="card p-5">

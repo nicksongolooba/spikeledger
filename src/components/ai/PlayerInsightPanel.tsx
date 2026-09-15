@@ -82,13 +82,13 @@ export function PlayerInsightPanel({
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div>
-          <h4 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
+          <h4 className="font-display text-xs font-bold uppercase tracking-[0.16em] text-green-700">
             Strengths
           </h4>
           <ul className="mt-1.5 space-y-1.5 text-sm text-slate-800">
             {data.strengths.map((s, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-green-600" />
                 <span>{s}</span>
               </li>
             ))}
@@ -131,7 +131,7 @@ export function PlayerInsightPanel({
                       href={ytUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-orange-700 hover:underline"
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-cyan-700 hover:underline"
                     >
                       <CirclePlay size={14} strokeWidth={2} aria-hidden />
                       Watch drill videos
@@ -146,7 +146,7 @@ export function PlayerInsightPanel({
 
       <div className="mt-5 grid gap-4 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2">
         <div>
-          <h4 className="font-display text-[11px] font-bold uppercase tracking-[0.16em] text-orange-700">
+          <h4 className="font-display text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-700">
             Tactical note
           </h4>
           <p className="mt-1 text-xs text-slate-700">{data.coachingNote}</p>

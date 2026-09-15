@@ -10,7 +10,7 @@ import {
   REPORT_FONT_DISPLAY,
   REPORT_MUTED,
   REPORT_NAVY,
-  REPORT_ORANGE_DEEP,
+  REPORT_ACCENT_DEEP,
   REPORT_TEXT,
   type ReportCardData,
 } from "./types";
@@ -102,7 +102,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
             fontSize: "16px",
             letterSpacing: "0.14em",
             textTransform: "uppercase",
-            color: REPORT_ORANGE_DEEP,
+            color: REPORT_ACCENT_DEEP,
             fontWeight: 700,
           }}
         >

@@ -10,8 +10,8 @@ import {
   REPORT_GREEN,
   REPORT_MUTED,
   REPORT_NAVY,
-  REPORT_ORANGE,
-  REPORT_ORANGE_DEEP,
+  REPORT_ACCENT,
+  REPORT_ACCENT_DEEP,
   REPORT_TEXT,
   type ReportCardData,
 } from "./types";
@@ -70,7 +70,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                 left: "0",
                 bottom: "0",
                 width: "6px",
-                background: REPORT_ORANGE,
+                background: REPORT_ACCENT,
               }}
             />
             <div style={{ display: "flex", alignItems: "baseline", gap: "20px" }}>
@@ -80,7 +80,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                   fontSize: "46px",
                   fontWeight: 800,
                   lineHeight: 1,
-                  color: REPORT_ORANGE,
+                  color: REPORT_ACCENT_DEEP,
                   minWidth: "60px",
                 }}
               >
@@ -139,7 +139,7 @@ export function WhatToWorkOn({ data }: { data: ReportCardData }) {
                       gap: "8px",
                       fontSize: "16px",
                       fontWeight: 600,
-                      color: REPORT_ORANGE_DEEP,
+                      color: REPORT_ACCENT_DEEP,
                       textDecoration: "none",
                     }}
                   >

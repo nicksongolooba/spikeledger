@@ -162,7 +162,7 @@ export function Scoreboard({
             winChance.pct === null
               ? "border-slate-200 bg-white text-slate-500"
               : winChance.pct >= 50
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                ? "border-green-200 bg-green-50 text-green-800"
                 : "border-red-200 bg-red-50 text-red-800",
           )}
         >
@@ -207,11 +207,11 @@ export function Scoreboard({
           onClick={() => onClickScore("us")}
           className={cn(
             "flex flex-col items-center py-3 transition-colors duration-150 active:bg-white/10",
-            lit === "us" && "bg-emerald-500/30",
+            lit === "us" && "bg-green-500/30",
           )}
           aria-label="Our score: tap to add, hold to subtract"
         >
-          <span className="max-w-full truncate px-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+          <span className="max-w-full truncate px-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-cyan-500">
             {teamName}
           </span>
           <span className="stat-number text-6xl font-bold leading-none sm:text-7xl">
@@ -246,7 +246,7 @@ export function Scoreboard({
           className={cn(
             "relative flex min-h-[40px] items-center gap-1 rounded-md border px-1.5 transition-all duration-300",
             rotLit
-              ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
+              ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-200"
               : "border-slate-300 bg-white",
           )}
         >
@@ -262,7 +262,7 @@ export function Scoreboard({
           <span
             className={cn(
               "stat-number inline-block w-9 text-center text-xl font-bold leading-none transition-all duration-300",
-              rotLit ? "scale-125 text-orange-700" : "text-slate-900",
+              rotLit ? "scale-125 text-cyan-700" : "text-slate-900",
             )}
           >
             R{rotation}
@@ -276,7 +276,7 @@ export function Scoreboard({
             <ChevronRight size={16} strokeWidth={2.5} aria-hidden />
           </button>
           {rotLit && (
-            <span className="absolute -top-2 right-1 animate-pulse rounded bg-orange-500 px-1.5 font-display text-[9px] font-bold uppercase tracking-wide text-white">
+            <span className="absolute -top-2 right-1 animate-pulse rounded bg-cyan-500 px-1.5 font-display text-[9px] font-bold uppercase tracking-wide text-navy-950">
               Rotated
             </span>
           )}
@@ -287,9 +287,9 @@ export function Scoreboard({
           className={cn(
             "min-h-[40px] rounded-md border px-3 font-semibold transition-all duration-300",
             serving === "us"
-              ? "border-orange-300 bg-orange-50 text-orange-800"
+              ? "border-cyan-300 bg-cyan-50 text-cyan-800"
               : "border-slate-300 bg-slate-100 text-slate-700",
-            serveLit && "scale-105 ring-2 ring-orange-200",
+            serveLit && "scale-105 ring-2 ring-cyan-200",
           )}
           aria-label={`Serving: ${serving === "us" ? "Us" : "Them"}`}
         >

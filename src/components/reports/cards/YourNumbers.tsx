@@ -10,7 +10,7 @@ import {
   REPORT_GREEN,
   REPORT_MUTED,
   REPORT_NAVY,
-  REPORT_ORANGE_DEEP,
+  REPORT_ACCENT_DEEP,
   REPORT_RED,
   type ReportCardData,
 } from "./types";
@@ -189,7 +189,7 @@ export function YourNumbers({ data }: { data: ReportCardData }) {
               style={{
                 fontFamily: REPORT_FONT_DISPLAY,
                 fontSize: "17px",
-                color: REPORT_ORANGE_DEEP,
+                color: REPORT_ACCENT_DEEP,
                 textTransform: "uppercase",
                 letterSpacing: "0.12em",
                 fontWeight: 700,

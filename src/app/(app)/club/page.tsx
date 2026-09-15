@@ -235,7 +235,7 @@ function ClubStat({
       <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
       <div
         className={`stat-number mt-1 text-2xl font-bold ${
-          accent ? "text-orange-700" : "text-slate-900"
+          accent ? "text-cyan-700" : "text-slate-900"
         }`}
       >
         {value}

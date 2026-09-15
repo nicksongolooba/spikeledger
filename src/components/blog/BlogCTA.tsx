@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 export function BlogCTA() {
   return (
     <aside className="mt-12 overflow-hidden rounded-lg bg-navy-900 p-6 text-white sm:p-8">
-      <div className="eyebrow text-orange-300">Put these numbers to work</div>
+      <div className="eyebrow text-cyan-500">Put these numbers to work</div>
       <h2 className="mt-2 font-display text-3xl font-bold leading-none tracking-tight sm:text-4xl">
         Free for your first team. No credit card.
       </h2>

@@ -48,7 +48,7 @@ function ToastItem({
 
   const toneClass =
     toast.tone === "success"
-      ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+      ? "border-green-300 bg-green-50 text-green-800"
       : toast.tone === "danger"
         ? "border-red-300 bg-red-50 text-red-800"
         : "border-navy-200 bg-navy-50 text-navy-800";

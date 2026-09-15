@@ -56,7 +56,7 @@ export default async function RosterPage({
       </header>
 
       {assignPositions && (
-        <div className="mt-6 flex items-start gap-3 rounded-lg border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+        <div className="mt-6 flex items-start gap-3 rounded-lg border border-cyan-300 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
           <AlertTriangle size={18} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden />
           <div>
             <div className="font-semibold">This team now uses set positions.</div>

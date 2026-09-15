@@ -99,7 +99,7 @@ export function MatchAlertsSettings({
           {state === "on" && (
             <>
               <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
-                <Check size={16} strokeWidth={2.5} className="text-emerald-700" aria-hidden />
+                <Check size={16} strokeWidth={2.5} className="text-green-700" aria-hidden />
                 Alerts are on for this device.
               </span>
               <button type="button" onClick={disable} disabled={busy} className="btn-ghost px-2 py-1 text-xs">
@@ -163,7 +163,7 @@ export function MatchAlertsSettings({
             <span className="block font-semibold text-slate-900">Email me when a match starts if alerts are not on</span>
             <span className="block text-slate-600">
               You never get both. With alerts on, we skip the email.
-              {emailSaved && <span className="ml-2 font-medium text-emerald-700">Saved</span>}
+              {emailSaved && <span className="ml-2 font-medium text-green-700">Saved</span>}
             </span>
           </span>
         </label>

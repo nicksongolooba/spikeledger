@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 // Light chip per rating tone. Written out in full so Tailwind picks them up.
 const TONE: Record<Exclude<Rating, "GREY">, { chip: string; dot: string }> = {
   GREEN: {
-    chip: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    dot: "bg-emerald-600",
+    chip: "border-green-200 bg-green-50 text-green-700",
+    dot: "bg-green-600",
   },
   BLUE: { chip: "border-sky-200 bg-sky-50 text-sky-700", dot: "bg-sky-600" },
   ORANGE: {

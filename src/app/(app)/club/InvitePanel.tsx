@@ -98,8 +98,8 @@ export function InvitePanel({
       {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
 
       {createdUrl && (
-        <div className="mt-4 rounded-lg border border-orange-300 bg-orange-50 p-3">
-          <div className="text-xs font-semibold uppercase tracking-wide text-orange-700">
+        <div className="mt-4 rounded-lg border border-cyan-300 bg-cyan-50 p-3">
+          <div className="text-xs font-semibold uppercase tracking-wide text-cyan-700">
             Invite link created - share it with your coach
           </div>
           <div className="mt-2 flex items-center gap-2">
