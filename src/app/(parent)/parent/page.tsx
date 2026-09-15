@@ -6,13 +6,21 @@ import { getParentPlayers } from "@/lib/parent";
 import { buildLiveSnapshot } from "@/lib/parent-view";
 import { computeDerivedStats } from "@/engine/derived-stats";
 import { LinkPlayerForm } from "@/components/parent/LinkPlayerForm";
+import { MatchAlertsCard } from "@/components/parent/MatchAlertsCard";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function ParentDashboard() {
   const user = await requireParent();
-  const players = await getParentPlayers(user.id);
+  const [players, prefs, activePush] = await Promise.all([
+    getParentPlayers(user.id),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { installCardDismissedAt: true, emailMatchAlerts: true },
+    }),
+    prisma.pushSubscription.count({ where: { parentId: user.id, active: true } }),
+  ]);
 
   const cards = await Promise.all(
     players.map(async (p) => {
@@ -50,6 +58,14 @@ export default async function ParentDashboard() {
           only to team averages. Tap a player to see the full picture.
         </p>
       </header>
+
+      <MatchAlertsCard
+        parentId={user.id}
+        vapidPublicKey={process.env.VAPID_PUBLIC_KEY ?? null}
+        dismissed={Boolean(prefs?.installCardDismissedAt)}
+        hasActivePush={activePush > 0}
+        emailMatchAlerts={prefs?.emailMatchAlerts ?? true}
+      />
 
       {cards.length === 0 ? (
         <div className="mt-8">

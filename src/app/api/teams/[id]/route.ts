@@ -12,6 +12,7 @@ const UpdateTeamSchema = z.object({
   season: z.string().max(20).nullable().optional(),
   usesPositions: z.boolean().optional(),
   allowParentView: z.boolean().optional(),
+  notifyParentsOnStart: z.boolean().optional(),
 });
 
 // PATCH: team settings. Creating coach only.
@@ -40,6 +41,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(d.season !== undefined && { season: d.season?.trim() || null }),
       ...(d.usesPositions !== undefined && { usesPositions: d.usesPositions }),
       ...(d.allowParentView !== undefined && { allowParentView: d.allowParentView }),
+      ...(d.notifyParentsOnStart !== undefined && { notifyParentsOnStart: d.notifyParentsOnStart }),
     },
   });
   invalidateLive({ teamId: params.id });

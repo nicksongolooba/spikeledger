@@ -28,10 +28,18 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  clubs       ClubMember[]
-  teams       Team[]
-  chatUsage   ChatUsage[]
-  parentLinks ParentPlayerLink[] // players this PARENT user follows
+  // Parent notification preferences. Push alerts are per device (see
+  // PushSubscription); email is the fallback for parents without them.
+  emailMatchAlerts       Boolean   @default(true)
+  // Set when the parent taps "Maybe later" on the dashboard install card.
+  installCardDismissedAt DateTime?
+
+  clubs              ClubMember[]
+  teams              Team[]
+  chatUsage          ChatUsage[]
+  parentLinks        ParentPlayerLink[] // players this PARENT user follows
+  pushSubscriptions  PushSubscription[]
+  matchNotifications MatchNotification[]
 }
 
 enum UserRole {
@@ -99,6 +107,8 @@ model Team {
   usesPositions   Boolean @default(true)
   // Coach can pause the parent live view for the whole team.
   allowParentView Boolean @default(true)
+  // Alert linked parents (push, else email) when a match starts.
+  notifyParentsOnStart Boolean @default(true)
 
   club        Club?        @relation(fields: [clubId], references: [id])
   coach       User         @relation(fields: [coachId], references: [id], onDelete: Cascade)
@@ -185,10 +195,13 @@ model Match {
   opponentErrors Int          @default(0)
   result         MatchResult?
   createdAt      DateTime     @default(now())
+  // Set when the coach confirms the starting lineup ("Start match").
+  startedAt      DateTime?
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  statLines  StatLine[]
-  setScores  MatchSetScore[]
+  tournament    Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  statLines     StatLine[]
+  setScores     MatchSetScore[]
+  notifications MatchNotification[]
 }
 
 // Live per-set score synced from the courtside page so the parent view (and
@@ -371,4 +384,62 @@ model ClubInvite {
   acceptedById String?
 
   club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+}
+
+// One browser/device a parent turned alerts on for. Deactivated when the push
+// service says the subscription is gone (404/410), or when the parent turns
+// alerts off on that device.
+model PushSubscription {
+  id            String    @id @default(cuid())
+  parentId      String
+  endpoint      String    @unique
+  p256dh        String
+  auth          String
+  userAgent     String?
+  active        Boolean   @default(true)
+  // The push service reported the endpoint gone; the browser must subscribe
+  // again to get a new one.
+  expiredAt     DateTime?
+  lastSuccessAt DateTime?
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  parent User @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@index([parentId, active])
+}
+
+enum NotificationChannel {
+  PUSH
+  EMAIL
+  NONE
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  SKIPPED
+  FAILED
+}
+
+// One row per (match, parent), claimed before anything is sent, so a match
+// can never alert the same parent twice. Doubles as the audit trail.
+model MatchNotification {
+  id        String              @id @default(cuid())
+  matchId   String
+  parentId  String
+  // The parent's own children in the starting lineup (never anyone else).
+  playerIds String[]
+  channel   NotificationChannel @default(NONE)
+  status    NotificationStatus  @default(PENDING)
+  reason    String?
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  parent User  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, parentId])
+  @@index([parentId, createdAt])
 }

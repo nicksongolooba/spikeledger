@@ -32,11 +32,14 @@ export type LiveStatus = "live" | "final" | "pending" | "none";
 const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export function matchStatus(
-  match: { result: MatchResult | null; createdAt: Date },
+  match: { result: MatchResult | null; createdAt: Date; startedAt?: Date | null },
   hasStats: boolean,
   now = Date.now(),
 ): LiveStatus {
   if (match.result) return "final";
+  // Started by the coach ("Start match") - live even if the match was
+  // created days ahead with the tournament schedule.
+  if (match.startedAt && now - match.startedAt.getTime() < LIVE_WINDOW_MS) return "live";
   if (hasStats && now - match.createdAt.getTime() < LIVE_WINDOW_MS) return "live";
   return "pending";
 }
@@ -139,6 +142,7 @@ export interface MatchLive {
   setsWon: number;
   setsLost: number;
   createdAt: string;
+  startedAt: string | null;
   statCount: number;
   lines: Record<string, StatLine>; // by playerId
   setScores: { setNumber: number; us: number; them: number; history: [number, number][]; updatedAt: string }[];
@@ -168,11 +172,19 @@ async function loadTeamLive(teamId: string): Promise<TeamLive | null> {
     },
   });
   if (!team) return null;
-  const latest = await prisma.match.findFirst({
-    where: { tournament: { teamId } },
-    orderBy: LATEST_MATCH_ORDER,
-    select: { id: true },
-  });
+  // The match in progress wins: a started, unfinished match from the last day.
+  // Otherwise the most recent match by schedule order.
+  const latest =
+    (await prisma.match.findFirst({
+      where: { tournament: { teamId }, result: null, startedAt: { gte: new Date(Date.now() - LIVE_WINDOW_MS) } },
+      orderBy: { startedAt: "desc" },
+      select: { id: true },
+    })) ??
+    (await prisma.match.findFirst({
+      where: { tournament: { teamId } },
+      orderBy: LATEST_MATCH_ORDER,
+      select: { id: true },
+    }));
   const historicalRallyRate = await teamHistoricalRallyRate(teamId, latest?.id);
   const players: TeamLive["players"] = {};
   for (const p of team.players) {
@@ -217,6 +229,7 @@ async function loadMatchLive(matchId: string): Promise<MatchLive | null> {
     setsWon: m.setsWon,
     setsLost: m.setsLost,
     createdAt: m.createdAt.toISOString(),
+    startedAt: m.startedAt?.toISOString() ?? null,
     statCount: m.statLines.length,
     lines,
     setScores: m.setScores.map((sc) => ({
@@ -284,7 +297,14 @@ export function buildLivePayload(
     };
   }
 
-  const status = matchStatus({ result: match.result, createdAt: new Date(match.createdAt) }, match.statCount > 0);
+  const status = matchStatus(
+    {
+      result: match.result,
+      createdAt: new Date(match.createdAt),
+      startedAt: match.startedAt ? new Date(match.startedAt) : null,
+    },
+    match.statCount > 0,
+  );
   const line = match.lines[playerId] ?? null;
   const mode: BankAccountMode = team.usesPositions ? "positions" : "universal";
   const ba = line
