@@ -11,6 +11,7 @@ import {
   AGGREGATE_MATCH_LABEL,
   type CanonicalField,
 } from "@/lib/import-schema";
+import { invalidateLive } from "@/lib/live-cache";
 
 const PositionEnum = z.nativeEnum(Position);
 
@@ -283,6 +284,7 @@ export async function POST(
   // Optionally infer match results from kill/error totals (skip - let the
   // coach edit results manually for accuracy).
 
+  invalidateLive({ teamId: params.id });
   return NextResponse.json({
     tournamentId: tournament.id,
     matchesCreated: matchLabelToId.size,

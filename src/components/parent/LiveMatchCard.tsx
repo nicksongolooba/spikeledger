@@ -1,51 +1,125 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Info, Radio } from "lucide-react";
 import type { LiveSnapshot } from "@/lib/parent-view";
 import { WinChanceSparkline } from "@/components/charts/WinChanceSparkline";
 import { cn, formatDate } from "@/lib/utils";
 
-const LIVE_POLL_MS = 15_000; // during a match
+const LIVE_POLL_MS = 15_000; // during a match, tab visible
+const QUIET_POLL_MS = 60_000; // after QUIET_AFTER unchanged polls (timeout, between sets)
 const IDLE_POLL_MS = 60_000; // waiting for the coach to start a logged match
+const QUIET_AFTER = 5;
+const MIN_GAP_MS = 5_000; // a tab flipping hidden/visible can't spam the server
 
-// The child's current / most recent match. Simple polling - no websockets -
-// so it keeps working on gym Wi-Fi and stops on its own when the match ends.
+type PollMode = "live" | "quiet" | "idle" | "paused" | "stopped";
+
+function modeFor(status: LiveSnapshot["status"], unchanged: number): PollMode {
+  if (status === "final" || status === "none") return "stopped";
+  if (status !== "live") return "idle";
+  return unchanged >= QUIET_AFTER ? "quiet" : "live";
+}
+function delayFor(mode: PollMode) {
+  return mode === "live" ? LIVE_POLL_MS : mode === "quiet" ? QUIET_POLL_MS : IDLE_POLL_MS;
+}
+
+// The child's current / most recent match. Plain polling - no websockets - so
+// it keeps working on gym Wi-Fi. The poll is conditional (If-None-Match, so
+// nothing-changed answers are an empty 304), pauses while the tab is hidden,
+// slows to a minute after five unchanged answers, and stops once the match
+// is final.
 export function LiveMatchCard({
+  teamId,
   playerId,
   playerName,
   initial,
 }: {
+  teamId: string;
   playerId: string;
   playerName: string;
   initial: LiveSnapshot;
 }) {
   const [snap, setSnap] = useState<LiveSnapshot>(initial);
   const [lastPoll, setLastPoll] = useState<number | null>(null);
+  const [mode, setMode] = useState<PollMode>(modeFor(initial.status, 0));
+  const etagRef = useRef<string>(initial.etag);
+  const unchangedRef = useRef(0);
+  const lastFetchRef = useRef(0);
 
   useEffect(() => {
-    if (snap.status !== "live" && snap.status !== "pending") return;
-    const interval = snap.status === "live" ? LIVE_POLL_MS : IDLE_POLL_MS;
+    if (snap.status === "final" || snap.status === "none") {
+      setMode("stopped");
+      return;
+    }
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const schedule = (ms: number) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void tick(), ms);
+    };
+
     const tick = async () => {
+      if (cancelled) return;
+      if (document.visibilityState === "hidden") {
+        // Nothing to show; the visibilitychange handler restarts us.
+        setMode("paused");
+        return;
+      }
+      const sinceLast = Date.now() - lastFetchRef.current;
+      if (sinceLast < MIN_GAP_MS) {
+        schedule(MIN_GAP_MS - sinceLast);
+        return;
+      }
+      lastFetchRef.current = Date.now();
+      let status = snap.status;
       try {
-        const res = await fetch(`/api/parent/player/${playerId}/live`, { cache: "no-store" });
-        if (!res.ok) return;
-        const next = (await res.json()) as LiveSnapshot;
-        if (!cancelled) {
-          setSnap(next);
-          setLastPoll(Date.now());
+        const res = await fetch(`/api/parent/live?team=${teamId}&player=${playerId}`, {
+          cache: "no-store",
+          headers: etagRef.current ? { "If-None-Match": etagRef.current } : undefined,
+        });
+        if (cancelled) return;
+        if (res.status === 304) {
+          unchangedRef.current += 1;
+        } else if (res.status === 429) {
+          const wait = (Number(res.headers.get("Retry-After")) || 60) * 1000;
+          setMode("quiet");
+          schedule(wait);
+          return;
+        } else if (res.ok) {
+          const next = (await res.json()) as LiveSnapshot;
+          const tag = res.headers.get("ETag") ?? next.etag;
+          if (tag !== etagRef.current) {
+            etagRef.current = tag;
+            unchangedRef.current = 0;
+            setSnap(next);
+          } else {
+            unchangedRef.current += 1;
+          }
+          status = next.status;
         }
+        setLastPoll(Date.now());
       } catch {
         // Keep the last snapshot; try again next tick.
       }
+      if (cancelled) return;
+      const nextMode = modeFor(status, unchangedRef.current);
+      setMode(nextMode);
+      if (nextMode !== "stopped") schedule(delayFor(nextMode));
     };
-    const id = setInterval(tick, interval);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void tick();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    const first = modeFor(snap.status, unchangedRef.current);
+    setMode(document.visibilityState === "hidden" ? "paused" : first);
+    schedule(delayFor(first));
     return () => {
       cancelled = true;
-      clearInterval(id);
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [playerId, snap.status]);
+  }, [teamId, playerId, snap.status]);
 
   if (snap.status === "none" || !snap.match) {
     return (
@@ -158,9 +232,16 @@ export function LiveMatchCard({
         </div>
       )}
 
-      {isLive && (
-        <div className="border-t border-slate-100 px-5 py-2 text-[11px] text-slate-500">
-          Updates every 15 seconds{lastPoll ? ` · last update ${new Date(lastPoll).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}` : ""}
+      {mode !== "stopped" && (
+        <div className="border-t border-slate-100 px-5 py-2 text-[11px] text-slate-500" data-poll-mode={mode}>
+          {mode === "paused"
+            ? "Paused while this tab is in the background"
+            : mode === "quiet"
+              ? "Quiet spell - checking every minute"
+              : mode === "idle"
+                ? "Checking every minute for the coach to start"
+                : "Updates every 15 seconds"}
+          {lastPoll ? ` · last check ${new Date(lastPoll).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}` : ""}
         </div>
       )}
     </section>

@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertCoachOwnsMatch } from "@/lib/match-access";
 import { STAT_ACTION_FIELDS, type StatActionId } from "@/lib/stat-actions";
+import { invalidateLive } from "@/lib/live-cache";
 
 const BodySchema = z.object({
   playerId: z.string().min(1),
@@ -57,6 +58,7 @@ export async function POST(
     where: { id: existing.id },
     data: { [field]: { decrement } },
   });
+  invalidateLive({ matchId: params.id });
 
   return NextResponse.json(updated);
 }

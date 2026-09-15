@@ -45,7 +45,7 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
       </header>
 
       <div className="mt-8">
-        <LiveMatchCard playerId={player.id} playerName={player.name} initial={live} />
+        <LiveMatchCard teamId={team.id} playerId={player.id} playerName={player.name} initial={live} />
       </div>
 
       {!season ? (

@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertCoachOwnsMatch } from "@/lib/match-access";
+import { invalidateLive } from "@/lib/live-cache";
 
 const LineupSchema = z.object({
   entries: z
@@ -68,6 +69,7 @@ export async function POST(
     }),
   );
   const results = await prisma.$transaction(ops);
+  invalidateLive({ matchId: params.id });
 
   return NextResponse.json(results);
 }

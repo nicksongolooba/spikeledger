@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertCoachOwnsMatch } from "@/lib/match-access";
+import { invalidateLive } from "@/lib/live-cache";
 
 // Two payloads share this route:
 //   - the match total { setsWon, setsLost } (kept for older clients), and
@@ -41,6 +42,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       create: { matchId: params.id, setNumber, us, them, history },
       update: { us, them, history },
     });
+    invalidateLive({ matchId: params.id });
     return NextResponse.json(row);
   }
 
@@ -52,5 +54,6 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     where: { id: params.id },
     data: { setsWon: totals.data.setsWon, setsLost: totals.data.setsLost },
   });
+  invalidateLive({ matchId: params.id, teamId: owns.tournament.teamId });
   return NextResponse.json(updated);
 }

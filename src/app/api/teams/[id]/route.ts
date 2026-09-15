@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertTeamOwnership } from "@/lib/access";
+import { invalidateLive } from "@/lib/live-cache";
 
 const UpdateTeamSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -41,5 +42,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(d.allowParentView !== undefined && { allowParentView: d.allowParentView }),
     },
   });
+  invalidateLive({ teamId: params.id });
   return NextResponse.json(team);
 }

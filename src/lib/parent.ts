@@ -10,6 +10,7 @@ import {
   PARENT_CODE_TTL_DAYS,
   parentCodeStatus,
 } from "@/lib/parent-constants";
+import { invalidateLive } from "@/lib/live-cache";
 
 export { PARENT_CODE_MAX_REDEMPTIONS, PARENT_CODE_TTL_DAYS, parentCodeStatus };
 
@@ -83,7 +84,7 @@ export async function issueParentCode(playerId: string): Promise<IssuedParentCod
 // Coach revokes parent access for a player: every linked parent loses the
 // player and the code stops working.
 export async function revokeParentAccess(playerId: string): Promise<number> {
-  const [deleted] = await prisma.$transaction([
+  const [deleted, player] = await prisma.$transaction([
     prisma.parentPlayerLink.deleteMany({ where: { playerId } }),
     prisma.player.update({
       where: { id: playerId },
@@ -95,6 +96,7 @@ export async function revokeParentAccess(playerId: string): Promise<number> {
       },
     }),
   ]);
+  invalidateLive({ teamId: player.teamId });
   return deleted.count;
 }
 
@@ -104,6 +106,7 @@ export async function revokeParentLink(teamId: string, linkId: string): Promise<
   const { count } = await prisma.parentPlayerLink.deleteMany({
     where: { id: linkId, player: { teamId } },
   });
+  invalidateLive({ teamId });
   return count > 0;
 }
 
@@ -183,14 +186,19 @@ export async function linkParentByCode(parentId: string, rawCode: string) {
     }
     return tx.parentPlayerLink.create({ data: { parentId, playerId: player.id } });
   });
+  invalidateLive({ teamId: player.teamId });
   return { link, player, alreadyLinked: false as const };
 }
 
 // Parent removes a player from their own account.
 export async function unlinkParent(parentId: string, linkId: string): Promise<boolean> {
-  const { count } = await prisma.parentPlayerLink.deleteMany({
+  const link = await prisma.parentPlayerLink.findFirst({
     where: { id: linkId, parentId },
+    select: { id: true, player: { select: { teamId: true } } },
   });
+  if (!link) return false;
+  const { count } = await prisma.parentPlayerLink.deleteMany({ where: { id: link.id } });
+  invalidateLive({ teamId: link.player.teamId });
   return count > 0;
 }
 
