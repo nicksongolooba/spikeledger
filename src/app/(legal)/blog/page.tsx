@@ -1,8 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import { BLOG_POSTS } from "@/content/blog";
 import { formatBlogDate, readingTimeMinutes } from "@/content/blog/types";
+import setterPhoto from "@/assets/photos/player-set.jpg";
 
 export const metadata: Metadata = {
   title: "Volleyball Coaching Blog | SpikeLedger",
@@ -20,18 +22,31 @@ export const metadata: Metadata = {
 export default function BlogIndexPage() {
   return (
     <div>
-      <header className="border-b border-slate-200 pb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-          SpikeLedger Blog
-        </p>
-        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl mt-2 text-slate-900">
-          Volleyball coaching, drills &amp; stats
-        </h1>
-        <p className="mt-3 max-w-2xl text-slate-600">
-          Practical guides for coaches who want to develop players fairly -
-          drills by position, practice plans, stat tracking, and what the
-          numbers actually mean. Written by coaches, for coaches.
-        </p>
+      <header className="grid gap-6 border-b border-slate-200 pb-8 sm:grid-cols-5 sm:items-center">
+        <div className="sm:col-span-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+            SpikeLedger Blog
+          </p>
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl mt-2 text-slate-900">
+            Volleyball coaching, drills &amp; stats
+          </h1>
+          <p className="mt-3 max-w-2xl text-slate-600">
+            Practical guides for coaches who want to develop players fairly -
+            drills by position, practice plans, stat tracking, and what the
+            numbers actually mean. Written by coaches, for coaches.
+          </p>
+        </div>
+        <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-navy-900 sm:col-span-2 sm:aspect-[4/5]">
+          <Image
+            src={setterPhoto}
+            alt="A setter reaching for the ball at the net while teammates watch"
+            fill
+            priority
+            placeholder="blur"
+            sizes="(min-width: 640px) 300px, 100vw"
+            className="object-cover object-[50%_12%]"
+          />
+        </div>
       </header>
 
       <ul className="mt-8 space-y-4">

@@ -5,10 +5,13 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
+  EllipsisVertical,
   FileImage,
   MessageSquareText,
+  MonitorDown,
   RefreshCw,
   Scale,
+  Share,
   Smartphone,
   Undo2,
   User,
@@ -16,10 +19,18 @@ import {
 } from "lucide-react";
 import { PricingSection } from "./PricingSection";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { InstallAppButton } from "@/components/pwa/InstallAppButton";
 import { Wordmark } from "@/components/layout/Wordmark";
 import { TESTIMONIALS } from "@/content/testimonials";
 import { cn } from "@/lib/utils";
-import heroCourt from "@/assets/hero-court.jpg";
+// Photography: web copies made by scripts/optimize-photos.mjs.
+import heroCourt from "@/assets/photos/hero-court.jpg";
+import coachCourtside from "@/assets/photos/coach-courtside.jpg";
+import playerSpike from "@/assets/photos/player-spike.jpg";
+import playerPass from "@/assets/photos/player-pass.jpg";
+import teamHuddle from "@/assets/photos/team-huddle.jpg";
+import phoneGym from "@/assets/photos/phone-gym.jpg";
+import parentsBleachers from "@/assets/photos/parents-bleachers.jpg";
 import shotDashboard from "@/assets/screens/dashboard.png";
 import shotPlayer from "@/assets/screens/player.png";
 import shotEntry from "@/assets/screens/entry.png";
@@ -99,9 +110,25 @@ const RULES: { action: string; libero: Cell; hitter: Cell; setterMiddle: Cell }[
 const BANK_POINTS = [
   "Kills, blocks and aces are deposits for everyone.",
   "Serve errors and ball-handling errors are withdrawals for everyone.",
-  "Attack and net errors never count against a libero. Passing does, and a good pass is a deposit.",
   "A rating from Helping Team Win to Hurting Team, set by the deposit ratio, not by who the coach likes.",
+];
+
+const FAIR_POINTS = [
+  "Attack and net errors never count against a libero. Passing does, and a good pass is a deposit.",
   "Works for every age group - from 12U rotation-only teams to 18U specialized positions. Flip a team to no-positions mode and everyone is scored on the same all-around formula.",
+];
+
+const INSTALL_STEPS = [
+  { icon: Share, title: "iPhone and iPad", body: "Open SpikeLedger in Safari, tap Share, then Add to Home Screen." },
+  { icon: EllipsisVertical, title: "Android", body: "Open it in Chrome, tap the menu, then Install app." },
+  { icon: MonitorDown, title: "Laptop", body: "Click the install icon at the right end of the address bar." },
+];
+
+const COACH_PRINCIPLES = [
+  { title: "Fast enough for the scorer's table", body: "Two taps per rally, and it keeps recording when the gym Wi-Fi drops." },
+  { title: "Fair to every position", body: "Liberos graded as liberos, setters as setters, hitters as hitters." },
+  { title: "Straight with parents", body: "Each parent sees their own kid next to team averages. Never a ranking of other kids." },
+  { title: "Free for one team", body: "The full Bank Account, courtside entry and report cards, no credit card." },
 ];
 
 const COURTSIDE = [
@@ -155,7 +182,7 @@ const FAQS = [
   },
   {
     q: "Do I need to install anything?",
-    a: "No. SpikeLedger runs in the browser on your phone and your laptop. The courtside page is built to be used one-handed at the scorer's table.",
+    a: "No. SpikeLedger runs in the browser on your phone and your laptop. If you want it on your home screen, add it from the browser in two taps, no app store. The courtside page is built to be used one-handed at the scorer's table.",
   },
   {
     q: "My 12U team doesn't play positions yet. Does this still work?",
@@ -222,8 +249,21 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy-950 text-white">
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-14 lg:grid-cols-12 lg:pb-24 lg:pt-24">
-          <div className="relative z-10 lg:col-span-6">
+        {/* Photo as the background. Navy sits heaviest under the copy and opens
+            up toward the court on wide screens. */}
+        <Image
+          src={heroCourt}
+          alt="A volleyball match in a bright gym, with players going up for a block at the net"
+          fill
+          priority
+          placeholder="blur"
+          sizes="100vw"
+          className="object-cover object-[62%_45%]"
+        />
+        <div className="absolute inset-0 bg-navy-950/80 lg:bg-transparent lg:bg-gradient-to-r lg:from-navy-950 lg:via-navy-950/85 lg:to-navy-950/45" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-navy-950/80 to-transparent" />
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-14 lg:grid-cols-12 lg:items-end lg:pb-20 lg:pt-28">
+          <div className="relative z-10 lg:col-span-7">
             <div className="eyebrow text-cyan-500">Built by a club coach · Free for one team</div>
             <h1 className="mt-4 font-display text-5xl font-extrabold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               Stats that are fair to every position.{" "}
@@ -253,20 +293,9 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Photo + floating ledger card */}
-          <div className="relative lg:col-span-6">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg lg:absolute lg:inset-y-[-6rem] lg:left-6 lg:right-[-50vw] lg:aspect-auto lg:rounded-none lg:[clip-path:polygon(9%_0,100%_0,100%_100%,0_100%)]">
-              <Image
-                src={heroCourt}
-                alt="A club volleyball team celebrating a point at the net"
-                fill
-                priority
-                sizes="(min-width: 1024px) 60vw, 100vw"
-                className="object-cover object-[62%_30%]"
-              />
-              <div className="absolute inset-0 bg-navy-950/25 lg:bg-gradient-to-r lg:from-navy-950 lg:via-navy-950/20 lg:to-transparent" />
-            </div>
-            <LedgerCard className="relative mt-4 lg:absolute lg:-bottom-8 lg:left-2 lg:mt-0" />
+          {/* Floating ledger card over the court */}
+          <div className="relative lg:col-span-5 lg:flex lg:justify-end">
+            <LedgerCard className="relative" />
           </div>
         </div>
 
@@ -318,30 +347,76 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Bank Account */}
+      {/* Bank Account + position-fair comparison */}
       <section id="bank" className="scroll-mt-20 bg-paper py-20 lg:py-28">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-5">
-            <div className="eyebrow">The Bank Account</div>
-            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
-              Your libero doesn&apos;t hit. Stop grading her like she does.
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-slate-600">
-              Raw totals punish defensive players and flatter big hitters. The
-              Bank Account fixes that by changing what counts, position by
-              position. Same tap courtside, different rules in the ledger.
-            </p>
-            <ul className="mt-6 space-y-3">
-              {BANK_POINTS.map((p) => (
-                <li key={p} className="flex items-start gap-3 text-slate-700">
-                  <Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-green-600" aria-hidden />
-                  <span>{p}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="mx-auto max-w-6xl space-y-20 px-6 lg:space-y-28">
+          {/* The Bank Account (hitters) */}
+          <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
+            <PhotoPanel
+              src={playerSpike}
+              alt="A hitter in the air at the net, arm back, about to swing"
+              sizes="(min-width: 1024px) 560px, 100vw"
+              className="aspect-[3/2] lg:col-span-6"
+              imgClassName="object-[45%_35%]"
+              tag="Outside hitter"
+              note="Kills, blocks and aces go in the bank."
+            />
+            <div className="lg:col-span-6">
+              <div className="eyebrow">The Bank Account</div>
+              <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+                Every tap is a deposit or a withdrawal.
+              </h2>
+              <p className="mt-5 text-lg leading-relaxed text-slate-600">
+                A kill goes in the bank. A serve error comes out. What is left is
+                one balance that tells you whether a player is helping the team
+                win, scored against what her position is on the court to do.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {BANK_POINTS.map((p) => (
+                  <li key={p} className="flex items-start gap-3 text-slate-700">
+                    <Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-green-600" aria-hidden />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="lg:col-span-7">
-            <RulesTable />
+
+          {/* Position-fair comparison (liberos) */}
+          <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+            {/* min-w-0: lets the rules table scroll inside its card instead of
+                widening the grid column past a phone screen. */}
+            <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
+              <div className="eyebrow">Position-fair comparison</div>
+              <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+                Your libero doesn&apos;t hit. Stop grading her like she does.
+              </h2>
+              <p className="mt-5 text-lg leading-relaxed text-slate-600">
+                Raw totals punish defensive players and flatter big hitters. The
+                Bank Account fixes that by changing what counts, position by
+                position. Same tap courtside, different rules in the ledger.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {FAIR_POINTS.map((p) => (
+                  <li key={p} className="flex items-start gap-3 text-slate-700">
+                    <Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-green-600" aria-hidden />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8">
+                <RulesTable />
+              </div>
+            </div>
+            <PhotoPanel
+              src={playerPass}
+              alt="A defender low in the stance, passing a serve off the forearms"
+              sizes="(min-width: 1024px) 460px, 100vw"
+              className="order-1 aspect-[3/2] lg:sticky lg:top-24 lg:order-2 lg:col-span-5 lg:aspect-[4/5] lg:self-start"
+              imgClassName="object-[53%_60%]"
+              tag="Libero"
+              note="A 2-pass is a deposit. Attack errors never count."
+            />
           </div>
         </div>
       </section>
@@ -354,8 +429,8 @@ export default function LandingPage() {
             Built for a phone in a loud gym and a laptop on Sunday night.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-slate-600">
-            Nothing to install. It runs in the browser on whatever you already
-            carry to the gym.
+            No app store. It runs in the browser on whatever you already carry
+            to the gym, and adds to your home screen in two taps.
           </p>
         </div>
         <div className="mt-12 grid gap-6 lg:grid-cols-12">
@@ -382,15 +457,6 @@ export default function LandingPage() {
 
       {/* Courtside */}
       <section id="courtside" className="relative scroll-mt-20 overflow-hidden bg-navy-950 text-white">
-        <Image
-          src={heroCourt}
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-[20%_center] opacity-[0.18]"
-          aria-hidden
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-950/70 via-navy-950/85 to-navy-950" />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-12 lg:items-center lg:py-28">
           <div className="lg:col-span-7">
             <div className="eyebrow text-cyan-500">Courtside entry</div>
@@ -418,8 +484,62 @@ export default function LandingPage() {
               })}
             </ul>
           </div>
-          <div className="lg:col-span-5">
-            <PhoneFrame src={shotEntryActions} alt="The courtside action pad: opponent error, kill, ace, block, assist, dig, four error types and the 0-3 serve-receive buttons" className="mx-auto max-w-[320px]" dark />
+          {/* Courtside photo with the action pad over its corner */}
+          <div className="relative mx-auto w-full max-w-md pb-10 lg:col-span-5 lg:pb-0">
+            <PhotoPanel
+              src={coachCourtside}
+              alt="A player tossing the ball for a jump serve, with the team bench and staff courtside"
+              sizes="(min-width: 1024px) 448px, 100vw"
+              className="aspect-[4/5] shadow-pop"
+              imgClassName="object-[45%_42%]"
+            />
+            <PhoneFrame
+              src={shotEntryActions}
+              alt="The courtside action pad: opponent error, kill, ace, block, assist, dig, four error types and the 0-3 serve-receive buttons"
+              className="absolute -bottom-2 right-3 w-[44%] max-w-[200px] sm:right-5 lg:-bottom-10 lg:-right-6"
+              size="sm"
+              dark
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Install on your phone */}
+      <section id="install" className="scroll-mt-20 bg-paper py-20 lg:py-28">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-12 lg:items-center">
+          <PhotoPanel
+            src={phoneGym}
+            alt="A player sitting in the gym, checking a phone between drills"
+            sizes="(min-width: 1024px) 448px, 100vw"
+            className="mx-auto aspect-[4/5] w-full max-w-md lg:col-span-5"
+            imgClassName="object-[55%_30%]"
+          />
+          <div className="lg:col-span-7">
+            <div className="eyebrow">Install on your phone</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              On your home screen. No app store.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+              Add SpikeLedger to your home screen and it opens like any other
+              app, full screen and one tap away. The courtside page keeps
+              recording when the gym Wi-Fi drops, and parents who install it can
+              turn on an alert for the moment a match starts.
+            </p>
+            <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+              {INSTALL_STEPS.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <li key={s.title} className="card p-4">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-white">
+                      <Icon size={18} strokeWidth={2} aria-hidden />
+                    </span>
+                    <h3 className="mt-3 font-display text-lg font-bold leading-tight">{s.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-600">{s.body}</p>
+                  </li>
+                );
+              })}
+            </ul>
+            <InstallAppButton className="mt-8" />
           </div>
         </div>
       </section>
@@ -428,22 +548,32 @@ export default function LandingPage() {
       <section id="reports" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-20 lg:py-28">
         <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
           <div className="order-2 lg:order-1 lg:col-span-6">
-            <div className="relative mx-auto aspect-[4/5] max-w-md">
-              <div className="absolute inset-0 -rotate-3 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lift">
-                <Image src={cardBank} alt="" sizes="(min-width: 1024px) 40vw, 100vw" className="h-full w-full object-cover" aria-hidden />
-              </div>
-              <div className="absolute inset-0 translate-x-6 translate-y-6 rotate-2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-pop">
-                <Image
-                  src={cardOverview}
-                  alt="A SpikeLedger report card: Performance Overview for a libero, with the Bank Account rating and headline stats"
-                  sizes="(min-width: 1024px) 40vw, 100vw"
-                  className="h-full w-full object-cover"
-                />
+            {/* The people the cards are for, with the cards landing on top */}
+            <div className="relative mx-auto max-w-xl pb-20 sm:pb-28">
+              <PhotoPanel
+                src={parentsBleachers}
+                alt="Fans on their feet in the stands, cheering and waving scarves"
+                sizes="(min-width: 1024px) 560px, 100vw"
+                className="aspect-[4/3]"
+                imgClassName="object-[42%_40%]"
+              />
+              <div className="absolute bottom-0 right-4 aspect-[4/5] w-[42%] max-w-[220px] sm:right-8">
+                <div className="absolute inset-0 -rotate-6 overflow-hidden rounded-md border border-slate-200 bg-white shadow-lift">
+                  <Image src={cardBank} alt="" sizes="220px" className="h-full w-full object-cover" aria-hidden />
+                </div>
+                <div className="absolute inset-0 translate-x-3 translate-y-2 rotate-3 overflow-hidden rounded-md border border-slate-200 bg-white shadow-pop">
+                  <Image
+                    src={cardOverview}
+                    alt="A SpikeLedger report card: Performance Overview for a libero, with the Bank Account rating and headline stats"
+                    sizes="220px"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
               </div>
             </div>
           </div>
           <div className="order-1 lg:order-2 lg:col-span-6">
-            <div className="eyebrow">Report cards</div>
+            <div className="eyebrow">WhatsApp-ready reports</div>
             <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
               Six images per player. Sized for a phone. Ready for the team chat.
             </h2>
@@ -511,6 +641,45 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Built by a coach */}
+      <section id="built-by-a-coach" className="scroll-mt-20 bg-navy-950 text-white">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-12 lg:items-center lg:py-28">
+          <PhotoPanel
+            src={teamHuddle}
+            alt="A team huddled together with arms around each other between points"
+            sizes="(min-width: 1024px) 448px, 100vw"
+            className="mx-auto aspect-[4/5] w-full max-w-md lg:col-span-5"
+            imgClassName="object-[50%_38%]"
+          />
+          <div className="lg:col-span-7">
+            <div className="eyebrow text-cyan-500">Built by a coach</div>
+            <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
+              Built by a club coach who got tired of grading liberos on kills.
+            </h2>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-navy-100">
+              It is shaped by what a tournament Saturday is actually like: two
+              minutes between sets, a phone in one hand, and a parent asking how
+              their kid did before the ball cart is packed.
+            </p>
+            <ul className="mt-8 grid gap-x-8 gap-y-5 sm:grid-cols-2">
+              {COACH_PRINCIPLES.map((c) => (
+                <li key={c.title} className="border-l-2 border-cyan-500 pl-4">
+                  <h3 className="font-display text-xl font-bold leading-tight">{c.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-navy-200">{c.body}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-8 text-navy-200">
+              Coaching a team and missing something?{" "}
+              <a href="mailto:support@spikeledger.com" className="font-semibold text-white underline decoration-cyan-500 underline-offset-4 hover:decoration-2">
+                Tell us what your team needs
+              </a>
+              . Ideas from working coaches shape what gets built next.
+            </p>
           </div>
         </div>
       </section>
@@ -642,7 +811,6 @@ export default function LandingPage() {
               support@spikeledger.com
             </a>
           </div>
-          <div>Photo by Vince Fleming on Unsplash.</div>
         </div>
       </footer>
 
@@ -733,6 +901,38 @@ function RulesTable() {
   );
 }
 
+// A photo in a rounded panel, optionally with a caption chip in the corner.
+// The panel's size comes from `className` (aspect ratio, grid span).
+function PhotoPanel({
+  src,
+  alt,
+  sizes,
+  className,
+  imgClassName,
+  tag,
+  note,
+}: {
+  src: typeof heroCourt;
+  alt: string;
+  sizes: string;
+  className?: string;
+  imgClassName?: string;
+  tag?: string;
+  note?: string;
+}) {
+  return (
+    <figure className={cn("relative overflow-hidden rounded-lg bg-navy-900 shadow-lift", className)}>
+      <Image src={src} alt={alt} fill placeholder="blur" sizes={sizes} className={cn("object-cover", imgClassName)} />
+      {tag && (
+        <figcaption className="absolute bottom-3 left-3 right-3 max-w-xs rounded-md bg-white/95 px-3 py-2 shadow-card sm:bottom-4 sm:left-4 sm:right-auto">
+          <div className="font-display text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">{tag}</div>
+          <div className="mt-0.5 text-sm font-medium leading-snug text-slate-900">{note}</div>
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
 function Screenshot({ src, alt }: { src: typeof shotDashboard; alt: string }) {
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-card">
@@ -746,16 +946,19 @@ function PhoneFrame({
   alt,
   className,
   dark = false,
+  size = "md",
 }: {
   src: typeof shotEntry;
   alt: string;
   className?: string;
   dark?: boolean;
+  size?: "sm" | "md";
 }) {
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-[2.25rem] border-[10px] bg-navy-950 shadow-pop",
+        "overflow-hidden bg-navy-950 shadow-pop",
+        size === "sm" ? "rounded-[1.5rem] border-[6px]" : "rounded-[2.25rem] border-[10px]",
         dark ? "border-navy-800" : "border-navy-950",
         className,
       )}

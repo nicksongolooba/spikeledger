@@ -2,74 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { isStandalone, readFlag, useInstallPrompt, writeFlag } from "@/lib/push-client";
 
 const DISMISS_KEY = "spikeledger:pwa-install-dismissed";
 
-// The beforeinstallprompt event (Chromium browsers). Typed locally since it's
-// not in the standard lib DOM types.
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
-// Subtle "Add to home screen" banner. Shows only when the browser fires
-// beforeinstallprompt (i.e. installable, not already installed) and the user
-// hasn't permanently dismissed it. Rendered on the landing page and dashboard.
+// Subtle "Add to home screen" banner. Shows only when the browser offers
+// installation (beforeinstallprompt) and the user hasn't dismissed it.
+// Rendered on the landing page and dashboard. Shares the captured install
+// event with the other install buttons, so only one of them can prompt.
 export function InstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [visible, setVisible] = useState(false);
+  const { canInstall, installed, promptInstall } = useInstallPrompt();
+  // Hidden until mounted: storage and display mode aren't known on the server.
+  const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
-    } catch {
-      return;
-    }
-    // Already installed / running standalone: nothing to prompt.
-    const standalone =
-      window.matchMedia?.("(display-mode: standalone)").matches ||
-      (navigator as unknown as { standalone?: boolean }).standalone === true;
-    if (standalone) return;
-
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-      setVisible(true);
-    };
-    const onInstalled = () => {
-      setVisible(false);
-      try {
-        localStorage.setItem(DISMISS_KEY, "1");
-      } catch {}
-    };
-    window.addEventListener("beforeinstallprompt", onPrompt as EventListener);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt as EventListener);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
+    setHidden(readFlag(DISMISS_KEY) || isStandalone());
   }, []);
-
-  async function install() {
-    if (!deferred) return;
-    await deferred.prompt();
-    try {
-      await deferred.userChoice;
-    } catch {
-      // ignore
-    }
-    setDeferred(null);
-    setVisible(false);
-  }
+  useEffect(() => {
+    if (installed) writeFlag(DISMISS_KEY);
+  }, [installed]);
 
   function dismiss() {
-    try {
-      localStorage.setItem(DISMISS_KEY, "1");
-    } catch {}
-    setVisible(false);
+    writeFlag(DISMISS_KEY);
+    setHidden(true);
   }
 
-  if (!visible) return null;
+  if (hidden || installed || !canInstall) return null;
 
   return (
     <div className="fixed inset-x-3 bottom-20 z-[120] mx-auto max-w-md lg:bottom-4">
@@ -83,7 +41,7 @@ export function InstallPrompt() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <button type="button" onClick={install} className="btn-primary px-3 py-1.5">
+          <button type="button" onClick={() => void promptInstall()} className="btn-primary px-3 py-1.5">
             Install
           </button>
           <button
