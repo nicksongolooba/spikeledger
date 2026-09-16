@@ -5,7 +5,7 @@
  *   recording is handled separately by the entry page's write-ahead log.
  * - API calls are never cached (always network).
  */
-const VERSION = "v3"; // bumped with the 2026-09-15 app icon so installed apps drop the old one
+const VERSION = "v4"; // bumped again: the icon is now the circle, not a circle on a square
 const STATIC_CACHE = `spikeledger-static-${VERSION}`;
 const PAGE_CACHE = `spikeledger-pages-${VERSION}`;
 
