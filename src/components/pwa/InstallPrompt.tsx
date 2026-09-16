@@ -2,35 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { isStandalone, readFlag, useInstallPrompt, writeFlag } from "@/lib/push-client";
+import { readFlag, useInstallPrompt, writeFlag } from "@/lib/push-client";
+import { useInstallState } from "@/lib/install-state";
 
 const DISMISS_KEY = "spikeledger:pwa-install-dismissed";
 
-// Subtle "Add to home screen" banner. Shows only when the browser offers
-// installation (beforeinstallprompt) and the user hasn't dismissed it.
-// Rendered on the landing page and dashboard. Shares the captured install
-// event with the other install buttons, so only one of them can prompt.
+// Subtle "Add to home screen" banner. Shows only to someone who has not
+// installed SpikeLedger, when the browser offers installation, and only until
+// they dismiss it. Rendered on the landing page and dashboard. Shares the
+// captured install event with the other install buttons, so only one of them
+// can prompt.
 export function InstallPrompt() {
-  const { canInstall, installed, promptInstall } = useInstallPrompt();
+  const { canInstall, promptInstall } = useInstallPrompt();
+  const installState = useInstallState();
   // Hidden until mounted: storage and display mode aren't known on the server.
-  const [hidden, setHidden] = useState(true);
+  const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    setHidden(readFlag(DISMISS_KEY) || isStandalone());
+    setDismissed(readFlag(DISMISS_KEY));
   }, []);
-  useEffect(() => {
-    if (installed) writeFlag(DISMISS_KEY);
-  }, [installed]);
 
   function dismiss() {
     writeFlag(DISMISS_KEY);
-    setHidden(true);
+    setDismissed(true);
   }
 
-  if (hidden || installed || !canInstall) return null;
+  // "checking" holds the banner back until the installed check has answered,
+  // rather than flashing it at someone who already has the app.
+  if (installState !== "not-installed" || dismissed || !canInstall) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-20 z-[120] mx-auto max-w-md lg:bottom-4">
+    <div data-install-banner="1" className="fixed inset-x-3 bottom-20 z-[120] mx-auto max-w-md lg:bottom-4">
       <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-pop">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/icons/icon-192-v4.png" alt="" className="h-10 w-10 shrink-0 rounded-md" />

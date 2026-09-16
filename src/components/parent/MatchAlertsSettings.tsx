@@ -11,6 +11,7 @@ import {
   pushSupported,
   type InstallPlatform,
 } from "@/lib/push-client";
+import { useInstallState } from "@/lib/install-state";
 import { InstallInstructions } from "@/components/parent/InstallInstructions";
 
 type DeviceState = "checking" | "on" | "off" | "blocked" | "needs-install" | "unsupported" | "not-configured";
@@ -34,6 +35,8 @@ export function MatchAlertsSettings({
   const [devices, setDevices] = useState(activeDevices);
   const [email, setEmail] = useState(emailMatchAlerts);
   const [emailSaved, setEmailSaved] = useState(false);
+  const installState = useInstallState();
+  const alreadyInstalled = installState === "installed";
 
   useEffect(() => {
     const p = detectPlatform();
@@ -114,7 +117,7 @@ export function MatchAlertsSettings({
                 <Bell size={16} strokeWidth={2} aria-hidden />
                 {busy ? "Turning on…" : "Enable match alerts"}
               </button>
-              {state === "off" && !standalone && (
+              {state === "off" && !standalone && !alreadyInstalled && (
                 <button type="button" onClick={() => setShowHow((v) => !v)} className="btn-ghost px-2 py-1 text-xs">
                   {showHow ? "Hide install steps" : "Install on your home screen"}
                 </button>
@@ -139,7 +142,11 @@ export function MatchAlertsSettings({
         {showHow && (
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             {state === "needs-install" && (
-              <p className="mb-3 text-slate-700">On iPhone and iPad, alerts work once SpikeLedger is on your home screen.</p>
+              <p className="mb-3 text-slate-700">
+                {alreadyInstalled
+                  ? "On iPhone and iPad, alerts work from the installed app rather than a Safari tab."
+                  : "On iPhone and iPad, alerts work once SpikeLedger is on your home screen."}
+              </p>
             )}
             <InstallInstructions platform={platform} />
           </div>

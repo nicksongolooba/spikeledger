@@ -1,10 +1,15 @@
 "use client";
 
-import { BookOpen, ChevronLeft, ChevronRight, Copy, Download, EllipsisVertical, MonitorDown, Share, SquarePlus } from "lucide-react";
+import { BookOpen, Check, ChevronLeft, ChevronRight, Copy, Download, EllipsisVertical, MonitorDown, Share, SquarePlus } from "lucide-react";
 import { useInstallPrompt, type InstallPlatform } from "@/lib/push-client";
+import { markInstalled, useInstallState } from "@/lib/install-state";
 
 // How to put SpikeLedger on the home screen, per platform. Android and
 // desktop Chromium get a real Install button when the browser offers one.
+//
+// Nothing here is shown to someone who already has the app. On iOS Safari in
+// a normal tab there is no way to detect that, so the steps carry an "I
+// already installed it" link that settles it by hand and for good.
 export function InstallInstructions({
   platform,
   onInstalled,
@@ -12,12 +17,39 @@ export function InstallInstructions({
   platform: InstallPlatform;
   onInstalled?: () => void;
 }) {
-  const { canInstall, installed, promptInstall } = useInstallPrompt();
+  const { canInstall, promptInstall } = useInstallPrompt();
+  const installState = useInstallState();
 
   async function install() {
     const outcome = await promptInstall();
     if (outcome === "accepted") onInstalled?.();
   }
+
+  // Held back until the installed check has answered.
+  if (installState === "checking") return null;
+
+  if (installState === "installed") {
+    return (
+      <p data-install-steps={platform} className="inline-flex items-center gap-2 text-sm font-semibold text-green-700">
+        <Check size={16} strokeWidth={2.5} aria-hidden />
+        SpikeLedger is installed. Open it from your{" "}
+        {platform === "desktop" ? "apps" : "home screen"}.
+      </p>
+    );
+  }
+
+  const alreadyInstalled = (
+    <button
+      type="button"
+      onClick={() => {
+        markInstalled();
+        onInstalled?.();
+      }}
+      className="text-xs font-semibold text-slate-500 underline underline-offset-2 transition hover:text-slate-900"
+    >
+      I already installed it
+    </button>
+  );
 
   if (platform === "ios") {
     return (
@@ -46,15 +78,8 @@ export function InstallInstructions({
             <span>Open SpikeLedger from your home screen and turn on alerts</span>
           </li>
         </ol>
+        {alreadyInstalled}
       </div>
-    );
-  }
-
-  if (installed) {
-    return (
-      <p data-install-steps={platform} className="text-sm text-slate-700">
-        SpikeLedger is installed. Open it from your {platform === "android" ? "home screen" : "apps"} to turn on match alerts.
-      </p>
     );
   }
 
@@ -76,6 +101,7 @@ export function InstallInstructions({
             <span className="font-semibold">Add to Home screen</span>.
           </p>
         )}
+        <div>{alreadyInstalled}</div>
       </div>
     );
   }
@@ -94,6 +120,7 @@ export function InstallInstructions({
         bar, or open the browser menu and choose <span className="font-semibold">Install SpikeLedger</span>. Then
         turn on alerts from the installed app.
       </p>
+      <div>{alreadyInstalled}</div>
     </div>
   );
 }

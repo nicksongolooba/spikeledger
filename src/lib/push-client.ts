@@ -16,13 +16,9 @@ export function detectPlatform(): InstallPlatform {
   return "desktop";
 }
 
-// Opened from the home screen / as an installed app.
-export function isStandalone(): boolean {
-  return (
-    window.matchMedia?.("(display-mode: standalone)").matches === true ||
-    (navigator as Navigator & { standalone?: boolean }).standalone === true
-  );
-}
+// Install detection lives in one place; re-exported so existing call sites
+// keep working. isStandalone() there also catches the Android app shell.
+export { isStandalone, readFlag, writeFlag, markInstalled, useInstallState } from "@/lib/install-state";
 
 // iOS only exposes PushManager inside a home-screen web app (16.4+).
 export function pushSupported(): boolean {
@@ -32,21 +28,6 @@ export function pushSupported(): boolean {
     "PushManager" in window &&
     "Notification" in window
   );
-}
-
-export function readFlag(key: string): boolean {
-  try {
-    return localStorage.getItem(key) === "1";
-  } catch {
-    return false;
-  }
-}
-export function writeFlag(key: string) {
-  try {
-    localStorage.setItem(key, "1");
-  } catch {
-    // Private mode / blocked storage: the server copy is enough.
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -77,6 +58,7 @@ if (typeof window !== "undefined") {
     installedThisVisit = true;
     emit();
   });
+  // install-state.ts also listens and writes the remembered flag.
 }
 const serverSnapshot = { canInstall: false, installed: false };
 
