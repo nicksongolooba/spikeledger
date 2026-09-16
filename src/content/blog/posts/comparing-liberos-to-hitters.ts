@@ -21,7 +21,7 @@ export const post: BlogPost = {
 
 A standard kill leaderboard tells you who terminated the most balls. It tells you nothing about whether those players did their actual jobs well. A libero is not allowed to attack from the front row — so they will never record a kill no matter how dominant they are. A middle blocker rotates to the back row only twice per rotation cycle and rarely passes serve receive at all, so their dig count will naturally be lower than a libero's or outside hitter's even if they are defending perfectly in the rallies they do play.
 
-When you sort players by kills or digs on a single leaderboard, you are not measuring performance. You are measuring role. The libero looks bad because you are grading them on a task they were never asked to do. The middle looks bad in the passing column for the same reason. This is not a minor quibble — it actively misleads you about who is contributing and who needs work.
+When you sort players by kills or digs on a single leaderboard, you are not measuring performance. You are measuring role. The libero comes out low because you are grading them on a task they were never asked to do. The middle comes out low in the passing column for the same reason. This is not a minor quibble — it actively misleads you about who is contributing and where the real focus areas are.
 
 ## What Each Position Is Actually Asked to Do
 
@@ -47,7 +47,7 @@ One framework that handles this cleanly is what you might call a Bank Account ap
 
 For a libero, a perfect pass (SR grade 3) is a deposit. A shank is a withdrawal. Digs are deposits. Kills do not exist in their account. For a middle, a stuff block is a deposit. A hitting error is a withdrawal. Passing errors barely register because they are not in the job description. For an outside, the account is wide open — kills, passing grades, digs, and errors all move the balance.
 
-The resulting rating reflects how well each player executed their specific role, not how many total actions they logged. A libero who shanks nothing and grades out a 2.3 SR average might carry a stronger positive balance than a high-volume outside hitter who piles up kills alongside a leaky error rate. The categories in this kind of system — Difference Maker, Reliable, Developing, Needs Focus — mean something because they are compared to position-appropriate standards, not a single universal leaderboard.
+The resulting rating reflects how well each player executed their specific role, not how many total actions they logged. A libero who shanks nothing and grades out a 2.3 SR average might carry a stronger positive balance than a high-volume outside hitter who piles up kills alongside a leaky error rate. The categories in this kind of system — Strong contribution, Solid, Building, Focus area — mean something because they are compared to position-appropriate standards, not a single universal leaderboard.
 
 SpikeLedger's evaluation is built around this model, which is why a libero's profile and a middle's profile look structurally different rather than being the same template with different numbers plugged in.
 

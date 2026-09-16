@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { publicPlayerName, shareExpiryFrom } from "@/lib/share-links";
 
 // Each image is a base64 data URL captured by html-to-image on the client.
 // We keep them inline on the Report row - fine for Phase 4 demo scale, will
@@ -68,10 +69,15 @@ export async function POST(req: Request) {
       teamId: player.teamId,
       type: "PLAYER_INDIVIDUAL",
       scope: `player:${parsed.data.playerId}|scope:${parsed.data.scopeLabel}`,
+      // A public link that never dies is a public link forever. 30 days.
+      expiresAt: shareExpiryFrom(),
       imageUrls: parsed.data.images.map((img) => img.dataUrl),
       metadata: {
         playerId: parsed.data.playerId,
+        // The full name stays out of anything a public page reads; the share
+        // page derives a first name and jersey number from the player record.
         playerName: parsed.data.playerName,
+        displayName: publicPlayerName(player.name, player.number),
         teamName: player.team.name,
         scopeLabel: parsed.data.scopeLabel,
         keys: parsed.data.images.map((img) => img.key),
@@ -82,5 +88,5 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json({ id: report.id });
+  return NextResponse.json({ id: report.id, expiresAt: report.expiresAt?.toISOString() ?? null });
 }

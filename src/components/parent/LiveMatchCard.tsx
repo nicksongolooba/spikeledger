@@ -296,17 +296,32 @@ export function LiveMatchCard({
       {snap.bankAccount && !notInMatch && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-sm">
           <span className="text-slate-600">Bank Account this match</span>
-          <span className="inline-flex items-center gap-2">
-            <span className="stat-number text-xl font-bold" style={{ color: snap.bankAccount.ratingColor }}>
-              {snap.bankAccount.balance > 0 ? `+${snap.bankAccount.balance}` : snap.bankAccount.balance}
+          {snap.bankAccount.balance >= 0 ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="stat-number text-xl font-bold" style={{ color: snap.bankAccount.ratingColor }}>
+                +{snap.bankAccount.balance}
+              </span>
+              <span
+                className="rounded px-1.5 py-0.5 font-display text-[11px] font-bold uppercase tracking-wider text-white"
+                style={{ background: snap.bankAccount.ratingColor }}
+              >
+                {snap.bankAccount.ratingLabel}
+              </span>
             </span>
-            <span
-              className="rounded px-1.5 py-0.5 font-display text-[11px] font-bold uppercase tracking-wider text-white"
-              style={{ background: snap.bankAccount.ratingColor }}
-            >
-              {snap.bankAccount.ratingLabel}
+          ) : (
+            /* Mid-match, in the stands, next to the child. Never a red minus
+               number as the headline. */
+            <span className="inline-flex items-center gap-2 text-sm">
+              <span className="stat-number text-lg font-bold text-green-700">
+                {snap.bankAccount.deposits}
+              </span>
+              <span className="text-slate-500">good plays</span>
+              <span className="stat-number text-lg font-bold text-slate-700">
+                {snap.bankAccount.withdrawals}
+              </span>
+              <span className="text-slate-500">errors</span>
             </span>
-          </span>
+          )}
         </div>
       )}
 

@@ -144,15 +144,17 @@ function parentFriendlyFor(req: PlayerInsightRequest): string {
   const role = universal
     ? "their all-around game"
     : `their ${POSITION_LABELS[req.player.position].toLowerCase()} role`;
+  // Parents read this line, and so does the player eventually. It says where
+  // they are and points at what is next, and never delivers a verdict.
   const verdict =
     ba.rating === "GREEN"
       ? `having a strong run in ${role} this ${req.scopeLabel}.`
       : ba.rating === "BLUE"
-        ? `holding their own in ${role} this ${req.scopeLabel}.`
+        ? `steady in ${role} this ${req.scopeLabel}.`
         : ba.rating === "ORANGE"
-          ? `working through some growing pains in ${role} this ${req.scopeLabel}.`
+          ? `building in ${role} this ${req.scopeLabel}.`
           : ba.rating === "RED"
-            ? `having a tough stretch in ${role} this ${req.scopeLabel} - every player has them.`
+            ? `working on a few specific things in ${role} this ${req.scopeLabel} - they are listed below.`
             : `still gathering stats in ${role}.`;
   if (universal) {
     return `${req.player.name} is ${verdict} On this team everyone rotates through every position, so ${req.player.name} is evaluated on all-around skills - passing, serving, hitting and defence all count.`;
@@ -163,11 +165,12 @@ function parentFriendlyFor(req: PlayerInsightRequest): string {
 export function generateRuleBasedPlayerInsight(
   req: PlayerInsightRequest,
 ): PlayerInsightResponse {
-  const summary = `${req.player.name} - Bank Account ${
-    req.bankAccount.balance >= 0 ? "+" : ""
-  }${req.bankAccount.balance} (${req.bankAccount.ratingLabel}) in ${req.scopeLabel}. ${
-    req.bankAccount.deposits
-  } deposits vs ${req.bankAccount.withdrawals} withdrawals.`;
+  // This line is printed on report card 01, which the player reads. When the
+  // balance is negative it is left out of the opening and the two counts lead.
+  const summary =
+    req.bankAccount.balance >= 0
+      ? `${req.player.name} - Bank Account +${req.bankAccount.balance} (${req.bankAccount.ratingLabel}) in ${req.scopeLabel}. ${req.bankAccount.deposits} deposits vs ${req.bankAccount.withdrawals} withdrawals.`
+      : `${req.player.name} - ${req.bankAccount.deposits} deposits and ${req.bankAccount.withdrawals} withdrawals in ${req.scopeLabel} (${req.bankAccount.ratingLabel}).`;
 
   const group = POSITION_GROUP[req.player.position];
   const coachingNote = req.usesPositions === false

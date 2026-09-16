@@ -1,4 +1,5 @@
 import { POSITION_GROUP_MAP } from "@/engine/bank-account";
+import { leadWithBalance } from "@/engine/bank-account";
 import { fmtNum, fmtPct, fmtSigned } from "@/engine/derived-stats";
 import { ReportShell } from "../shared/ReportShell";
 import { PlayerHeader } from "../shared/PlayerHeader";
@@ -117,18 +118,28 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
             flexWrap: "wrap",
           }}
         >
-          <span
-            style={{
-              fontFamily: REPORT_FONT_DISPLAY,
-              fontSize: "136px",
-              fontWeight: 800,
-              color: ba.ratingColor,
-              lineHeight: 0.95,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {fmtSigned(ba.balance)}
-          </span>
+          {/* A player reads this card about herself. A large minus number is
+              never the first thing on it; the two counts carry the same
+              information and card 03 says what to do next. */}
+          {leadWithBalance(ba.balance) ? (
+            <span
+              style={{
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "136px",
+                fontWeight: 800,
+                color: ba.ratingColor,
+                lineHeight: 0.95,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {fmtSigned(ba.balance)}
+            </span>
+          ) : (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "28px" }}>
+              <PairFigure value={ba.deposits} label="good plays" color="#1a7f4a" />
+              <PairFigure value={ba.withdrawals} label="errors" color={REPORT_TEXT} />
+            </div>
+          )}
           <div>
             <span
               style={{
@@ -145,18 +156,8 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
                 lineHeight: 1.1,
               }}
             >
-              {ba.rating}
-            </span>
-            <div
-              style={{
-                marginTop: "10px",
-                fontSize: "22px",
-                fontWeight: 600,
-                color: REPORT_TEXT,
-              }}
-            >
               {ba.ratingLabel}
-            </div>
+            </span>
           </div>
         </div>
         <div
@@ -270,5 +271,26 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
         <span>{data.usesPositions ? "Position-fair evaluation" : "All-around evaluation"}</span>
       </div>
     </ReportShell>
+  );
+}
+
+// The two counts, used in place of a negative balance.
+function PairFigure({ value, label, color }: { value: number; label: string; color: string }) {
+  return (
+    <div>
+      <div
+        style={{
+          fontFamily: REPORT_FONT_DISPLAY,
+          fontSize: "96px",
+          fontWeight: 800,
+          color,
+          lineHeight: 0.95,
+          letterSpacing: "-0.01em",
+        }}
+      >
+        {value}
+      </div>
+      <div style={{ fontSize: "18px", color: REPORT_MUTED, marginTop: "2px" }}>{label}</div>
+    </div>
   );
 }

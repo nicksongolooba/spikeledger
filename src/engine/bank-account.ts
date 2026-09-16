@@ -1,7 +1,7 @@
 // =============================================================================
 // SpikeLedger Bank Account engine - the position-fair evaluation algorithm.
 // =============================================================================
-// Every action is either a deposit (helps the team) or a withdrawal (hurts it),
+// Every action is either a deposit (adds to the team) or a withdrawal (takes from it),
 // but the rules differ by position group:
 //
 //   Libero/DS  - SR 2 IS a deposit (good passing is the job).
@@ -52,12 +52,27 @@ export const RATING_INFO: Record<
 > = {
   // Colors are chosen for white/light surfaces (report cards, player pages):
   // each passes 4.5:1 against white as text.
-  GREEN: { label: "Helping Team Win", color: "#1a7f4a" },
-  BLUE: { label: "Solid Contributor", color: "#0369a1" },
-  ORANGE: { label: "Needs Work", color: "#b45309" },
-  RED: { label: "Hurting Team", color: "#dc2626" },
-  GREY: { label: "No Data", color: "#64748b" },
+  //
+  // The labels describe where a player is, not what they are worth. A twelve
+  // year old reads her own report card eventually, and a phrase like "hurting
+  // the team" is something she would carry around for a season. The maths
+  // below is untouched: only what we call the result changed.
+  GREEN: { label: "Strong contribution", color: "#1a7f4a" },
+  BLUE: { label: "Solid", color: "#0369a1" },
+  ORANGE: { label: "Building", color: "#b45309" },
+  RED: { label: "Focus area", color: "#dc2626" },
+  GREY: { label: "Not enough data yet", color: "#64748b" },
 };
+
+// Whether a parent-facing surface should lead with the balance itself.
+//
+// A negative balance is never the headline on anything a player or a parent
+// reads. The deposits and the withdrawals say the same thing without handing a
+// child one number to carry around, and the focus areas say what to do about
+// it. Coach-only screens are free to show the plain number.
+export function leadWithBalance(balance: number): boolean {
+  return balance >= 0;
+}
 
 export interface BankAccountResult {
   deposits: number;

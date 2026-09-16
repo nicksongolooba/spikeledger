@@ -34,7 +34,13 @@ export function NewTournamentForm({ teamId }: { teamId: string }) {
       return;
     }
     const tournament = await res.json();
-    router.push(`/team/${teamId}/tournament/${tournament.id}`);
+    // "That was your last free tournament" and the courtesy banner both ride
+    // back on the create response. Carried through so the tournament page can
+    // say it once, in a calm moment, instead of a paywall appearing later.
+    const query = tournament.notice
+      ? `?notice=${encodeURIComponent(tournament.notice)}`
+      : "";
+    router.push(`/team/${teamId}/tournament/${tournament.id}${query}`);
     router.refresh();
   }
 

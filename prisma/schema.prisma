@@ -34,6 +34,12 @@ model User {
   // Set when the parent taps "Maybe later" on the dashboard install card.
   installCardDismissedAt DateTime?
 
+  // One free courtesy tournament past the free-tier limit, granted once so a
+  // coach is never stopped at the gym door. Records which tournament it was,
+  // so its page can say it is the courtesy one.
+  graceTournamentId     String?
+  graceTournamentUsedAt DateTime?
+
   clubs              ClubMember[]
   teams              Team[]
   chatUsage          ChatUsage[]
@@ -343,6 +349,14 @@ model Report {
   metadata    Json?
   generatedAt DateTime   @default(now())
   teamId      String
+  // Public share links are time limited and revocable: /share/[id] needs no
+  // login and carries a minor's performance data, so a forwarded link has to
+  // stop working on its own. Null expiresAt means a pre-expiry row that the
+  // migration has already backfilled.
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+
+  @@index([teamId, generatedAt])
 }
 
 enum ReportType {

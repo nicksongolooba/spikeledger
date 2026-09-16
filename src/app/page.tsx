@@ -111,7 +111,7 @@ const RULES: { action: string; libero: Cell; hitter: Cell; setterMiddle: Cell }[
 const BANK_POINTS = [
   "Kills, blocks and aces are deposits for everyone.",
   "Serve errors and ball-handling errors are withdrawals for everyone.",
-  "A rating from Helping Team Win to Hurting Team, set by the deposit ratio, not by who the coach likes.",
+  "A rating from Strong contribution to Focus area, set by the deposit ratio, not by who the coach likes.",
 ];
 
 const FAIR_POINTS = [
@@ -369,7 +369,7 @@ export default function LandingPage() {
               </h2>
               <p className="mt-5 text-lg leading-relaxed text-slate-600">
                 A kill goes in the bank. A serve error comes out. What is left is
-                one balance that tells you whether a player is helping the team
+                one balance that tells you what a player is adding to the team
                 win, scored against what her position is on the court to do.
               </p>
               <ul className="mt-6 space-y-3">
@@ -843,7 +843,7 @@ function LedgerCard({ className }: { className?: string }) {
           <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Libero · Winter Invitational</div>
         </div>
         <span className="whitespace-nowrap rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-green-700">
-          Helping team win
+          Strong contribution
         </span>
       </div>
       <div className="mt-3 flex items-baseline gap-2">
