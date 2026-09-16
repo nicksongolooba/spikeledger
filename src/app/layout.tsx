@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   },
   other: {
     // Windows pinned sites and Start menu tiles.
-    "msapplication-TileImage": "/icon.png",
+    "msapplication-TileImage": "/icons/tile-256.png",
     "msapplication-TileColor": "#4c1d95",
   },
   appleWebApp: {

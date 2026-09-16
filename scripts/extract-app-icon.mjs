@@ -142,6 +142,13 @@ function cutout(rgb, w, h) {
   return out;
 }
 
+// Largest square that fits inside a circle of this bounding box.
+function inscribedSquare(box) {
+  const side = Math.floor(box.width * 0.707);
+  const off = Math.round((box.width - side) / 2);
+  return { left: box.left + off, top: box.top + off, width: side, height: side };
+}
+
 export async function extractAppIcon(sheet = ICON_SHEET) {
   const { data, info } = await sharp(sheet).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const blobs = purpleBlobs(data, info.width, info.height, info.channels);
@@ -169,9 +176,20 @@ export async function extractAppIcon(sheet = ICON_SHEET) {
     square: await sharp(sheet).removeAlpha().extract(bleedBox).png().toBuffer(),
     // Designer's rounded square on transparency, for our own surfaces.
     rounded: await sharp(cutout(squareRgb, side, side), raw(null, side, 4)).png().toBuffer(),
-    // Circular Android version on transparency, for maskable icons.
+    // Circular version on transparency. This is the icon itself on any
+    // surface that allows transparency: browser tabs, the Windows taskbar,
+    // installed app windows.
     circle: await sharp(cutout(circleRgb, circleBox.width, circleBox.width), raw(null, circleBox.width, 4)).png().toBuffer(),
-    boxes: { artwork: squareBox, square: bleedBox, circle: circleBox },
+    // What the circle contains: the largest square that fits inside the disc,
+    // so it is opaque to the edges. Used where transparency is not allowed
+    // (iOS home screens) or gets masked away (Android adaptive icons), which
+    // is what stops the icon reading as a circle inside a square.
+    contents: await sharp(sheet)
+      .removeAlpha()
+      .extract(inscribedSquare(circleBox))
+      .png()
+      .toBuffer(),
+    boxes: { artwork: squareBox, square: bleedBox, circle: circleBox, contents: inscribedSquare(circleBox) },
   };
 }
 
@@ -179,7 +197,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split(/[\\/]/).p
   const out = await extractAppIcon();
   console.log(JSON.stringify(out.boxes), "native side:", out.size);
   const dir = process.env.OUT_DIR ?? ".";
-  for (const [name, buf] of [["square", out.square], ["rounded", out.rounded], ["circle", out.circle]]) {
+  for (const [name, buf] of [["square", out.square], ["rounded", out.rounded], ["circle", out.circle], ["contents", out.contents]]) {
     await sharp(buf).toFile(`${dir}/app-icon-${name}.png`);
     console.log(`${dir}/app-icon-${name}.png`);
   }
