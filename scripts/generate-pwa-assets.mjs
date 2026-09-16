@@ -1,8 +1,8 @@
 // Generates every derived brand asset.
 //
 // Two sources, both committed at the repo root:
-//   "spikeledger current.png"    the app icon sheet  -> square app icon
-//   "spikeledger logo update.png" the logo sheet     -> wordmarks
+//   "spikeledger app icon.png"    the circular app icon -> platform icons
+//   "spikeledger logo update.png" the logo sheet        -> wordmarks
 //
 // Run: node scripts/generate-pwa-assets.mjs
 //
@@ -22,7 +22,7 @@ import sharp from "sharp";
 import { existsSync, writeFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { BRAND_NAVY, SHEET, extractBrandAssets } from "./extract-brand-assets.mjs";
-import { ICON_SHEET, extractAppIcon } from "./extract-app-icon.mjs";
+import { ICON_SOURCE, extractAppIcon } from "./extract-app-icon.mjs";
 
 // Deep purple from the app icon's palette: the background behind the mark on
 // maskable icons and the Windows tile.
@@ -60,10 +60,10 @@ for (const name of ["logo-full", "logo-full-on-dark"]) {
 }
 
 // --- App icon masters -----------------------------------------------------
-const icon = await extractAppIcon(ICON_SHEET);
-console.log(`app icon master ${icon.size}x${icon.size} from "${ICON_SHEET}"`);
+const icon = await extractAppIcon(ICON_SOURCE);
+console.log(`app icon master ${icon.size}x${icon.size} from "${ICON_SOURCE}"`);
 if (icon.size < 512) {
-  console.log(`  note: the sheet's largest icon is ${icon.size}px, so 512 and 384 are upscaled.`);
+  console.log(`  note: the source is only ${icon.size}px, so the 512 icons are upscaled.`);
 }
 
 // A light unsharp pass on the small sizes holds the ball's seams and the
