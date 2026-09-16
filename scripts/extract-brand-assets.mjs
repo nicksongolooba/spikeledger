@@ -15,9 +15,10 @@
 //   public/logo-full.png            horizontal logo for light surfaces
 //   public/logo-full-on-dark.png    horizontal logo for navy surfaces
 //   public/logo-icon.png            circular icon, 512, transparent outside the ring
-//   public/logo-app-icon.png        rounded-square app icon, 512, transparent corners
-//   src/app/icon.png                favicon (256, rounded square)
-//   src/app/apple-icon.png          apple touch icon (180, opaque navy square)
+//
+// Platform icons (favicon, apple touch icon, manifest and maskable icons) do
+// NOT come from here: they are built from the dedicated app icon sheet by
+// scripts/extract-app-icon.mjs.
 
 import sharp from "sharp";
 import { existsSync } from "node:fs";
@@ -43,7 +44,6 @@ const VARIANTS = {
   horizontalOnDark: { box: [0.0, 0.0, 1.0, 0.3], bg: NAVY_RGB, mode: "all", edge: "saturated" },
   horizontalOnLight: { box: [0.0, 0.3, 1.0, 0.6], bg: WHITE_RGB, mode: "all", edge: "saturated" },
   circleIcon: { box: [0.0, 0.6, 0.5, 1.0], bg: WHITE_RGB, mode: "exterior", edge: "saturated", mask: "circle" },
-  appIcon: { box: [0.5, 0.6, 1.0, 1.0], bg: WHITE_RGB, mode: "exterior", edge: "dark" },
 };
 const PAD = 6;
 
@@ -181,26 +181,6 @@ export async function extractBrandAssets(sheet = SHEET) {
     .toBuffer();
   await sharp(circlePng).resize(512, 512).png().toFile("public/logo-icon.png");
   console.log(`public/logo-icon.png  512x512  (from sheet box ${JSON.stringify(circle.box)})`);
-
-  const app = await cut(sheet, VARIANTS.appIcon);
-  const appSide = Math.max(app.box.width, app.box.height);
-  const appPng = await app.image
-    .resize(appSide, appSide, { fit: "contain", background: clear })
-    .png()
-    .toBuffer();
-  await sharp(appPng).resize(512, 512).png().toFile("public/logo-app-icon.png");
-  await sharp(appPng).resize(256, 256).png().toFile("src/app/icon.png");
-  console.log(`public/logo-app-icon.png 512, src/app/icon.png 256  (from sheet box ${JSON.stringify(app.box)})`);
-
-  // Apple touch icon: iOS rounds the corners itself and shows black through
-  // transparency, so give it a full navy square with the mark at the same
-  // scale the sheet's app icon uses.
-  const mark = await sharp(circlePng).resize(142, 142).png().toBuffer();
-  await sharp({ create: { width: 180, height: 180, channels: 4, background: BRAND_NAVY } })
-    .composite([{ input: mark, gravity: "centre" }])
-    .png()
-    .toFile("src/app/apple-icon.png");
-  console.log("src/app/apple-icon.png  180x180");
 
   return { wordmark: { width: wmW, height: wmH } };
 }

@@ -5,7 +5,7 @@
  *   recording is handled separately by the entry page's write-ahead log.
  * - API calls are never cached (always network).
  */
-const VERSION = "v2"; // bumped with the 2026-09 logo change so the old brand art leaves the cache
+const VERSION = "v3"; // bumped with the 2026-09-15 app icon so installed apps drop the old one
 const STATIC_CACHE = `spikeledger-static-${VERSION}`;
 const PAGE_CACHE = `spikeledger-pages-${VERSION}`;
 
@@ -14,8 +14,8 @@ const PAGE_CACHE = `spikeledger-pages-${VERSION}`;
 const PRECACHE = [
   "/offline.html",
   "/manifest.json",
-  "/logo-full.png",
-  "/logo-full-on-dark.png",
+  "/logo-full@2x.png",
+  "/logo-full-on-dark@2x.png",
   "/logo-icon.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",

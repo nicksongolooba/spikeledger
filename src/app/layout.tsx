@@ -48,6 +48,31 @@ export const metadata: Metadata = {
     "Courtside stat entry, the position-fair Bank Account, and report cards parents actually understand. Built by a club volleyball coach.",
   applicationName: "SpikeLedger",
   manifest: "/manifest.json",
+  // One link per exported size, so a browser, the Windows taskbar or the
+  // Start menu takes an exact match instead of squeezing a 512 into 32. The
+  // files come from scripts/generate-pwa-assets.mjs; /icon.png (256) and
+  // /apple-icon.png (180) are picked up from the app directory automatically.
+  // Declaring `icons` replaces the automatic links Next.js would add for
+  // app/icon.png and app/apple-icon.png, so both are listed here by hand.
+  icons: {
+    icon: [
+      ...[16, 32, 48, 64, 128, 180, 192].map((size) => ({
+        url: `/icons/favicon-${size}.png`,
+        sizes: `${size}x${size}`,
+        type: "image/png",
+      })),
+      // The size Windows takes when a site is pinned to the taskbar.
+      { url: "/icon.png", sizes: "256x256", type: "image/png" },
+      { url: "/icons/favicon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico"],
+  },
+  other: {
+    // Windows pinned sites and Start menu tiles.
+    "msapplication-TileImage": "/icon.png",
+    "msapplication-TileColor": "#4c1d95",
+  },
   appleWebApp: {
     capable: true,
     title: "SpikeLedger",
