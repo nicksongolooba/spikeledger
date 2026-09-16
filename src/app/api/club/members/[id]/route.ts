@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getClubMembership } from "@/lib/club";
+import { ClubError, requireClubOwner } from "@/lib/club";
 
 export async function DELETE(
   _req: Request,
@@ -17,12 +17,14 @@ export async function DELETE(
   const userId = (session?.user as { id?: string } | undefined)?.id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const membership = await getClubMembership(userId);
-  if (!membership || membership.role !== "OWNER") {
-    return NextResponse.json(
-      { error: "Only the club owner can remove coaches." },
-      { status: 403 },
-    );
+  let membership;
+  try {
+    membership = await requireClubOwner(userId, "Only the club owner can remove coaches.");
+  } catch (err) {
+    if (err instanceof ClubError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
 
   const target = await prisma.clubMember.findFirst({

@@ -1,6 +1,6 @@
 // Club dashboard: identity, coaches, every club team, and club-wide stats.
-// Visible to any club member; owner additionally gets invite + member
-// management controls.
+// CLUB tier only, whether paid directly or lent by an active club; the owner
+// additionally gets invite + member management controls.
 
 import Link from "next/link";
 import { Volleyball } from "lucide-react";
@@ -8,7 +8,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { ensureClubForOwner, getClubMembership } from "@/lib/club";
+import { ensureClubForOwner, getClubAccess } from "@/lib/club";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InvitePanel } from "./InvitePanel";
 import { RemoveMemberButton } from "./RemoveMemberButton";
@@ -23,11 +23,15 @@ const ROLE_LABEL: Record<string, string> = {
 
 export default async function ClubPage() {
   const user = await requireUser();
-  let membership = await getClubMembership(user.id);
+  // Club tier only. A Coach Pro or Free user gets nothing here, and neither
+  // does a member whose club has gone dormant.
+  const access = await getClubAccess(user.id, user.plan);
+  if (!access.allowed) redirect("/dashboard");
+  let membership = access.membership;
   if (!membership && user.plan === "CLUB") {
     membership = await ensureClubForOwner(user.id);
   }
-  if (!membership) redirect("/settings/billing");
+  if (!membership) redirect("/dashboard");
 
   const clubId = membership.club.id;
   const isOwner = membership.role === "OWNER";

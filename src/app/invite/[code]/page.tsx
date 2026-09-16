@@ -6,6 +6,7 @@ import { Volleyball } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isClubActive } from "@/lib/club";
 import { JoinClubButton } from "./JoinClubButton";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,10 @@ export default async function InvitePage({
 
   const invalid =
     !invite || Boolean(invite.acceptedAt) || invite.expiresAt < new Date();
+
+  // A link written while the club was paid for should not lead someone into a
+  // dormant club, where joining would grant nothing and explain nothing.
+  const dormant = !invalid && invite ? !(await isClubActive(invite.clubId)) : false;
 
   const alreadyMember =
     invite && userId
@@ -54,6 +59,20 @@ export default async function InvitePage({
             <p className="mt-2 text-sm text-slate-600">
               The link may have expired or already been used. Ask your club
               owner to send a fresh invite.
+            </p>
+            <Link href="/" className="btn-secondary mt-6 inline-flex">
+              Back to SpikeLedger
+            </Link>
+          </>
+        ) : dormant ? (
+          <>
+            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl text-slate-900">
+              {invite!.club.name} isn&apos;t active right now
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">
+              This club&apos;s plan has lapsed, so the invite can&apos;t be used
+              yet. Nothing has been lost. Once the club owner subscribes again,
+              ask them to resend this link.
             </p>
             <Link href="/" className="btn-secondary mt-6 inline-flex">
               Back to SpikeLedger

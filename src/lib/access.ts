@@ -1,6 +1,7 @@
 // Team access control: private teams with owner oversight. Visibility rule:
-// a team is visible to its creating coach, plus the club OWNER for every
-// team in their club (oversight). Club COACHes see only their own teams -
+// a team is visible to its creating coach, plus the club OWNER for every team
+// in their ACTIVE club (oversight; see the dormancy note in club.ts - a
+// coach always keeps every team they created, whatever the club is doing). Club COACHes see only their own teams -
 // their experience matches Coach Pro exactly. ASSISTANTs will see explicitly
 // assigned teams once assignments exist; until then they see only teams they
 // created themselves. Write tiers:
@@ -12,14 +13,23 @@
 import { notFound } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { ACTIVE_CLUB_FILTER } from "@/lib/club";
 
 // Where-clause for every "list/load teams this user can SEE" query.
 export function teamVisibleWhere(userId: string): Prisma.TeamWhereInput {
   return {
     OR: [
       { coachId: userId },
-      // Owner oversight: OWNERs see every team in their club.
-      { club: { is: { members: { some: { userId, role: "OWNER" } } } } },
+      // Owner oversight: OWNERs see every team in their club, but only while
+      // the club is active. A dormant club lends nothing, so a downgraded
+      // owner drops back to seeing just the teams they coach themselves.
+      {
+        club: {
+          is: {
+            AND: [{ members: { some: { userId, role: "OWNER" } } }, ACTIVE_CLUB_FILTER],
+          },
+        },
+      },
     ],
   };
 }
@@ -49,11 +59,16 @@ export async function getTeamAccessLevel(
   if (!team) return null;
   if (team.coachId === userId) return "manage";
   if (!team.clubId) return null;
-  // Only the club OWNER sees other coaches' teams (read-only oversight).
-  // COACH members get nothing on teams they didn't create; ASSISTANT access
-  // waits on per-team assignments.
+  // Only the club OWNER sees other coaches' teams (read-only oversight), and
+  // only while the club is active. COACH members get nothing on teams they
+  // didn't create; ASSISTANT access waits on per-team assignments.
   const ownerMembership = await prisma.clubMember.findFirst({
-    where: { userId, clubId: team.clubId, role: "OWNER" },
+    where: {
+      userId,
+      clubId: team.clubId,
+      role: "OWNER",
+      club: { is: ACTIVE_CLUB_FILTER },
+    },
     select: { id: true },
   });
   return ownerMembership ? "read" : null;

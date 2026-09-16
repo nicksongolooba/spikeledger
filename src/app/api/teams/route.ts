@@ -25,10 +25,12 @@ export async function POST(req: Request) {
     );
   }
 
-  // Club role check: ASSISTANTs help with stats but don't create teams.
-  const { getClubMembership, getEffectivePlan } = await import("@/lib/club");
+  // Club role check: ASSISTANTs help with stats but don't create teams. The
+  // restriction comes from the club, so it lifts when the club goes dormant -
+  // at that point they are just a coach with their own teams.
+  const { getClubMembership, getEffectivePlan, isClubActive } = await import("@/lib/club");
   const membership = await getClubMembership(userId);
-  if (membership?.role === "ASSISTANT") {
+  if (membership?.role === "ASSISTANT" && (await isClubActive(membership.club.id))) {
     return NextResponse.json(
       { error: "Assistant coaches can't create teams - ask your club owner or a coach." },
       { status: 403 },
