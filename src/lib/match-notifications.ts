@@ -16,7 +16,7 @@ import { isAllowedPushEndpoint, pushConfigured, sendPush, type PushMessage, type
 import { appUrl, emailConfigured, matchStartEmail, matchStartTitle, sendEmail, type EmailResult, type OutgoingEmail } from "@/lib/email";
 
 export const NOTIFY_RATE_WINDOW_MS = 10 * 60 * 1000;
-export const APP_ICON = "/icons/icon-192.png";
+export const APP_ICON = "/icons/icon-192-v4.png";
 
 export interface NotificationTransports {
   pushEnabled(): boolean;

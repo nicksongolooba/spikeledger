@@ -33,7 +33,7 @@ export function InstallPrompt() {
     <div className="fixed inset-x-3 bottom-20 z-[120] mx-auto max-w-md lg:bottom-4">
       <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-pop">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icons/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded-md" />
+        <img src="/icons/icon-192-v4.png" alt="" className="h-10 w-10 shrink-0 rounded-md" />
         <div className="min-w-0 flex-1">
           <p className="font-display text-base font-bold leading-tight text-slate-900">Install SpikeLedger</p>
           <p className="mt-0.5 text-xs leading-snug text-slate-600">

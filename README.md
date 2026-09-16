@@ -124,7 +124,19 @@ node --import tsx scripts/verify-parent-flow.mts      # 84 DB-backed checks: par
 DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --parents 200 --seconds 120   # parent live view load test against a running dev server
 node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-start alerts (push or email, never both), real web push + Resend against local mocks
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
+node scripts/verify-app-icons.mjs                    # 48 checks: measures the generated platform icons pixel by pixel
 ```
+
+## Brand and platform icons
+
+```bash
+node scripts/generate-pwa-assets.mjs   # rebuild every icon, splash screen and wordmark from the sources
+node scripts/verify-app-icons.mjs      # measure what was written (sizes, opacity, circle size, centring)
+node scripts/preview-app-icons.mjs     # render a sheet showing them on iPhone, taskbar, Android and tabs
+```
+
+Icon files are versioned in their filename (`-v4`). Phones and browsers cache an
+app icon by URL, so new art always gets a new path.
 
 ## License
 
