@@ -95,20 +95,20 @@ enum ClubRole {
 // ============================================================
 
 model Team {
-  id        String   @id @default(cuid())
-  name      String
-  ageGroup  String?
-  season    String?
-  clubId    String?
-  coachId   String
-  createdAt DateTime @default(now())
+  id                   String   @id @default(cuid())
+  name                 String
+  ageGroup             String?
+  season               String?
+  clubId               String?
+  coachId              String
+  createdAt            DateTime @default(now())
   // false = "no positions" mode: everyone rotates through everything, the
   // Bank Account uses the universal formula, and position UI is hidden.
-  usesPositions   Boolean @default(true)
+  usesPositions        Boolean  @default(true)
   // Coach can pause the parent live view for the whole team.
-  allowParentView Boolean @default(true)
+  allowParentView      Boolean  @default(true)
   // Alert linked parents (push, else email) when a match starts.
-  notifyParentsOnStart Boolean @default(true)
+  notifyParentsOnStart Boolean  @default(true)
 
   club        Club?        @relation(fields: [clubId], references: [id])
   coach       User         @relation(fields: [coachId], references: [id], onDelete: Cascade)
@@ -117,14 +117,14 @@ model Team {
 }
 
 model Player {
-  id                String    @id @default(cuid())
-  name              String
-  number            Int?
-  primaryPosition   Position
-  secondaryPosition Position?
-  teamId            String
-  isActive          Boolean   @default(true)
-  createdAt         DateTime  @default(now())
+  id                    String    @id @default(cuid())
+  name                  String
+  number                Int?
+  primaryPosition       Position
+  secondaryPosition     Position?
+  teamId                String
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
   // Parent access: a short shareable code ("HAWK-7K2") the coach hands to a
   // parent. Null until the coach issues one; cleared on revoke.
   parentCode            String?   @unique
@@ -134,7 +134,7 @@ model Player {
   parentCodeRedemptions Int       @default(0)
   parentCodeExpiresAt   DateTime?
 
-  team              Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team              Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
   statLines         StatLine[]
   attendanceRecords Attendance[]
   parentLinks       ParentPlayerLink[]
@@ -186,10 +186,10 @@ model Tournament {
 }
 
 model Match {
-  id           String       @id @default(cuid())
-  tournamentId String
-  opponent     String
-  matchNumber  Int
+  id             String       @id @default(cuid())
+  tournamentId   String
+  opponent       String
+  matchNumber    Int
   setsWon        Int          @default(0)
   setsLost       Int          @default(0)
   opponentErrors Int          @default(0)
@@ -201,12 +201,39 @@ model Match {
   tournament    Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   statLines     StatLine[]
   setScores     MatchSetScore[]
+  courtStates   MatchCourtState[]
   notifications MatchNotification[]
 }
 
 // Live per-set score synced from the courtside page so the parent view (and
 // the set win probability) can follow the match point by point. `history`
 // is the sequence of [us, them] scores after each point in that set.
+// Who is on court, per set, while a match is being scored. The courtside
+// screen syncs this whenever the lineup changes, because a substitution only
+// tells the server about the player coming ON. The parent live view reads it
+// to tell "on court" from "on the bench" from "off the court right now".
+model MatchCourtState {
+  id        String   @id @default(cuid())
+  matchId   String
+  setNumber Int
+  // On court right now.
+  onCourt   String[]
+  // Everyone who has been on court at any point this set. Only ever grows, so
+  // a child's stats stay correctly labelled after she comes off.
+  appeared  String[]
+  // Everyone the courtside screen had available for this match.
+  roster    String[]
+  // Each player's match totals when this set's lineup was first synced.
+  // Stats are stored per match, so subtracting this is the only truthful way
+  // to say "her stats this set so far".
+  baseline  Json     @default("{}")
+  updatedAt DateTime @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, setNumber])
+}
+
 model MatchSetScore {
   id        String   @id @default(cuid())
   matchId   String
@@ -337,9 +364,9 @@ enum ReportType {
 model AIInsightCache {
   id        String   @id @default(cuid())
   cacheKey  String   @unique
-  kind      String   // "player" | "team"
+  kind      String // "player" | "team"
   response  Json
-  provider  String   // "ollama" | "google" | "rule-based"
+  provider  String // "ollama" | "google" | "rule-based"
   createdAt DateTime @default(now())
   expiresAt DateTime
 

@@ -22,7 +22,20 @@ import {
   teamPrefix,
   unlinkParent,
 } from "@/lib/parent";
-import { buildLiveSnapshot, buildParentPlayerView, getTeamLive, matchStatus } from "@/lib/parent-view";
+import {
+  buildLiveSnapshot,
+  buildParentPlayerView,
+  getTeamLive,
+  matchStatus,
+  type PlayerCourtState,
+} from "@/lib/parent-view";
+import { baselineFromLines, mergeCourtState } from "@/lib/court-state";
+import {
+  BACK_ON_COURT_CHIP,
+  FORBIDDEN_PRONOUNS,
+  FORBIDDEN_WORDS,
+  playerStateCopy,
+} from "@/lib/player-state-copy";
 import { teamHistoricalRallyRate } from "@/lib/win-probability-data";
 import { invalidateLive, liveCacheStats, resetLiveCache } from "@/lib/live-cache";
 import { rateLimit, resetRateLimits } from "@/lib/rate-limit";
@@ -283,6 +296,171 @@ async function main() {
     check("8 polls a minute pass, the 9th is refused with Retry-After", passed8 === 8 && !ninth.ok && ninth.retryAfterSec >= 52);
     check("another parent is not affected", rateLimit("p2", { max: 8, windowMs: 60_000, now: t0 + 8_000 }).ok);
     check("the window slides", rateLimit("p1", { max: 8, windowMs: 60_000, now: t0 + 61_000 }).ok);
+
+    // 4d. The live scoreboard and the four player states
+    //
+    // A second match, in progress, so the state machine can be driven all the
+    // way through: on court, off the court, back on.
+    const ivy = await prisma.player.create({
+      data: { teamId: teamA.id, name: "Ivy", number: 3, primaryPosition: "MB" },
+    });
+    const nia = await prisma.player.create({
+      data: { teamId: teamA.id, name: "Nia", number: 9, primaryPosition: "S" },
+    });
+    const live2 = await prisma.match.create({
+      data: {
+        tournamentId: tournament.id,
+        opponent: "Central Thunder",
+        matchNumber: 2,
+        startedAt: new Date(),
+      },
+    });
+    const board = async (playerId: string) => {
+      invalidateLive({ teamId: teamA.id, matchId: live2.id });
+      return buildLiveSnapshot(playerId);
+    };
+    await prisma.matchSetScore.create({
+      data: { matchId: live2.id, setNumber: 1, us: 25, them: 22, history: [] },
+    });
+    await prisma.matchSetScore.create({
+      data: { matchId: live2.id, setNumber: 2, us: 18, them: 14, history: [] },
+    });
+    await prisma.statLine.create({
+      data: { matchId: live2.id, playerId: maya.id, positionPlayed: "L", digs: 4, sr3: 2 },
+    });
+    await prisma.statLine.create({
+      data: { matchId: live2.id, playerId: ivy.id, positionPlayed: "MB", kills: 3 },
+    });
+
+    let s2 = await board(maya.id);
+    check("scoreboard carries both team names", s2.match?.teamName === "Thunder Hawks 16U" && s2.match?.opponent === "Central Thunder");
+    check("scoreboard shows the set in progress", s2.currentSet?.setNumber === 2 && s2.currentSet?.us === 18 && s2.currentSet?.them === 14);
+    check("scoreboard keeps the finished set for its chip", s2.sets.length === 2 && s2.sets[0].us === 25 && s2.sets[0].decided === "us");
+    check("running set tally counts decided sets only", s2.setsTally.us === 1 && s2.setsTally.them === 0);
+    check("no lineup synced = state unknown, stats still shown", s2.playerState === "unknown" && s2.stats?.digs === 4);
+
+    // The courtside screen syncs set 2's lineup. Maya and Zara start; Ivy is on
+    // the match roster but has not been on this set; Nia is not in the match.
+    await prisma.matchCourtState.create({
+      data: {
+        matchId: live2.id,
+        setNumber: 2,
+        onCourt: [maya.id, zara.id],
+        appeared: [maya.id, zara.id],
+        roster: [maya.id, zara.id, ivy.id],
+        baseline: baselineFromLines([
+          { playerId: maya.id, digs: 4, sr3: 2 },
+          { playerId: ivy.id, kills: 3 },
+        ]),
+      },
+    });
+    s2 = await board(maya.id);
+    const etagOnCourt = s2.etag;
+    check("STATE 1: on court", s2.playerState === "on_court");
+    check("on court: this set starts from the snapshot, not from zero totals", s2.setStats?.digs === 0 && s2.stats?.digs === 4);
+
+    check("STATE 2: on the bench this set", (await board(ivy.id)).playerState === "bench");
+    const benchSnap = await board(ivy.id);
+    check("on the bench: earlier stats in the match stay on screen", benchSnap.stats?.kills === 3 && benchSnap.setStats?.kills === 0);
+    check("STATE 4: not in this match", (await board(nia.id)).playerState === "not_in_match");
+    check("not in the match: the scoreboard is still there", (await board(nia.id)).currentSet?.us === 18);
+
+    // The coach records more of Maya's set.
+    await prisma.statLine.update({
+      where: { matchId_playerId: { matchId: live2.id, playerId: maya.id } },
+      data: { digs: 7, kills: 2 },
+    });
+    s2 = await board(maya.id);
+    check("on court: this-set figures are match totals minus the snapshot", s2.setStats?.digs === 3 && s2.setStats?.kills === 2 && s2.stats?.digs === 7);
+    const bankBefore = s2.bankAccount?.balance ?? null;
+
+    // Maya comes off for Ivy.
+    const subbed = mergeCourtState(
+      { onCourt: [maya.id, zara.id], appeared: [maya.id, zara.id], roster: [maya.id, zara.id, ivy.id] },
+      { onCourt: [zara.id, ivy.id] },
+    );
+    check("merge keeps everyone who has been on court this set", subbed.appeared.includes(maya.id) && subbed.appeared.includes(ivy.id));
+    check("merge replaces who is on court right now", !subbed.onCourt.includes(maya.id) && subbed.onCourt.length === 2);
+    await prisma.matchCourtState.update({
+      where: { matchId_setNumber: { matchId: live2.id, setNumber: 2 } },
+      data: subbed,
+    });
+    s2 = await board(maya.id);
+    check("STATE 3: off the court right now", s2.playerState === "off_court");
+    check("coming off never resets the match stats", s2.stats?.digs === 7 && s2.stats?.kills === 2);
+    check("coming off never moves the Bank Account", s2.bankAccount?.balance === bankBefore);
+    check("this-set stats survive the substitution", s2.setStats?.digs === 3 && s2.setStats?.kills === 2);
+    check("a substitution changes the etag, so the next poll sees it", s2.etag !== etagOnCourt);
+    check("the player who came on is now on court", (await board(ivy.id)).playerState === "on_court");
+
+    // And back on.
+    await prisma.matchCourtState.update({
+      where: { matchId_setNumber: { matchId: live2.id, setNumber: 2 } },
+      data: mergeCourtState(subbed, { onCourt: [maya.id, zara.id] }),
+    });
+    s2 = await board(maya.id);
+    check("going back on returns to STATE 1", s2.playerState === "on_court");
+    check("nothing recorded is lost across the round trip", s2.stats?.digs === 7 && s2.setStats?.digs === 3);
+
+    // A new set resets what "this set" means, without touching match totals.
+    await prisma.matchSetScore.create({
+      data: { matchId: live2.id, setNumber: 3, us: 2, them: 0, history: [] },
+    });
+    await prisma.matchCourtState.create({
+      data: {
+        matchId: live2.id,
+        setNumber: 3,
+        onCourt: [zara.id],
+        appeared: [zara.id],
+        roster: [maya.id, zara.id, ivy.id],
+        baseline: baselineFromLines([{ playerId: maya.id, digs: 7, kills: 2 }]),
+      },
+    });
+    s2 = await board(maya.id);
+    check("a new set puts a player who has not been on back on the bench", s2.playerState === "bench");
+    check("a new set zeroes the per-set figure but not the match totals", s2.setStats?.digs === 0 && s2.stats?.digs === 7);
+
+    // Final
+    await prisma.match.update({
+      where: { id: live2.id },
+      data: { result: "WIN", setsWon: 2, setsLost: 1 },
+    });
+    s2 = await board(maya.id);
+    check("final match carries the result for the scoreboard", s2.status === "final" && s2.match?.result === "WIN" && s2.match?.setsWon === 2 && s2.match?.setsLost === 1);
+
+    // 4e. Tone. Playing time is the most charged subject in the app, so the
+    // copy is checked rather than trusted.
+    const allStates: PlayerCourtState[] = ["on_court", "off_court", "bench", "not_in_match", "unknown"];
+    let judgement: string | null = null;
+    let pronoun: string | null = null;
+    for (const st of allStates) {
+      const c = playerStateCopy(st, "Sofia");
+      const text = [c.chip, c.message, c.matchStatsLabel, c.setStatsLabel].filter(Boolean).join(" ").toLowerCase();
+      for (const w of FORBIDDEN_WORDS) {
+        if (new RegExp(`\\b${w.replace(/'/g, "['\u2019]")}\\b`).test(text)) judgement = `${st}: ${w}`;
+      }
+      for (const pr of FORBIDDEN_PRONOUNS) {
+        if (new RegExp(`\\b${pr}\\b`).test(text)) pronoun = `${st}: ${pr}`;
+      }
+    }
+    check(`no judgement words in any player-state copy${judgement ? ` (${judgement})` : ""}`, judgement === null);
+    check(`no assumed pronouns in any player-state copy${pronoun ? ` (${pronoun})` : ""}`, pronoun === null);
+    check("bench copy states the fact and what happens next", playerStateCopy("bench", "Sofia").message === "Sofia is on the bench this set. Stats will update as soon as Sofia goes in.");
+    check("off-court copy is present tense and neutral", playerStateCopy("off_court", "Sofia").message === "Sofia is off the court right now.");
+    check("not-in-match copy is a plain statement", playerStateCopy("not_in_match", "Sofia").message === "Sofia is not in this match.");
+    check("off-court per-set line is labelled as this set", playerStateCopy("off_court", "Sofia").setStatsLabel === "Sofia's stats this set so far");
+    check("the stat grid is always labelled as match totals", playerStateCopy("off_court", "Sofia").matchStatsLabel === "This match so far" && playerStateCopy("on_court", "Sofia").matchStatsLabel === "This match so far");
+    check("bench grid says the numbers came from earlier in the match", playerStateCopy("bench", "Sofia").matchStatsLabel === "Earlier in this match");
+    check("on court needs no explanation, only a chip", playerStateCopy("on_court", "Sofia").message === null && playerStateCopy("on_court", "Sofia").chip === "On court");
+    check("an unknown lineup says nothing at all", playerStateCopy("unknown", "Sofia").message === null && playerStateCopy("unknown", "Sofia").chip === null);
+    check("returning to the court is announced neutrally", BACK_ON_COURT_CHIP === "Back on court");
+    const everyString = allStates
+      .map((st) => playerStateCopy(st, "Sofia"))
+      .flatMap((c) => [c.chip, c.message, c.matchStatsLabel, c.setStatsLabel])
+      .filter(Boolean)
+      .join(" ");
+    check("copy never names a teammate", !everyString.includes("Maya") && !everyString.includes("Zara") && !everyString.includes("Ivy"));
+    check("copy never counts sets played", !/\\bsets? played\\b/i.test(everyString) && !/\\bminutes\\b/i.test(everyString));
 
     // 5. Full view never leaks teammates
     invalidateLive({ teamId: teamA.id, matchId: match.id });

@@ -2,9 +2,40 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Info, Radio } from "lucide-react";
-import type { LiveSnapshot } from "@/lib/parent-view";
+import type { LiveSnapshot, LiveStats } from "@/lib/parent-view";
+import { LiveScoreboard } from "@/components/parent/LiveScoreboard";
+import { BACK_ON_COURT_CHIP, playerStateCopy } from "@/lib/player-state-copy";
 import { WinChanceSparkline } from "@/components/charts/WinChanceSparkline";
 import { cn, formatDate } from "@/lib/utils";
+
+// How long the "Back on court" chip stays up after a child returns.
+const BACK_ON_MS = 12_000;
+
+function statsAreEmpty(s: LiveStats | null): s is null {
+  if (!s) return true;
+  return (
+    s.kills === 0 && s.aces === 0 && s.blocks === 0 && s.digs === 0 &&
+    s.assists === 0 && s.errors === 0 && s.srAttempts === 0
+  );
+}
+
+// "4 kills, 2 digs" - the per-set line under the grid. Zeroes are left out.
+function summarise(s: LiveStats): string {
+  const parts: [number, string, string][] = [
+    [s.kills, "kill", "kills"],
+    [s.aces, "ace", "aces"],
+    [s.blocks, "block", "blocks"],
+    [s.digs, "dig", "digs"],
+    [s.assists, "assist", "assists"],
+  ];
+  const said = parts
+    .filter(([n]) => n > 0)
+    .map(([n, one, many]) => `${n} ${n === 1 ? one : many}`);
+  if (s.srAttempts > 0 && s.srAverage !== null) {
+    said.push(`${s.srAttempts} ${s.srAttempts === 1 ? "pass" : "passes"} at ${s.srAverage.toFixed(2)}`);
+  }
+  return said.join(", ");
+}
 
 const LIVE_POLL_MS = 15_000; // during a match, tab visible
 const QUIET_POLL_MS = 60_000; // after QUIET_AFTER unchanged polls (timeout, between sets)
@@ -121,6 +152,20 @@ export function LiveMatchCard({
     };
   }, [teamId, playerId, snap.status]);
 
+  // A substitution should register without shouting: when the child goes back
+  // on, the chip says so for a few seconds and then settles to "On court".
+  const prevStateRef = useRef(initial.playerState);
+  const [backOn, setBackOn] = useState(false);
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    prevStateRef.current = snap.playerState;
+    if (snap.playerState !== "on_court") return;
+    if (prev !== "off_court" && prev !== "bench") return;
+    setBackOn(true);
+    const t = setTimeout(() => setBackOn(false), BACK_ON_MS);
+    return () => clearTimeout(t);
+  }, [snap.playerState]);
+
   if (snap.status === "none" || !snap.match) {
     return (
       <section className="card p-5">
@@ -136,86 +181,119 @@ export function LiveMatchCard({
   const m = snap.match;
   const isLive = snap.status === "live";
   const isFinal = snap.status === "final";
-  const stats = snap.stats;
-  const resultTone =
-    m.result === "WIN" ? "bg-green-50 text-green-700" : m.result === "LOSS" ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600";
+  const firstName = playerName.split(" ")[0] || playerName;
+  // Once the match is over nobody is on court, so the live states stop
+  // applying. "Not in this match" still does, and stays.
+  const shownState =
+    isLive || snap.playerState === "not_in_match" ? snap.playerState : "unknown";
+  const copy = playerStateCopy(shownState, firstName);
+  const notInMatch = snap.playerState === "not_in_match";
+  const chip = backOn && isLive ? BACK_ON_COURT_CHIP : copy.chip;
+  const matchStatsLabel = isFinal ? "This match" : copy.matchStatsLabel;
+
+  // Match totals. A substitution never takes these off the screen and never
+  // moves them: what the child has already banked stays banked.
+  const stats = notInMatch ? null : snap.stats;
+  // The per-set figure, shown only while off the court and only when there is
+  // something to show.
+  const thisSet =
+    isLive && snap.playerState === "off_court" && !statsAreEmpty(snap.setStats)
+      ? snap.setStats
+      : null;
 
   return (
     <section className={cn("card overflow-hidden", isLive && "border-cyan-300")}>
-      <div className={cn("flex flex-wrap items-center justify-between gap-3 px-5 py-4", isLive ? "bg-navy-950 text-white" : "border-b border-slate-200")}>
-        <div>
-          <div className={cn("eyebrow", isLive ? "text-cyan-500" : "text-slate-500")}>
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-5 py-3.5">
+        <div className="min-w-0">
+          <div className="eyebrow text-slate-500">
             {isLive ? "Happening now" : isFinal ? "Latest match" : "Next up"}
           </div>
-          <div className="mt-1 font-display text-2xl font-bold leading-none">
+          <div className="mt-1 truncate font-display text-xl font-bold leading-none text-slate-900">
             vs {m.opponent}
           </div>
-          <div className={cn("mt-1 text-xs", isLive ? "text-navy-200" : "text-slate-500")}>
+          <div className="mt-1 text-xs text-slate-500">
             {m.tournamentName} · Match {m.matchNumber} · {formatDate(m.tournamentDate)}
           </div>
         </div>
-        {isLive ? (
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-display text-sm font-bold uppercase tracking-widest text-white">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-500" />
-            </span>
-            Live
-          </span>
-        ) : isFinal ? (
-          <span className={cn("rounded px-2.5 py-1 font-display text-sm font-bold uppercase tracking-wider", resultTone)}>
-            Final{m.result === "WIN" ? " · Win" : m.result === "LOSS" ? " · Loss" : ""} {m.setsWon}-{m.setsLost}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded bg-slate-100 px-2.5 py-1 font-display text-sm font-bold uppercase tracking-wider text-slate-600">
+        {!isLive && !isFinal && (
+          <span className="inline-flex items-center gap-1.5 rounded bg-slate-100 px-2.5 py-1 font-display text-xs font-bold uppercase tracking-wider text-slate-600">
             <Radio size={14} strokeWidth={2} aria-hidden />
             Waiting for the coach
           </span>
         )}
       </div>
 
-      {(isLive || isFinal) && snap.sets.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-100 px-5 py-2.5 text-sm">
-          <span className="eyebrow text-slate-500">Sets</span>
-          {snap.sets.map((s) => (
+      {/* The score, in every player state. A parent wants it either way. */}
+      <LiveScoreboard snap={snap} />
+
+      {isLive && snap.currentSet && <SetWinChanceBar current={snap.currentSet} />}
+
+      {/* Where the child is right now. */}
+      <div
+        key={shownState}
+        className="border-b border-slate-100 px-5 py-3 motion-safe:animate-state-in"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-display text-base font-bold text-slate-900">{playerName}</span>
+          {chip && (
             <span
-              key={s.setNumber}
               className={cn(
-                "stat-number text-base font-bold",
-                s.decided === "us" ? "text-green-700" : s.decided === "them" ? "text-red-700" : "text-slate-900",
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-display text-[11px] font-bold uppercase tracking-wider",
+                shownState === "on_court"
+                  ? "bg-green-50 text-green-700"
+                  : "bg-slate-100 text-slate-600",
               )}
-              title={`Set ${s.setNumber}`}
             >
-              {s.us}-{s.them}
+              {shownState === "on_court" && (
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
+                </span>
+              )}
+              {chip}
             </span>
-          ))}
+          )}
         </div>
-      )}
+        {copy.message && (
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-600" aria-live="polite">
+            {copy.message}
+          </p>
+        )}
+      </div>
 
-      {isLive && snap.currentSet && (
-        <SetWinChanceBar current={snap.currentSet} />
-      )}
-
-      {stats ? (
-        <div className="grid grid-cols-3 divide-x divide-y divide-slate-100 sm:grid-cols-6 sm:divide-y-0">
-          <LiveStat label="Kills" value={stats.kills} />
-          <LiveStat label="Aces" value={stats.aces} />
-          <LiveStat label="Digs" value={stats.digs} />
-          <LiveStat label="Blocks" value={stats.blocks} />
-          <LiveStat label="Errors" value={stats.errors} tone="red" />
-          <LiveStat
-            label="Pass rating"
-            value={stats.srAverage === null ? "-" : stats.srAverage.toFixed(2)}
-            hint={stats.srAttempts > 0 ? `${stats.srAttempts} passes` : "out of 3"}
-          />
-        </div>
-      ) : (
+      {stats && !statsAreEmpty(stats) ? (
+        <>
+          <div className="flex items-center justify-between px-5 pt-3">
+            <span className="eyebrow text-slate-500">{matchStatsLabel}</span>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-y divide-slate-100 sm:grid-cols-6 sm:divide-y-0">
+            <LiveStat label="Kills" value={stats.kills} />
+            <LiveStat label="Aces" value={stats.aces} />
+            <LiveStat label="Digs" value={stats.digs} />
+            <LiveStat label="Blocks" value={stats.blocks} />
+            <LiveStat label="Errors" value={stats.errors} tone="red" />
+            <LiveStat
+              label="Pass rating"
+              value={stats.srAverage === null ? "-" : stats.srAverage.toFixed(2)}
+              hint={stats.srAttempts > 0 ? `${stats.srAttempts} passes` : "out of 3"}
+            />
+          </div>
+          {thisSet && (
+            <p className="border-t border-slate-100 px-5 py-2.5 text-sm text-slate-600 motion-safe:animate-state-in">
+              <span className="font-semibold text-slate-900">{copy.setStatsLabel}:</span>{" "}
+              {summarise(thisSet)}
+            </p>
+          )}
+        </>
+      ) : notInMatch ? null : (
         <p className="px-5 py-4 text-sm text-slate-600">
-          {playerName} hasn&apos;t recorded a stat in this match yet.
+          {shownState === "bench"
+            ? `Nothing recorded for ${firstName} in this match yet.`
+            : `${firstName} hasn't recorded a stat in this match yet.`}
         </p>
       )}
 
-      {snap.bankAccount && (
+      {snap.bankAccount && !notInMatch && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-sm">
           <span className="text-slate-600">Bank Account this match</span>
           <span className="inline-flex items-center gap-2">
@@ -241,7 +319,7 @@ export function LiveMatchCard({
               : mode === "idle"
                 ? "Checking every minute for the coach to start"
                 : "Updates every 15 seconds"}
-          {lastPoll ? ` · last check ${new Date(lastPoll).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}` : ""}
+          {lastPoll ? ` \u00b7 last check ${new Date(lastPoll).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}` : ""}
         </div>
       )}
     </section>

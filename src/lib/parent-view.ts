@@ -20,6 +20,12 @@ import { hasFeature } from "@/lib/plan-limits";
 import { computeSetWinChance, setWinner, setRulesFor } from "@/engine/win-probability";
 import { parseScoreHistory, teamHistoricalRallyRate } from "@/lib/win-probability-data";
 import { cachedLive, matchLiveKey, teamLiveKey } from "@/lib/live-cache";
+import {
+  countersFrom,
+  countersSince,
+  playerBaseline,
+  type PlayerCounters,
+} from "@/lib/court-state";
 import { weakEtag } from "@/lib/etag";
 import type { ReportCardData } from "@/components/reports/cards/types";
 import type { ImprovementArea } from "@/components/reports/utils/improvement-rules";
@@ -55,11 +61,27 @@ export interface LiveStats {
   srAverage: number | null;
 }
 
+// Where the child is right now, from the courtside screen's synced lineup.
+//   on_court     playing this moment
+//   off_court    played earlier in this set, on the bench now
+//   bench        on the match roster, not on court yet this set
+//   not_in_match not part of this match at all
+//   unknown      nothing synced for this match, so the app does not claim to
+//                know. Matches scored before court sync existed land here, and
+//                the view falls back to showing stats with no state message.
+export type PlayerCourtState =
+  | "on_court"
+  | "off_court"
+  | "bench"
+  | "not_in_match"
+  | "unknown";
+
 export interface LiveSnapshot {
   status: LiveStatus;
   match: {
     id: string;
     opponent: string;
+    teamName: string;
     matchNumber: number;
     tournamentName: string;
     tournamentDate: string; // ISO
@@ -67,7 +89,12 @@ export interface LiveSnapshot {
     setsWon: number;
     setsLost: number;
   } | null;
+  // The child's match totals. Never reset or hidden by a substitution.
   stats: LiveStats | null;
+  // What she has recorded since the current set's lineup was synced. Null when
+  // the match has no synced lineup, or when she has no stat line.
+  setStats: LiveStats | null;
+  playerState: PlayerCourtState;
   bankAccount: {
     balance: number;
     rating: string;
@@ -77,6 +104,9 @@ export interface LiveSnapshot {
   // Live per-set scores synced from the courtside page (empty until the
   // coach scores a point).
   sets: { setNumber: number; us: number; them: number; decided: "us" | "them" | null }[];
+  // Sets decided so far, counted from the scores. The scoreboard shows the
+  // coach's own setsWon/setsLost once the match is final.
+  setsTally: { us: number; them: number };
   // The set in progress: score plus the win probability after every point.
   currentSet: {
     setNumber: number;
@@ -94,19 +124,22 @@ export interface LiveSnapshot {
   etag: string;
 }
 
-function liveStatsFrom(line: StatLine): LiveStats {
-  const srAttempts = line.sr0 + line.sr1 + line.sr2 + line.sr3;
+function liveStatsFromCounters(c: PlayerCounters): LiveStats {
+  const srAttempts = c.sr0 + c.sr1 + c.sr2 + c.sr3;
   return {
-    kills: line.kills,
-    aces: line.aces,
-    blocks: line.blocks,
-    digs: line.digs,
-    assists: line.assists,
-    errors: line.serveErrors + line.attackErrors + line.generalErrors + line.blockErrors,
+    kills: c.kills,
+    aces: c.aces,
+    blocks: c.blocks,
+    digs: c.digs,
+    assists: c.assists,
+    errors: c.serveErrors + c.attackErrors + c.generalErrors + c.blockErrors,
     srAttempts,
-    srAverage:
-      srAttempts > 0 ? (line.sr1 + 2 * line.sr2 + 3 * line.sr3) / srAttempts : null,
+    srAverage: srAttempts > 0 ? (c.sr1 + 2 * c.sr2 + 3 * c.sr3) / srAttempts : null,
   };
+}
+
+function liveStatsFrom(line: StatLine): LiveStats {
+  return liveStatsFromCounters(countersFrom(line));
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +152,7 @@ function liveStatsFrom(line: StatLine): LiveStats {
 
 export interface TeamLive {
   teamId: string;
+  teamName: string;
   fetchedAt: string;
   allowParentView: boolean;
   usesPositions: boolean;
@@ -146,6 +180,16 @@ export interface MatchLive {
   statCount: number;
   lines: Record<string, StatLine>; // by playerId
   setScores: { setNumber: number; us: number; them: number; history: [number, number][]; updatedAt: string }[];
+  // Synced by the courtside screen, ascending by set. Empty for matches scored
+  // before court sync existed.
+  courtStates: {
+    setNumber: number;
+    onCourt: string[];
+    appeared: string[];
+    roster: string[];
+    baseline: unknown;
+    updatedAt: string;
+  }[];
 }
 
 const LATEST_MATCH_ORDER = [
@@ -158,6 +202,7 @@ async function loadTeamLive(teamId: string): Promise<TeamLive | null> {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
     select: {
+      name: true,
       allowParentView: true,
       usesPositions: true,
       players: {
@@ -197,6 +242,7 @@ async function loadTeamLive(teamId: string): Promise<TeamLive | null> {
   }
   return {
     teamId,
+    teamName: team.name,
     fetchedAt: new Date().toISOString(),
     allowParentView: team.allowParentView,
     usesPositions: team.usesPositions,
@@ -213,6 +259,7 @@ async function loadMatchLive(matchId: string): Promise<MatchLive | null> {
       tournament: { select: { name: true, startDate: true } },
       statLines: true,
       setScores: { orderBy: { setNumber: "asc" } },
+      courtStates: { orderBy: { setNumber: "asc" } },
     },
   });
   if (!m) return null;
@@ -239,6 +286,14 @@ async function loadMatchLive(matchId: string): Promise<MatchLive | null> {
       history: parseScoreHistory(sc.history),
       updatedAt: sc.updatedAt.toISOString(),
     })),
+    courtStates: m.courtStates.map((cs) => ({
+      setNumber: cs.setNumber,
+      onCourt: cs.onCourt,
+      appeared: cs.appeared,
+      roster: cs.roster,
+      baseline: cs.baseline,
+      updatedAt: cs.updatedAt.toISOString(),
+    })),
   };
 }
 
@@ -255,12 +310,34 @@ function emptySnapshot(): LiveSnapshot {
     status: "none" as const,
     match: null,
     stats: null,
+    setStats: null,
+    playerState: "unknown" as const,
     bankAccount: null,
     sets: [],
+    setsTally: { us: 0, them: 0 },
     currentSet: null,
     lastUpdated: null,
   };
   return { ...base, updatedAt: new Date().toISOString(), etag: weakEtag(base) };
+}
+
+// Where the child is, from the lineup the courtside screen synced. Everything
+// here is a fact the coach's screen recorded; nothing is inferred from whether
+// she happens to have a stat yet, because "on court and quiet" and "on the
+// bench" look identical in the counters.
+export function playerCourtState(match: MatchLive, playerId: string): PlayerCourtState {
+  const states = match.courtStates;
+  const onMatchRoster =
+    Boolean(match.lines[playerId]) ||
+    states.some((cs) => cs.roster.includes(playerId) || cs.appeared.includes(playerId));
+  if (!onMatchRoster) return "not_in_match";
+  // Nothing synced for this match: say nothing rather than guess. A match
+  // scored on an older client lands here and reads exactly as it did before.
+  if (states.length === 0) return "unknown";
+  const current = states[states.length - 1];
+  if (current.onCourt.includes(playerId)) return "on_court";
+  if (current.appeared.includes(playerId)) return "off_court";
+  return "bench";
 }
 
 // Pure: one player's view of the cached match data. No database access, so
@@ -306,6 +383,14 @@ export function buildLivePayload(
     match.statCount > 0,
   );
   const line = match.lines[playerId] ?? null;
+  const playerState = playerCourtState(match, playerId);
+  // What she has recorded since this set's lineup was synced. Her match totals
+  // stay in `stats` either way: a substitution never takes numbers off screen.
+  const currentCourt = match.courtStates[match.courtStates.length - 1] ?? null;
+  const setStats =
+    line && currentCourt
+      ? liveStatsFromCounters(countersSince(line, playerBaseline(currentCourt.baseline, playerId)))
+      : null;
   const mode: BankAccountMode = team.usesPositions ? "positions" : "universal";
   const ba = line
     ? calculateBankAccount(line, (line.positionPlayed ?? player.primaryPosition) as Position, mode)
@@ -320,6 +405,7 @@ export function buildLivePayload(
     match: {
       id: match.id,
       opponent: match.opponent,
+      teamName: team.teamName,
       matchNumber: match.matchNumber,
       tournamentName: match.tournamentName,
       tournamentDate: match.tournamentDate,
@@ -328,6 +414,8 @@ export function buildLivePayload(
       setsLost: match.setsLost,
     },
     stats: line ? liveStatsFrom(line) : null,
+    setStats,
+    playerState,
     bankAccount: ba
       ? {
           balance: ba.balance,
@@ -337,6 +425,10 @@ export function buildLivePayload(
         }
       : null,
     sets,
+    setsTally: {
+      us: sets.filter((x) => x.decided === "us").length,
+      them: sets.filter((x) => x.decided === "them").length,
+    },
     currentSet,
   };
   return { ...content, lastUpdated, updatedAt: match.fetchedAt, etag: weakEtag(content) };
