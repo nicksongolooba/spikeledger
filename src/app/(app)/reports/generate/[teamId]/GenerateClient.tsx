@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { SHARE_LINK_NOTICE } from "@/lib/share-links";
 import { Lightbulb } from "lucide-react";
 import type { Position } from "@prisma/client";
 import { PositionBadge } from "@/components/ui/PositionBadge";
@@ -639,6 +640,11 @@ function ShareLink({
       </h2>
       <p className="mt-1 text-xs text-slate-500">
         Generates a public read-only URL per player you can text to parents.
+      </p>
+      {/* Said before the link exists, not buried after it. */}
+      <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        {SHARE_LINK_NOTICE} The page shows a first name and jersey number only, and you can turn
+        any link off from the team page.
       </p>
       {error && (
         <div className="mt-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { leadWithBalance } from "@/engine/bank-account";
 import { ArrowRight, PauseCircle, UserX } from "lucide-react";
 import { requireParent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -25,7 +26,17 @@ export default async function ParentDashboard() {
   const cards = await Promise.all(
     players.map(async (p) => {
       const viewable = p.player.isActive && p.team.allowParentView;
-      if (!viewable) return { ...p, viewable, live: null, balance: null, ratingColor: null, ratingLabel: null };
+      if (!viewable)
+        return {
+          ...p,
+          viewable,
+          live: null,
+          balance: null,
+          deposits: null,
+          withdrawals: null,
+          ratingColor: null,
+          ratingLabel: null,
+        };
       const [live, lines] = await Promise.all([
         buildLiveSnapshot(p.player.id),
         prisma.statLine.findMany({ where: { playerId: p.player.id } }),
@@ -39,6 +50,8 @@ export default async function ParentDashboard() {
         viewable,
         live,
         balance: season?.bankAccount.balance ?? null,
+        deposits: season?.bankAccount.deposits ?? null,
+        withdrawals: season?.bankAccount.withdrawals ?? null,
         ratingColor: season?.bankAccount.ratingColor ?? null,
         ratingLabel: season?.bankAccount.ratingLabel ?? null,
       };
@@ -123,12 +136,25 @@ export default async function ParentDashboard() {
                         <dd className="mt-1 flex items-center gap-2">
                           {c.balance === null ? (
                             <span className="text-sm text-slate-500">No stats yet</span>
-                          ) : (
+                          ) : leadWithBalance(c.balance) ? (
                             <>
                               <span className="stat-number text-3xl font-bold leading-none" style={{ color: c.ratingColor ?? undefined }}>
-                                {c.balance > 0 ? `+${c.balance}` : c.balance}
+                                +{c.balance}
                               </span>
                               <span className="text-xs font-semibold text-slate-600">{c.ratingLabel}</span>
+                            </>
+                          ) : (
+                            /* Never a minus sign as the headline on a child's
+                               card: the two counts say the same thing. */
+                            <>
+                              <span className="stat-number text-2xl font-bold leading-none text-green-700">
+                                {c.deposits}
+                              </span>
+                              <span className="text-xs text-slate-500">good plays</span>
+                              <span className="stat-number text-2xl font-bold leading-none text-slate-700">
+                                {c.withdrawals}
+                              </span>
+                              <span className="text-xs text-slate-500">errors</span>
                             </>
                           )}
                         </dd>

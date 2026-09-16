@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { leadWithBalance } from "@/engine/bank-account";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CirclePlay, Lightbulb } from "lucide-react";
 import { requireParent } from "@/lib/session";
@@ -61,17 +62,39 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
           <section className="mt-6 grid gap-5 lg:grid-cols-12">
             <div className="card p-5 lg:col-span-5">
               <div className="eyebrow text-slate-500">Season Bank Account</div>
-              <div className="mt-2 flex items-baseline gap-3">
-                <span className="stat-number text-6xl font-bold leading-none" style={{ color: season.bankAccount.ratingColor }}>
-                  {fmtSigned(season.bankAccount.balance)}
-                </span>
-                <span
-                  className="rounded px-2 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-white"
-                  style={{ background: season.bankAccount.ratingColor }}
-                >
-                  {season.bankAccount.ratingLabel}
-                </span>
-              </div>
+              {leadWithBalance(season.bankAccount.balance) ? (
+                <div className="mt-2 flex items-baseline gap-3">
+                  <span className="stat-number text-6xl font-bold leading-none" style={{ color: season.bankAccount.ratingColor }}>
+                    {fmtSigned(season.bankAccount.balance)}
+                  </span>
+                  <span
+                    className="rounded px-2 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-white"
+                    style={{ background: season.bankAccount.ratingColor }}
+                  >
+                    {season.bankAccount.ratingLabel}
+                  </span>
+                </div>
+              ) : (
+                /* The two counts lead instead of a large minus number. What to
+                   do about it is in "What to work on" further down. */
+                <div className="mt-2 flex flex-wrap items-baseline gap-x-6 gap-y-2">
+                  <span className="flex items-baseline gap-2">
+                    <span className="stat-number text-5xl font-bold leading-none text-green-700">
+                      {season.bankAccount.deposits}
+                    </span>
+                    <span className="text-sm text-slate-600">good plays</span>
+                  </span>
+                  <span className="flex items-baseline gap-2">
+                    <span className="stat-number text-5xl font-bold leading-none text-slate-700">
+                      {season.bankAccount.withdrawals}
+                    </span>
+                    <span className="text-sm text-slate-600">errors</span>
+                  </span>
+                  <span className="rounded bg-slate-100 px-2 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {season.bankAccount.ratingLabel}
+                  </span>
+                </div>
+              )}
               <p className="mt-3 text-sm text-slate-600">
                 {season.bankAccount.deposits} good plays against{" "}
                 {season.bankAccount.withdrawals} errors across {season.matchesPlayed}{" "}

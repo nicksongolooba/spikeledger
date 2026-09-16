@@ -41,7 +41,7 @@ One way to organize all of this is a six-card visual format — each card handle
 
 1. **Performance Overview** — a season summary card: the player's position, age group, overall Bank Account rating, and one headline stat. Sets the tone in 10 seconds.
 2. **Key Numbers** — the player's main stats alongside the age-group benchmarks for her position. The visual comparison (her number, the developing/solid/elite range) does the explaining for you.
-3. **Bank Account Breakdown** — a card showing her deposits and withdrawals by category, with a rating tier (Difference Maker, Reliable, Developing, Needs Focus). Position-fair, so a libero's card shows passing and defense; a middle's shows blocks and attack efficiency.
+3. **Bank Account Breakdown** — a card showing her deposits and withdrawals by category, with a rating tier (Strong contribution, Solid, Building, Focus area). Position-fair, so a libero's card shows passing and defense; a middle's shows blocks and attack efficiency.
 4. **What to Work On** — two or three focus areas with specific drill recommendations and links. This is the card players actually keep.
 5. **Position Comparison** — how the player stacks up against the benchmarks for her specific position. Useful for players considering moving up in club level or trying out at a higher division.
 6. **Parent-Friendly Summary** — a plain-language version of the full report. No jargon, no percentages, just: here is what your daughter did well, here is what she is working toward, and here is how you can support her.
@@ -54,7 +54,7 @@ The format of the conversation matters almost as much as the content. A few thin
 
 **Lead with strengths, always.** Not as a courtesy — as a coaching strategy. A parent who feels defensive stops listening. A parent who hears something genuine and specific about their kid first is ready to hear the honest part. Start with the strongest card in the report, name it explicitly, and let it land before you move to focus areas.
 
-**Frame weaknesses as growth, not deficits.** "Emma is a Developing passer" is a label. "Emma's passing average is at 1.6, and solid for her age group is 2.0 — that gap is exactly what the off-season is for" is a plan. The benchmark does the framing for you; use it.
+**Frame weaknesses as growth, not deficits.** "Emma is a Building passer" is a label. "Emma's passing average is at 1.6, and solid for her age group is 2.0 — that gap is exactly what the off-season is for" is a plan. The benchmark does the framing for you; use it.
 
 **In-person or shareable image — pick one, do it well.** Some coaches schedule 15-minute meetings at the end of the season. Others send the report card image digitally with a short personal note. Both work. What does not work is handing parents a stat sheet with no context and expecting them to interpret it. The report card format is designed so that a parent can read it without a coach in the room — but a brief conversation at pickup, even five minutes, makes the message stick.
 

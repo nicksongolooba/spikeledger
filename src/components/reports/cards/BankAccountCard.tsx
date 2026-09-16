@@ -1,4 +1,5 @@
 import { BREAKDOWN_LABELS } from "@/engine/bank-account";
+import { leadWithBalance } from "@/engine/bank-account";
 import { POSITION_LABELS } from "@/lib/positions";
 import { fmtSigned } from "@/engine/derived-stats";
 import { ReportShell } from "../shared/ReportShell";
@@ -50,21 +51,50 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
               fontWeight: 700,
             }}
           >
-            Net Balance
+            {leadWithBalance(ba.balance) ? "Net Balance" : "Good plays and errors"}
           </div>
-          <div
-            style={{
-              fontFamily: REPORT_FONT_DISPLAY,
-              fontSize: "112px",
-              fontWeight: 800,
-              color: ba.ratingColor,
-              lineHeight: 0.95,
-              letterSpacing: "-0.01em",
-              marginTop: "6px",
-            }}
-          >
-            {fmtSigned(ba.balance)}
-          </div>
+          {leadWithBalance(ba.balance) ? (
+            <div
+              style={{
+                fontFamily: REPORT_FONT_DISPLAY,
+                fontSize: "112px",
+                fontWeight: 800,
+                color: ba.ratingColor,
+                lineHeight: 0.95,
+                letterSpacing: "-0.01em",
+                marginTop: "6px",
+              }}
+            >
+              {fmtSigned(ba.balance)}
+            </div>
+          ) : (
+            /* The split bar lower on this card already carries the detail;
+               here the two counts stand in for a large minus number. */
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "26px", marginTop: "6px" }}>
+              <span
+                style={{
+                  fontFamily: REPORT_FONT_DISPLAY,
+                  fontSize: "84px",
+                  fontWeight: 800,
+                  color: "#1a7f4a",
+                  lineHeight: 0.95,
+                }}
+              >
+                {ba.deposits}
+              </span>
+              <span
+                style={{
+                  fontFamily: REPORT_FONT_DISPLAY,
+                  fontSize: "84px",
+                  fontWeight: 800,
+                  color: REPORT_NAVY,
+                  lineHeight: 0.95,
+                }}
+              >
+                {ba.withdrawals}
+              </span>
+            </div>
+          )}
           <div
             style={{
               marginTop: "8px",
@@ -183,8 +213,9 @@ export function BankAccountCard({ data }: { data: ReportCardData }) {
         <span style={{ color: REPORT_NAVY, fontWeight: 700 }}>
           How the Bank Account works:
         </span>{" "}
-        Deposits are actions that help the team. Withdrawals are actions that
-        hurt it. Each position is evaluated on what it&apos;s supposed to do -
+        Deposits are actions that add to the team. Withdrawals are the ones
+        that take away from it. Each position is evaluated on what it&apos;s
+        supposed to do -
         a libero&apos;s good pass counts as a deposit because passing is the
         job; a hitter&apos;s good pass is the baseline.
       </div>

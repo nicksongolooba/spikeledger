@@ -44,26 +44,21 @@ export async function POST(
     }
   }
 
-  // Enforce per-team tournament limit at the API boundary.
+  // The free-tier limit is enforced here, at a laptop, and nowhere near the
+  // courtside screen. See src/lib/courtside-grace.ts for the whole rule.
   const { getEffectivePlan } = await import("@/lib/club");
+  const { decideTournamentCreation, recordGraceTournament, GRACE_TOURNAMENT_BANNER } =
+    await import("@/lib/courtside-grace");
   const plan = await getEffectivePlan(userId);
-  const tournamentCount = await prisma.tournament.count({
-    where: { teamId: params.id },
-  });
-  {
-    const { canUserPerformAction } = await import("@/lib/plan-limits");
-    const check = canUserPerformAction(plan, "add-tournament", {
-      currentTournamentCount: tournamentCount,
-    });
-    if (!check.allowed) {
-      return NextResponse.json(
-        {
-          error: check.reason?.reason ?? "Tournament limit reached.",
-          upgradeReason: check.reason,
-        },
-        { status: 402 },
-      );
-    }
+  const decision = await decideTournamentCreation(userId, params.id, plan);
+  if (!decision.allow) {
+    return NextResponse.json(
+      {
+        error: decision.reason?.reason ?? "Tournament limit reached.",
+        upgradeReason: decision.reason,
+      },
+      { status: 402 },
+    );
   }
 
   const tournament = await prisma.tournament.create({
@@ -76,5 +71,13 @@ export async function POST(
     },
   });
 
-  return NextResponse.json(tournament);
+  // Only recorded once the tournament exists, so a failed create never burns
+  // the coach's one courtesy.
+  if (decision.grace) await recordGraceTournament(userId, tournament.id);
+
+  return NextResponse.json({
+    ...tournament,
+    notice: decision.grace ? GRACE_TOURNAMENT_BANNER : decision.notice,
+    grace: decision.grace,
+  });
 }

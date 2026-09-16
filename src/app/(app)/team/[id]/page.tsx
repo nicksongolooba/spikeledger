@@ -27,6 +27,8 @@ import { TeamIntelligenceCard } from "@/components/ai/TeamIntelligenceCard";
 import { CoachChat } from "@/components/ai/CoachChat";
 import { hasFeature, getUpgradeReason } from "@/lib/plan-limits";
 import { getEffectivePlan } from "@/lib/club";
+import { ShareLinkList, type ShareLinkRow } from "@/components/reports/ShareLinkList";
+import { daysLeft, publicPlayerName, shareState } from "@/lib/share-links";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,31 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
   const effectivePlan = await getEffectivePlan(user.id);
   const team = await getTeamForCoach(params.id, user.id);
   const canManage = team.coachId === user.id;
+
+  // Public share links this team has open. Only the coach who owns the team
+  // sees them, because only they can turn one off.
+  const shareLinks: ShareLinkRow[] = canManage
+    ? (
+        await prisma.report.findMany({
+          where: { teamId: params.id, revokedAt: null, expiresAt: { gt: new Date() } },
+          orderBy: { generatedAt: "desc" },
+          take: 50,
+        })
+      )
+        .filter((r) => shareState(r) === "active")
+        .map((r) => {
+          const meta = (r.metadata as { playerId?: string; playerName?: string; scopeLabel?: string } | null) ?? {};
+          return {
+            id: r.id,
+            // The coach's own list, so their own player names are fine here.
+            playerLabel: meta.playerName ?? publicPlayerName(null, null),
+            scopeLabel: meta.scopeLabel ?? "Report",
+            createdAt: r.generatedAt.toISOString(),
+            expiresAt: r.expiresAt?.toISOString() ?? null,
+            daysLeft: daysLeft(r.expiresAt),
+          };
+        })
+    : [];
 
   const [players, tournaments, statLines, matches] = await Promise.all([
     prisma.player.findMany({
@@ -404,6 +431,9 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
           <TeamIntelligenceCard teamId={team.id} scope="season" />
         </div>
       )}
+
+      {/* Public share links: what is open right now, and how to close it. */}
+      {canManage && <ShareLinkList links={shareLinks} />}
 
       <CoachChat
         teamId={team.id}

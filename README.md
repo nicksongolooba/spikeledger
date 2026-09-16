@@ -124,6 +124,7 @@ node --import tsx scripts/verify-parent-flow.mts      # 122 DB-backed checks: pa
 DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --parents 200 --seconds 120   # parent live view load test against a running dev server
 node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-start alerts (push or email, never both), real web push + Resend against local mocks
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
+node --import tsx scripts/verify-safeguards.mts       # 51 checks (59 with BASE set): share-link privacy, rating language, and the courtside grace tournament
 BASE=http://127.0.0.1:3212 node --import tsx scripts/verify-install-detection.mts   # 18 browser checks: the install prompt never shows to someone who already installed the app (needs a running server)
 node scripts/verify-app-icons.mjs                    # 48 checks: measures the generated platform icons pixel by pixel
 node --import tsx scripts/verify-club-gating.mts      # 58 DB-backed checks: Club-plan gating and what happens when a club owner downgrades
@@ -139,6 +140,33 @@ node scripts/preview-app-icons.mjs     # render a sheet showing them on iPhone, 
 
 Icon files are versioned in their filename (`-v4`). Phones and browsers cache an
 app icon by URL, so new art always gets a new path.
+
+## Safeguards
+
+Three rules that exist because of who uses this app.
+
+**Public share links are temporary.** A `/share/[id]` page needs no login and
+carries a child's performance data, so it expires 30 days after it is made, the
+coach can revoke any of them from the team page, and an expired link shows a
+neutral notice rather than the report. Every response carries `noindex,
+nofollow`, `/share/` is disallowed in robots.txt, and no share URL is ever put
+in the sitemap. Public pages show a first name and a jersey number, never a
+full name, and the name is derived at render time so older reports are shown
+safely too. The link preview image follows the same lifetime as the page.
+
+**Ratings describe, they do not judge.** The Bank Account maths is unchanged;
+only the labels are: Strong contribution, Solid, Building, Focus area, and Not
+enough data yet. On anything a player or a parent reads, a negative balance is
+never the headline. The deposits and the withdrawals lead instead, and the
+focus areas say what to do next. `scripts/verify-safeguards.mts` fails if an
+old label, or a word like "hurting", reappears anywhere in `src`.
+
+**A coach courtside is never blocked.** No route the courtside screen calls
+carries a plan check, and there is a test that fails if one is ever added. The
+free tier tells a coach when they make their last free tournament, gives one
+courtesy tournament past the limit with a banner saying so, and only then
+enforces the limit, at tournament creation, never mid-match. If a match is
+being scored, the limit gives way regardless. See `src/lib/courtside-grace.ts`.
 
 ## Club plan: active and dormant clubs
 

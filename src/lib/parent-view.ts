@@ -97,6 +97,9 @@ export interface LiveSnapshot {
   playerState: PlayerCourtState;
   bankAccount: {
     balance: number;
+    // Shown instead of a negative balance on the parent's screen.
+    deposits: number;
+    withdrawals: number;
     rating: string;
     ratingLabel: string;
     ratingColor: string;
@@ -419,6 +422,8 @@ export function buildLivePayload(
     bankAccount: ba
       ? {
           balance: ba.balance,
+          deposits: ba.deposits,
+          withdrawals: ba.withdrawals,
           rating: ba.rating,
           ratingLabel: ba.ratingLabel,
           ratingColor: ba.ratingColor,

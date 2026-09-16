@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/session";
+import { GRACE_TOURNAMENT_BANNER, isGraceTournament } from "@/lib/courtside-grace";
 import { getTeamForCoach } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -22,8 +23,10 @@ export const dynamic = "force-dynamic";
 
 export default async function TournamentPage({
   params,
+  searchParams,
 }: {
   params: { id: string; tid: string };
+  searchParams?: { notice?: string };
 }) {
   const user = await requireUser();
   const effectivePlan = await getEffectivePlan(user.id);
@@ -33,6 +36,12 @@ export default async function TournamentPage({
     include: { matches: { orderBy: { matchNumber: "asc" } } },
   });
   if (!tournament) notFound();
+
+  // The courtesy tournament carries its banner for as long as it exists, so a
+  // coach is never surprised by the limit on the next one. Anything else comes
+  // from the create redirect and is shown once.
+  const grace = await isGraceTournament(user.id, tournament.id);
+  const notice = grace ? GRACE_TOURNAMENT_BANNER : (searchParams?.notice ?? null);
 
   const [players, statLines] = await Promise.all([
     prisma.player.findMany({ where: { teamId: team.id } }),
@@ -82,6 +91,14 @@ export default async function TournamentPage({
 
   return (
     <div>
+      {notice && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span className="font-semibold">{notice}</span>{" "}
+          <Link href="/settings/billing" className="underline underline-offset-2">
+            See plans
+          </Link>
+        </div>
+      )}
       <Breadcrumbs
         items={[
           { label: "Dashboard", href: "/dashboard" },

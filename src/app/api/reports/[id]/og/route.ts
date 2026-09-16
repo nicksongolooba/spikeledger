@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { shareState } from "@/lib/share-links";
 
 // Serves the first image of a public share report as a real PNG so WhatsApp,
 // iMessage, Slack etc. can pull a preview. No auth - same access rule as
@@ -12,6 +13,11 @@ export async function GET(
   if (!report || report.imageUrls.length === 0) {
     return new NextResponse("Not found", { status: 404 });
   }
+  // The preview image is the report. It follows the link's lifetime exactly,
+  // or an expired link would still render in a chat thread.
+  if (shareState(report) !== "active") {
+    return new NextResponse("Not found", { status: 404 });
+  }
   const dataUrl = report.imageUrls[0];
   const match = dataUrl.match(/^data:(image\/png);base64,(.+)$/);
   if (!match) return new NextResponse("Bad image", { status: 500 });
@@ -19,7 +25,10 @@ export async function GET(
   return new NextResponse(buf, {
     headers: {
       "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=86400",
+      // Short and private: a revoked link should stop rendering in a chat
+      // preview quickly rather than living in a shared cache for a day.
+      "Cache-Control": "private, max-age=300",
+      "X-Robots-Tag": "noindex, nofollow",
     },
   });
 }

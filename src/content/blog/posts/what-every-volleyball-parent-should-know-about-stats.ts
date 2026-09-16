@@ -62,7 +62,7 @@ Here's a healthier way to look at numbers:
 
 SpikeLedger's reports use what's called a Bank Account system, and if your kid's coach shares one with you, here's what it means: every action that helps the team is a deposit, and every action that hurts the team is a withdrawal — but the deposits are *position-specific*. A libero's deposits are good passes and digs. A middle's deposits are blocks and efficient kills. The account is never comparing your libero to the outside hitter; it's asking whether your libero did the libero job well.
 
-The rating labels — Difference Maker, Reliable, Developing, Needs Focus — describe where your athlete sits relative to their own role. If you get one of these reports, read it that way. A Reliable libero is doing real, meaningful work for the team.
+The rating labels — Strong contribution, Solid, Building, Focus area — describe where your athlete sits relative to their own role. If you get one of these reports, read it that way. A Solid libero is doing real, meaningful work for the team.
 
 ## How to Support Without Adding Pressure
 
