@@ -3,15 +3,16 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/session";
-import { ensureClubForOwner } from "@/lib/club";
+import { ensureClubForOwner, getClubAccess } from "@/lib/club";
 import { ClubSetupForm } from "./ClubSetupForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClubSetupPage() {
   const user = await requireUser();
+  if (!(await getClubAccess(user.id, user.plan)).allowed) redirect("/dashboard");
   const membership = await ensureClubForOwner(user.id);
-  if (!membership) redirect("/settings/billing");
+  if (!membership) redirect("/dashboard");
   if (membership.role !== "OWNER") redirect("/club");
 
   return (

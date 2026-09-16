@@ -125,6 +125,7 @@ DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --paren
 node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-start alerts (push or email, never both), real web push + Resend against local mocks
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
 node scripts/verify-app-icons.mjs                    # 48 checks: measures the generated platform icons pixel by pixel
+node --import tsx scripts/verify-club-gating.mts      # 58 DB-backed checks: Club-plan gating and what happens when a club owner downgrades
 ```
 
 ## Brand and platform icons
@@ -137,6 +138,35 @@ node scripts/preview-app-icons.mjs     # render a sheet showing them on iPhone, 
 
 Icon files are versioned in their filename (`-v4`). Phones and browsers cache an
 app icon by URL, so new art always gets a new path.
+
+## Club plan: active and dormant clubs
+
+Club tools are **CLUB tier only**. The `/club` pages, the Club item in the
+sidebar and every club API route go through one gate, `getClubAccess` in
+`src/lib/club.ts`. Belonging to a club is not by itself enough.
+
+A club is **active** while at least one OWNER still holds the CLUB plan. The
+moment that stops being true the club is **dormant**.
+
+**A dormant club grants nothing:** no club page, no sidebar item, no new
+invites, no club settings, and no owner oversight of other coaches' teams.
+Pending invite links stop working and say why. Members fall back to whatever
+plan they pay for themselves, so a Coach Pro member becomes Coach Pro again
+and a Free member becomes Free.
+
+**Dormant is not deleted.** The club row, every membership, every invite and
+the `clubId` on every team stay exactly as they were. Subscribing to Club
+again makes the club active with nothing to rebuild: the same coaches, the
+same teams, and even a still-unexpired invite link starts working again.
+
+**Coaches keep their own work, in full.** Teams, players, matches, stats and
+reports belong to the coach who created them and are never touched by a club
+changing state. What a coach loses is only what the club was lending: the
+CLUB feature tier and the club surfaces. The owner loses oversight of other
+coaches' teams for the same reason.
+
+A coach's own plan is never lowered by a club. The effective plan is the
+better of what they pay for and what their club lends them.
 
 ## License
 
