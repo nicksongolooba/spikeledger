@@ -8,6 +8,17 @@
   "orientation": "portrait",
   "background_color": "#f4f6f9",
   "theme_color": "#0b1a33",
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://www.spikeledger.com/manifest.json"
+    },
+    {
+      "platform": "webapp",
+      "url": "https://spikeledger.vercel.app/manifest.json"
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192-v4.png",

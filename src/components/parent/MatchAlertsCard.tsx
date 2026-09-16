@@ -13,6 +13,7 @@ import {
   writeFlag,
   type InstallPlatform,
 } from "@/lib/push-client";
+import { useInstallState } from "@/lib/install-state";
 import { InstallInstructions } from "@/components/parent/InstallInstructions";
 
 // Keyed by parent: a family tablet can be shared by two parent accounts.
@@ -43,9 +44,13 @@ export function MatchAlertsCard({
   const [expanded, setExpanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const installState = useInstallState();
 
   useEffect(() => {
     if (!vapidPublicKey) return;
+    // Wait for the installed check before deciding anything: offering the
+    // install card to someone who already has the app is the whole bug.
+    if (installState === "checking") return;
     setPlatform(detectPlatform());
     let cancelled = false;
     (async () => {
@@ -59,7 +64,14 @@ export function MatchAlertsCard({
         if (Notification.permission !== "denied" && !readFlag(permissionDismissedKey(parentId))) setView("permission");
         return;
       }
-      if (!isStandalone() && !dismissed && !hasActivePush && !readFlag(installDismissedKey(parentId))) {
+      // Only someone without the app is asked to install it. Installed but
+      // browsing in a normal tab counts as installed.
+      if (
+        installState === "not-installed" &&
+        !dismissed &&
+        !hasActivePush &&
+        !readFlag(installDismissedKey(parentId))
+      ) {
         setView("install");
         return;
       }
@@ -68,7 +80,7 @@ export function MatchAlertsCard({
     return () => {
       cancelled = true;
     };
-  }, [parentId, vapidPublicKey, dismissed, hasActivePush]);
+  }, [parentId, vapidPublicKey, dismissed, hasActivePush, installState]);
 
   function rememberInstallDismissed() {
     writeFlag(installDismissedKey(parentId));

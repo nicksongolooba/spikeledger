@@ -2,14 +2,18 @@
 
 import { Check, Download } from "lucide-react";
 import { useInstallPrompt } from "@/lib/push-client";
+import { useInstallState } from "@/lib/install-state";
 import { cn } from "@/lib/utils";
 
 // "Install SpikeLedger" for the landing page's install section. Shows only
-// when the browser offers installation (Chromium on Android and laptops);
-// Safari visitors follow the written steps beside it.
+// when the browser offers installation (Chromium on Android and laptops) and
+// the app is not already installed; Safari visitors follow the written steps
+// beside it.
 export function InstallAppButton({ className }: { className?: string }) {
-  const { canInstall, installed, promptInstall } = useInstallPrompt();
-  if (installed) {
+  const { canInstall, promptInstall } = useInstallPrompt();
+  const installState = useInstallState();
+  if (installState === "checking") return null;
+  if (installState === "installed") {
     return (
       <p className={cn("inline-flex items-center gap-2 text-sm font-semibold text-green-700", className)}>
         <Check size={16} strokeWidth={2.5} aria-hidden />

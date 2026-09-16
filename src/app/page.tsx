@@ -20,6 +20,7 @@ import {
 import { PricingSection } from "./PricingSection";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { InstallAppButton } from "@/components/pwa/InstallAppButton";
+import { InstallSteps } from "@/components/pwa/InstallSteps";
 import { Wordmark } from "@/components/layout/Wordmark";
 import { TESTIMONIALS } from "@/content/testimonials";
 import { cn } from "@/lib/utils";
@@ -525,21 +526,23 @@ export default function LandingPage() {
               recording when the gym Wi-Fi drops, and parents who install it can
               turn on an alert for the moment a match starts.
             </p>
-            <ul className="mt-8 grid gap-4 sm:grid-cols-3">
-              {INSTALL_STEPS.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <li key={s.title} className="card p-4">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-white">
-                      <Icon size={18} strokeWidth={2} aria-hidden />
-                    </span>
-                    <h3 className="mt-3 font-display text-lg font-bold leading-tight">{s.title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-600">{s.body}</p>
-                  </li>
-                );
-              })}
-            </ul>
-            <InstallAppButton className="mt-8" />
+            <InstallSteps>
+              <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+                {INSTALL_STEPS.map((s) => {
+                  const Icon = s.icon;
+                  return (
+                    <li key={s.title} className="card p-4">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-white">
+                        <Icon size={18} strokeWidth={2} aria-hidden />
+                      </span>
+                      <h3 className="mt-3 font-display text-lg font-bold leading-tight">{s.title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">{s.body}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+              <InstallAppButton className="mt-8" />
+            </InstallSteps>
           </div>
         </div>
       </section>
