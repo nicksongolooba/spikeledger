@@ -97,9 +97,15 @@ const config: Config = {
           "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "0.8" },
         },
+        // A substitution should read as a change, not as a page reload.
+        "state-in": {
+          from: { opacity: "0", transform: "translateY(-4px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "pulse-soft": "pulse-soft 1.6s ease-in-out infinite",
+        "state-in": "state-in 320ms ease-out both",
       },
     },
   },

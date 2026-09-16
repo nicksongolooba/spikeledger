@@ -218,6 +218,33 @@ export function MatchEntry({
     });
   }, [hydrated, matchId, onCourt, positions, setIdx, sets, rotation, serving, undoStack, opponentErrors, liberoSwap, configuredSets, pointLog]);
 
+  // ---- Court state sync ----
+  // Who is on court, per set, so the parent view can say whether a child is
+  // playing right now. A substitution only tells the server about the player
+  // coming ON, so without this the server never learns that anyone came off.
+  // Fire and forget: the next lineup change resends the whole list, so a
+  // dropped request on gym Wi-Fi corrects itself rather than needing a queue.
+  const courtSyncRef = useRef<string>("");
+  useEffect(() => {
+    if (!hydrated || onCourt.length === 0) return;
+    const setNumber = setIdx + 1;
+    const signature = `${setNumber}:${onCourt.join(",")}`;
+    if (courtSyncRef.current === signature) return;
+    courtSyncRef.current = signature;
+    void fetch(`/api/matches/${matchId}/court`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        setNumber,
+        onCourt,
+        roster: roster.map((p) => p.id),
+      }),
+    }).catch(() => {
+      // Let the next change retry; a stale signature would block that.
+      courtSyncRef.current = "";
+    });
+  }, [hydrated, matchId, onCourt, setIdx, roster]);
+
   // ---- Point log + live score sync ----
   // Every time the current set's score changes, append it to that set's log
   // (manual corrections included - the log is the sequence of states, not
