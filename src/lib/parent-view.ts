@@ -91,8 +91,8 @@ export interface LiveSnapshot {
   } | null;
   // The child's match totals. Never reset or hidden by a substitution.
   stats: LiveStats | null;
-  // What she has recorded since the current set's lineup was synced. Null when
-  // the match has no synced lineup, or when she has no stat line.
+  // Recorded since the current set's lineup was synced. Null when the match
+  // has no synced lineup, or when the player has no stat line.
   setStats: LiveStats | null;
   playerState: PlayerCourtState;
   bankAccount: {
@@ -326,7 +326,7 @@ function emptySnapshot(): LiveSnapshot {
 
 // Where the child is, from the lineup the courtside screen synced. Everything
 // here is a fact the coach's screen recorded; nothing is inferred from whether
-// she happens to have a stat yet, because "on court and quiet" and "on the
+// a player happens to have a stat yet, because "on court and quiet" and "on the
 // bench" look identical in the counters.
 export function playerCourtState(match: MatchLive, playerId: string): PlayerCourtState {
   const states = match.courtStates;
@@ -387,7 +387,7 @@ export function buildLivePayload(
   );
   const line = match.lines[playerId] ?? null;
   const playerState = playerCourtState(match, playerId);
-  // What she has recorded since this set's lineup was synced. Her match totals
+  // Recorded since this set's lineup was synced. The match totals
   // stay in `stats` either way: a substitution never takes numbers off screen.
   const currentCourt = match.courtStates[match.courtStates.length - 1] ?? null;
   const setStats =

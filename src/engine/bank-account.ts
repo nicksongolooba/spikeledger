@@ -54,8 +54,8 @@ export const RATING_INFO: Record<
   // each passes 4.5:1 against white as text.
   //
   // The labels describe where a player is, not what they are worth. A twelve
-  // year old reads her own report card eventually, and a phrase like "hurting
-  // the team" is something she would carry around for a season. The maths
+  // year old reads their own report card eventually, and a phrase like
+  // "hurting the team" is something they would carry for a season. The maths
   // below is untouched: only what we call the result changed.
   GREEN: { label: "Strong contribution", color: "#1a7f4a" },
   BLUE: { label: "Solid", color: "#0369a1" },
@@ -240,8 +240,8 @@ export function calculateBankAccount(
  * Bank Account across many StatLines.
  *
  * Each line is evaluated under the position group of its own `positionPlayed`
- * (so a dual-role player like Jordan gets RS rules on his RS matches and
- * libero rules on his libero matches). Then deposits and withdrawals are
+ * (so a dual-role player like Jordan gets RS rules on the RS matches and
+ * libero rules on the libero matches). Then deposits and withdrawals are
  * summed across all lines - the resulting ratio is naturally weighted by
  * how many matches were played at each position.
  *

@@ -39,5 +39,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   // history, so drop both cache entries.
   invalidateLive({ matchId: params.id, teamId: owns.tournament.teamId });
 
+  // A plan downgrade that was held back so it could not interrupt this match
+  // is applied now that the match has a result. Never blocks the response.
+  if (parsed.data.result) {
+    const { flushPendingDowngradesForTeam } = await import("@/lib/billing-sync");
+    void flushPendingDowngradesForTeam(owns.tournament.teamId).catch((err) =>
+      console.error("[billing] deferred downgrade flush failed:", err),
+    );
+  }
+
   return NextResponse.json(updated);
 }

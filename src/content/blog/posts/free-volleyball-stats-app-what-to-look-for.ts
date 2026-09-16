@@ -35,9 +35,9 @@ Look for apps that log locally first and sync later. The data should live on the
 
 This is where most apps fall short, and it is the criterion that matters most for actually developing players.
 
-The problem is straightforward: if your app ranks players on a single shared leaderboard — kills at the top, assists and digs somewhere below — your libero is always going to look like she is underperforming your outside hitters. A libero's job is to pass and dig. She is never going to out-kill anyone. Dumping everyone onto one list does not measure contribution; it measures position.
+The problem is straightforward: if your app ranks players on a single shared leaderboard — kills at the top, assists and digs somewhere below — your libero is always going to look like an underperformer next to your outside hitters. A libero's job is to pass and dig. No libero is ever going to out-kill anyone. Dumping everyone onto one list does not measure contribution; it measures position.
 
-The same goes for middles. A middle blocker plays fewer rotations, does not pass serve receive, and contributes through blocks and efficient quick kills. Judging her hitting efficiency against an outside hitter who takes twice as many swings per match is comparing apples to parking lots.
+The same goes for middles. A middle blocker plays fewer rotations, does not pass serve receive, and contributes through blocks and efficient quick kills. Judging a middle's hitting efficiency against an outside hitter who takes twice as many swings per match is comparing apples to parking lots.
 
 A useful app needs to evaluate each player against what their position is actually responsible for. Liberos should be graded on serve-receive average and digs. Middles on blocks and hitting efficiency. Setters on assists and decision-making. Outsides on the full range — efficiency, passing, back-row defense.
 
@@ -45,9 +45,9 @@ This is the concept behind SpikeLedger's Bank Account system: every action is a 
 
 ## Reports You Can Actually Share
 
-Tracking stats is only half the work. The other half is communicating what you found — to players, to parents, to the player herself at the end of a long tournament.
+Tracking stats is only half the work. The other half is communicating what you found — to players, to parents, to the player in front of you at the end of a long tournament.
 
-An app that can export a readable, shareable report is worth more than one that keeps everything locked in a private dashboard. Look for PDF or shareable-link exports that present per-player summaries in plain language. If a parent asks how her daughter is doing and you hand her a screenshot of raw numbers with no context, you have not actually communicated anything.
+An app that can export a readable, shareable report is worth more than one that keeps everything locked in a private dashboard. Look for PDF or shareable-link exports that present per-player summaries in plain language. If a parent asks how their kid is doing and you hand them a screenshot of raw numbers with no context, you have not actually communicated anything.
 
 The best apps will let you generate a per-player view with clear categories and progress over time. That is the difference between stat tracking and player development. End-of-season report generation is a particularly useful feature — see [end of season volleyball report cards](/blog/end-of-season-volleyball-report-cards) for ideas on what a genuinely useful player summary looks like.
 
@@ -71,7 +71,7 @@ Run any app through these five checks before your first real match:
 
 1. **Courtside speed** — Can you log a kill, a dig, and a serve error in under ten seconds, one-handed?
 2. **Offline mode** — Turn airplane mode on. Does the app still work?
-3. **Position-fair evaluation** — Does the app treat your libero's passing as her primary metric, or does she just show up low on a kill leaderboard?
+3. **Position-fair evaluation** — Does the app treat your libero's passing as their primary metric, or do they just show up low on a kill leaderboard?
 4. **Report export** — Can you generate and share a per-player summary without upgrading?
 5. **Privacy policy** — Is it clear, and can you export your data?
 

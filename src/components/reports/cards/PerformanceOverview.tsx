@@ -118,7 +118,7 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
             flexWrap: "wrap",
           }}
         >
-          {/* A player reads this card about herself. A large minus number is
+          {/* A player reads this card about themselves. A large minus number is
               never the first thing on it; the two counts carry the same
               information and card 03 says what to do next. */}
           {leadWithBalance(ba.balance) ? (

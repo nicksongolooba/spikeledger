@@ -7,7 +7,7 @@
 // What there is: MatchCourtState snapshots every player's match totals the
 // first time a set's lineup is synced. Current totals minus that snapshot is
 // exactly what the player did in this set, which is what the parent view needs
-// when a child comes off the court and her numbers have to stay on screen,
+// when a child comes off the court and those numbers have to stay on screen,
 // correctly labelled, instead of resetting.
 
 // The raw counters the parent live view reads. Anything not here (attempts,

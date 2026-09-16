@@ -124,7 +124,8 @@ node --import tsx scripts/verify-parent-flow.mts      # 122 DB-backed checks: pa
 DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --parents 200 --seconds 120   # parent live view load test against a running dev server
 node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-start alerts (push or email, never both), real web push + Resend against local mocks
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
-node --import tsx scripts/verify-safeguards.mts       # 51 checks (59 with BASE set): share-link privacy, rating language, and the courtside grace tournament
+node --import tsx scripts/verify-safeguards.mts       # 54 checks (62 with BASE set): share-link privacy, rating language, gender-neutral generated copy, and the courtside grace tournament
+node --import tsx scripts/verify-billing.mts          # 60 checks: plan reconciliation without a webhook, past_due grace, dunning emails, and deferred downgrades
 BASE=http://127.0.0.1:3212 node --import tsx scripts/verify-install-detection.mts   # 18 browser checks: the install prompt never shows to someone who already installed the app (needs a running server)
 node scripts/verify-app-icons.mjs                    # 48 checks: measures the generated platform icons pixel by pixel
 node --import tsx scripts/verify-club-gating.mts      # 58 DB-backed checks: Club-plan gating and what happens when a club owner downgrades
@@ -140,6 +141,34 @@ node scripts/preview-app-icons.mjs     # render a sheet showing them on iPhone, 
 
 Icon files are versioned in their filename (`-v4`). Phones and browsers cache an
 app icon by URL, so new art always gets a new path.
+
+## Billing that does not strand a coach
+
+**A paid plan is never left to the webhook alone.** Three independent paths set
+it, and all three funnel into one idempotent write in `src/lib/billing-sync.ts`:
+the Checkout redirect confirms the session straight from Stripe, the billing
+page reconciles on load (cached 60 seconds per coach), and the webhook is
+idempotent on the Stripe event id. There is a "Refresh my plan" button as the
+manual escape hatch. After a checkout redirect the page polls for up to 30
+seconds showing "Payment received. Activating your plan.", and it never offers
+an upgrade to somebody who has just paid.
+
+**A failed card is not a cancellation.** Stripe's own dunning is the grace
+period: `active`, `trialing` and `past_due` all keep full access, and only
+`canceled`, `unpaid` or `incomplete_expired` drop a plan to Free. The owner is
+emailed immediately, then after three days and six days, with a link that mints
+a fresh Stripe portal session on the way through, and sees a banner with the
+date access ends. Invited coaches see none of it, because they cannot fix
+someone else's card.
+
+**A downgrade never lands mid-match.** Before dropping a plan, the app checks
+whether any team the coach owns, or any team in a club they own, has a match in
+progress. If one does the downgrade is recorded and applied when the match is
+finalised. An upgrade during a match applies immediately: it takes nothing
+away.
+
+Set `CRON_SECRET` and point a daily scheduler at `/api/cron/dunning` for the
+three-day and six-day reminders.
 
 ## Safeguards
 
