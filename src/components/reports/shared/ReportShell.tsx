@@ -80,7 +80,7 @@ export function ReportShell({ position, accentOverride, cardKey, neutral, childr
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo-full-on-dark.png"
+          src="/logo-full-on-dark@2x.png"
           alt="SpikeLedger"
           width={LOGO_WIDTH}
           height={LOGO_HEIGHT}
