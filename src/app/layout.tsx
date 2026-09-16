@@ -48,30 +48,33 @@ export const metadata: Metadata = {
     "Courtside stat entry, the position-fair Bank Account, and report cards parents actually understand. Built by a club volleyball coach.",
   applicationName: "SpikeLedger",
   manifest: "/manifest.json",
-  // One link per exported size, so a browser, the Windows taskbar or the
-  // Start menu takes an exact match instead of squeezing a 512 into 32. The
-  // files come from scripts/generate-pwa-assets.mjs; /icon.png (256) and
-  // /apple-icon.png (180) are picked up from the app directory automatically.
-  // Declaring `icons` replaces the automatic links Next.js would add for
-  // app/icon.png and app/apple-icon.png, so both are listed here by hand.
+  // One link per exported size, so a browser or the Windows taskbar takes an
+  // exact match instead of squeezing a 512 into 32. Every file listed here is
+  // transparent and holds the disc alone: no square plate behind it anywhere
+  // the desktop or the tab strip draws it.
+  //
+  // The -v4 in the names is load-bearing. Phones and browsers cache an app
+  // icon by URL more or less forever, so a changed icon at an old path keeps
+  // showing the old art. New art gets a new path.
+  //
+  // Declaring `icons` replaces the links Next.js would generate from the app
+  // directory, so this list is the whole set. Exactly one apple entry, because
+  // iOS takes the last apple-touch-icon link it finds and ignores the rest.
+  //
+  // There is deliberately no msapplication-TileImage: the Windows Start tile
+  // it drives is a coloured square, which is the one place a square could
+  // still show up behind the mark.
   icons: {
     icon: [
-      ...[16, 32, 48, 64, 128, 180, 192].map((size) => ({
-        url: `/icons/favicon-${size}.png`,
+      ...[16, 32, 48, 64, 128, 256].map((size) => ({
+        url: `/icons/favicon-${size}-v4.png`,
         sizes: `${size}x${size}`,
         type: "image/png",
       })),
-      // The size Windows takes when a site is pinned to the taskbar.
-      { url: "/icon.png", sizes: "256x256", type: "image/png" },
-      { url: "/icons/favicon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/icon-512-v4.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon-180-v4.png", sizes: "180x180", type: "image/png" }],
     shortcut: ["/favicon.ico"],
-  },
-  other: {
-    // Windows pinned sites and Start menu tiles.
-    "msapplication-TileImage": "/icons/tile-256.png",
-    "msapplication-TileColor": "#4c1d95",
   },
   appleWebApp: {
     capable: true,

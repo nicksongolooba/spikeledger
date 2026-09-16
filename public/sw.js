@@ -5,7 +5,7 @@
  *   recording is handled separately by the entry page's write-ahead log.
  * - API calls are never cached (always network).
  */
-const VERSION = "v4"; // bumped again: the icon is now the circle, not a circle on a square
+const VERSION = "v5"; // new icon files (-v4 names): disc only on desktop, inset plate on iOS
 const STATIC_CACHE = `spikeledger-static-${VERSION}`;
 const PAGE_CACHE = `spikeledger-pages-${VERSION}`;
 
@@ -17,8 +17,8 @@ const PRECACHE = [
   "/logo-full@2x.png",
   "/logo-full-on-dark@2x.png",
   "/logo-icon.png",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
+  "/icons/icon-192-v4.png",
+  "/icons/icon-512-v4.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -119,7 +119,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || "",
-      icon: data.icon || "/icons/icon-192.png",
+      icon: data.icon || "/icons/icon-192-v4.png",
       // Same tag = the same match; a repeat replaces instead of stacking.
       tag: data.tag || undefined,
       data: { url: data.url || "/parent" },
