@@ -66,6 +66,7 @@ npm run dev                               # http://localhost:3000
 | `STRIPE_COACH_PRO_YEARLY_PRICE_ID` | for billing | `price_...` |
 | `STRIPE_CLUB_MONTHLY_PRICE_ID` | for billing | `price_...` |
 | `STRIPE_CLUB_YEARLY_PRICE_ID` | for billing | `price_...` |
+| `CRON_SECRET` | for dunning | Guards `/api/cron/dunning`. Vercel Cron sends it as a bearer token. |
 
 If `STRIPE_SECRET_KEY` is missing, billing routes return `503` and the UI hides the upgrade buttons gracefully.
 
@@ -167,8 +168,24 @@ progress. If one does the downgrade is recorded and applied when the match is
 finalised. An upgrade during a match applies immediately: it takes nothing
 away.
 
-Set `CRON_SECRET` and point a daily scheduler at `/api/cron/dunning` for the
-three-day and six-day reminders.
+**The reminders run on a schedule.** `vercel.json` has a cron entry that calls
+`/api/cron/dunning` once a day at 14:00 UTC. Vercel sends
+`Authorization: Bearer $CRON_SECRET` automatically once that variable is set in
+the project, and the route rejects anything else with a plain 404. It fails
+closed: with no `CRON_SECRET` configured it returns 503 and sends nothing.
+
+To set it up: generate a secret with `openssl rand -base64 32`, add it as
+`CRON_SECRET` in Vercel under Settings, Environment Variables, for Production,
+then redeploy so the cron picks it up. Cron entries only register on a
+production deployment. You can test it by hand with:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://yourdomain.com/api/cron/dunning
+```
+
+On the Hobby plan Vercel allows one run per day per cron and fires it within
+about an hour of the stated time, which is fine for a reminder that is
+scheduled in days.
 
 ## Safeguards
 

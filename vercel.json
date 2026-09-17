@@ -1,7 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "regions": ["cle1"],
+  "regions": [
+    "cle1"
+  ],
   "buildCommand": "prisma generate && next build",
-  "installCommand": "npm ci"
+  "installCommand": "npm ci",
+  "crons": [
+    {
+      "path": "/api/cron/dunning",
+      "schedule": "0 14 * * *"
+    }
+  ]
 }

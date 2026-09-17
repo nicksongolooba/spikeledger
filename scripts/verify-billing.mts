@@ -34,6 +34,7 @@ import {
   updateCardUrl,
 } from "@/lib/dunning";
 import { isClubActive } from "@/lib/club";
+import { readFileSync } from "node:fs";
 
 let passed = 0;
 let failed = 0;
@@ -222,6 +223,29 @@ async function main() {
     check("the club is dormant", !(await isClubActive(club.id)));
     check("nothing is left pending", (await planOf(owner.id)).pendingDowngradeAt === null);
     check("the invited coach keeps their own team and data", (await prisma.team.count({ where: { clubId: club.id } })) === 1);
+
+    // ------------------------------------------------ the scheduled reminder
+    console.log("\n4. The dunning cron");
+
+    const vercel = JSON.parse(readFileSync("vercel.json", "utf8")) as {
+      crons?: { path: string; schedule: string }[];
+    };
+    const cron = (vercel.crons ?? []).find((c) => c.path === "/api/cron/dunning");
+    check("vercel.json schedules the dunning route", cron !== undefined, JSON.stringify(vercel.crons ?? []));
+    // Five fields, and the day-of-month, month and weekday are all wildcards,
+    // which is what makes it daily.
+    const fields = (cron?.schedule ?? "").split(/\s+/);
+    check("it runs once a day", fields.length === 5 && fields[2] === "*" && fields[3] === "*" && fields[4] === "*", cron?.schedule ?? "none");
+    check("at a fixed hour, not every hour", fields[1] !== "*" && fields[0] !== "*", cron?.schedule ?? "none");
+
+    const routeSource = readFileSync("src/app/api/cron/dunning/route.ts", "utf8");
+    check("the route reads CRON_SECRET", routeSource.includes("process.env.CRON_SECRET"));
+    check("it refuses to run when the secret is unset", /if \(!secret\)[\s\S]{0,400}status: 503/.test(routeSource));
+    check("it accepts the bearer header Vercel sends", routeSource.includes('req.headers.get("authorization")'));
+    check("a wrong secret gets a plain 404", routeSource.includes("status: 404"));
+    check("the comparison is constant time", routeSource.includes("timingSafeEqual"));
+    check("the sweep is only reached after the check", routeSource.indexOf("sendDueDunningEmails()") > routeSource.indexOf("status: 404"));
+
   } finally {
     if (clubId) await prisma.club.deleteMany({ where: { id: clubId } });
     await prisma.stripeEvent.deleteMany({ where: { id: { in: eventIds } } });
