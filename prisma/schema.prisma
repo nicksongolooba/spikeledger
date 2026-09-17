@@ -40,6 +40,17 @@ model User {
   graceTournamentId     String?
   graceTournamentUsedAt DateTime?
 
+  // Stripe's own view of the subscription, mirrored here so the app can tell
+  // "retrying a failed payment" from "gone". past_due keeps full access;
+  // canceled and unpaid do not. See src/lib/billing-sync.ts.
+  subscriptionStatus String?
+  // Dunning: when the first failure landed, how many warnings have gone out.
+  paymentFailedAt    DateTime?
+  dunningEmailsSent  Int       @default(0)
+  lastDunningEmailAt DateTime?
+  // A downgrade held back because a match is being scored right now.
+  pendingDowngradeAt DateTime?
+
   clubs              ClubMember[]
   teams              Team[]
   chatUsage          ChatUsage[]
@@ -340,6 +351,18 @@ enum AttendanceStatus {
 // ============================================================
 // GENERATED REPORTS
 // ============================================================
+
+// Every Stripe event already handled. A retried delivery finds its own id
+// here and is ignored, so a webhook Stripe sends three times is applied once.
+model StripeEvent {
+  id         String   @id // the Stripe event id, evt_...
+  type       String
+  status     String   @default("processing") // processing | ok | failed
+  error      String?
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
+}
 
 model Report {
   id          String     @id @default(cuid())

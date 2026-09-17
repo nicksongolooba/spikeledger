@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { isStripeConfigured } from "@/lib/stripe";
+import { reconcileUserPlan } from "@/lib/billing-sync";
 import {
   PLAN_LABEL,
   PLAN_LIMITS,
@@ -34,9 +35,17 @@ const PLAN_EYEBROW: Record<Plan, string> = {
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams?: { success?: string; canceled?: string };
+  searchParams?: { success?: string; canceled?: string; session_id?: string };
 }) {
   const user = await requireUser();
+
+  // The database is not trusted on its own here. Stripe is asked what it
+  // thinks, at most once a minute per coach, and anything that disagrees is
+  // corrected before the page renders. A coach who paid and never got a
+  // working webhook is fixed by loading this page.
+  await reconcileUserPlan(user.id).catch((err) =>
+    console.error("[billing] reconcile on page load failed:", err),
+  );
 
   const fullUser = await prisma.user.findUnique({
     where: { id: user.id },

@@ -30,8 +30,8 @@ async function baselineFor(tx: Tx, matchId: string): Promise<Prisma.JsonObject> 
 // the server has always known who HAS played and never who IS playing.
 //
 // `appeared` only ever grows within a set. That is what keeps a child's stats
-// labelled "this set so far" after she comes off, instead of looking like she
-// was never in.
+// labelled "this set so far" after a player comes off, instead of looking
+// like they were never in.
 const CourtSchema = z.object({
   setNumber: z.number().int().min(1).max(7),
   onCourt: z.array(z.string().min(1)).max(12),

@@ -56,7 +56,7 @@ Queen of the Court is your best tryout closer because it shows decision-making, 
 
 ## How to Score Fairly Across Positions
 
-This is where most tryout processes break down. If you use one universal score sheet and rank everyone together, you'll systematically undervalue liberos and middles. A libero who passes a 2.3 average and digs seven balls is doing elite work — but if she's on the same sheet as an outside hitter and she has no kill column, she looks thin on paper.
+This is where most tryout processes break down. If you use one universal score sheet and rank everyone together, you'll systematically undervalue liberos and middles. A libero who passes a 2.3 average and digs seven balls is doing elite work — but on the same sheet as an outside hitter, with no kill column, that libero looks thin on paper.
 
 Use separate score sheets by position. SpikeLedger's Bank Account approach is built on this idea: each player is measured against what their position is actually asked to do, so a libero's deposits are passes and digs (never kills), and a middle's deposits are blocks and efficient quick attacks. That's [position-fair evaluation in practice](/blog/comparing-liberos-to-hitters), and it changes who makes your roster.
 
@@ -70,7 +70,7 @@ Numerical criteria should be simple: score each skill 1–3 per station, add a n
 
 **No written criteria before you start.** Decide what matters before you see the athletes. It's easy to reverse-engineer justifications for the players you liked immediately. Written criteria make your decisions defensible to parents and fair to the athletes. For more on building tryout structure into your full program, [youth volleyball coaching tips for first-year coaches](/blog/youth-volleyball-coaching-tips-for-first-year-coaches) is worth reading alongside this guide.
 
-**Evaluating everyone on the same skills.** Run serving, passing, and a team drill for everyone — but your position-specific rubrics must be different. Comparing a libero to a hitter on the same sheet penalizes the libero for doing her job.
+**Evaluating everyone on the same skills.** Run serving, passing, and a team drill for everyone — but your position-specific rubrics must be different. Comparing a libero to a hitter on the same sheet penalizes the libero for doing the job.
 
 ## After Tryouts: Communicate Clearly
 

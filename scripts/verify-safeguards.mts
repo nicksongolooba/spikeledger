@@ -37,6 +37,13 @@ import {
   teamHasMatchInProgress,
 } from "@/lib/courtside-grace";
 import { generateRuleBasedPlayerInsight } from "@/engine/ai/rule-based";
+import { genderedWordIn } from "@/lib/generated-copy-guard";
+import { PLAYER_SYSTEM_PROMPT, buildTeamSystemPrompt } from "@/engine/ai/prompts";
+import { matchStartEmail } from "@/lib/email";
+import { paymentFailedEmail } from "@/lib/dunning";
+import { computeImprovementAreas } from "@/components/reports/utils/improvement-rules";
+import { playerStateCopy } from "@/lib/player-state-copy";
+import type { PlayerCourtState } from "@/lib/parent-view";
 import type { StatLine } from "@prisma/client";
 
 const BASE = process.env.BASE ?? null;
@@ -218,6 +225,68 @@ async function main() {
     };
     walk("src");
     check("no old rating label survives anywhere in src", offenders.length === 0, offenders.join(", "));
+
+    // ------------------------------------------------- FIX 17: gendered copy
+    console.log("\n2b. Generated copy never guesses a pronoun");
+
+    // Every player-facing generated string, put through one rule.
+    const generated: [string, string][] = [];
+
+    generated.push(["rule-based summary", insight.summary ?? ""]);
+    generated.push(["rule-based parent line", insight.parentFriendly ?? ""]);
+    for (const [i, t] of (insight.strengths ?? []).entries()) generated.push([`strength ${i + 1}`, t]);
+    for (const [i, t] of (insight.improvements ?? []).entries()) generated.push([`improvement ${i + 1}`, t]);
+
+    // What to work on, which lands on the parent page and report card 03.
+    const areas = computeImprovementAreas(
+      { srAverage: 1.1, srTotal: 20, killsPerMatch: 0.4, errorsPerMatch: 4.2, digsPerMatch: 1.1,
+        acesPerMatch: 0.1, blocksPerMatch: 0.1, assistsPerMatch: 0.2, hittingEfficiency: -0.05,
+        serveErrorPercentage: 0.34, matchesPlayed: 4, bankAccount: rough,
+      } as unknown as Parameters<typeof computeImprovementAreas>[0],
+      "OH",
+      "Sofia",
+      { universal: false },
+    );
+    for (const a of areas) {
+      generated.push([`focus area: ${a.metric}`, `${a.metric} ${a.detail} ${a.current} ${a.target}`]);
+    }
+
+    // The player-state copy the parent view shows.
+    for (const st of ["on_court", "off_court", "bench", "not_in_match", "unknown"] as PlayerCourtState[]) {
+      const c = playerStateCopy(st, "Sofia");
+      generated.push([`player state ${st}`, [c.chip, c.message, c.matchStatsLabel, c.setStatsLabel].filter(Boolean).join(" ")]);
+    }
+
+    // Emails.
+    const startOne = matchStartEmail({ names: ["Sofia"], opponent: "Central Thunder", watchUrl: "https://x/y" });
+    const startTwo = matchStartEmail({ names: ["Sofia", "Ana"], opponent: "Central Thunder", watchUrl: "https://x/y" });
+    generated.push(["match start email, one child", `${startOne.subject} ${startOne.text}`]);
+    generated.push(["match start email, siblings", `${startTwo.subject} ${startTwo.text}`]);
+    for (const attempt of [1, 2, 3]) {
+      const mail = paymentFailedEmail({ name: "Alex Kim", isClub: attempt !== 3, deadlineLabel: "October 1, 2026", attempt, url: "https://x/y" });
+      generated.push([`payment failed email ${attempt}`, `${mail.subject} ${mail.text}`]);
+    }
+
+    // The instructions the AI writes under. If these carry a pronoun, the
+    // model will happily copy it into something a parent reads.
+    generated.push(["AI player system prompt", PLAYER_SYSTEM_PROMPT]);
+    generated.push(["AI team system prompt", buildTeamSystemPrompt()]);
+
+    let genderedHit: string | null = null;
+    for (const [where, text] of generated) {
+      const word = genderedWordIn(text);
+      if (word) {
+        genderedHit = `${where}: "${word}"`;
+        break;
+      }
+    }
+    check(
+      `${generated.length} generated strings, none guessing a pronoun`,
+      genderedHit === null,
+      genderedHit ?? "",
+    );
+    check("the guard catches a pronoun when there is one", genderedWordIn("She passed well") === "she");
+    check("and does not trip on other, there or this", genderedWordIn("The other player is there, this is fine") === null);
 
     // ---------------------------------------------------------------- FIX 3
     console.log("\n3. Courtside: a coach is never blocked mid-match");

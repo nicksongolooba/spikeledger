@@ -73,7 +73,7 @@ Coaches remember what they said. Players remember what they saw.
 
 A week after a verbal review, most players retain fragments — usually the critical part, stripped of the context you worked hard to provide. A visual summary — a stat line, a tier rating, a chart comparing this tournament to last — travels differently. Players carry it home. Parents see it. The conversation between parent and player happens around data instead of around feelings.
 
-SpikeLedger's report cards are built on this idea: a single visual summary that is position-fair (a libero's card never mentions hitting efficiency), shows a Bank Account rating in context, and gives the player something they can read and return to. When a parent asks "how is she doing," the answer is a document, not a recollection.
+SpikeLedger's report cards are built on this idea: a single visual summary that is position-fair (a libero's card never mentions hitting efficiency), shows a Bank Account rating in context, and gives the player something they can read and return to. When a parent asks "how is my kid doing," the answer is a document, not a recollection.
 
 That is not a small thing. Coaches who deliver visual feedback tend to have fewer tense parent conversations, because the picture does the talking. There is nothing to argue with when the numbers are right there. And for the player, having something to track — SR average climbing from 1.8 to 2.0 to 2.2 — is more motivating than any verbal encouragement you can offer.
 

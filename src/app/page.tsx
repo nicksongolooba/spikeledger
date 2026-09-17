@@ -88,7 +88,7 @@ const STEPS = [
   {
     n: "02",
     title: "The Bank Account does the math",
-    body: "Every action becomes a deposit or a withdrawal, scored against what that position is on the court to do. A libero's 2-pass is a deposit. A hitter's is just her job.",
+    body: "Every action becomes a deposit or a withdrawal, scored against what that position is on the court to do. A libero's 2-pass is a deposit. A hitter's is just part of the job.",
   },
   {
     n: "03",
@@ -272,7 +272,7 @@ export default function LandingPage() {
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-navy-100">
               Your libero doesn&apos;t hit. Your middle doesn&apos;t pass. SpikeLedger
-              grades every player on the job she is actually on the court to do,
+              grades every player on the job they are actually on the court to do,
               then turns the numbers into a report card you can drop in the team
               chat on the drive home.
             </p>
@@ -370,7 +370,7 @@ export default function LandingPage() {
               <p className="mt-5 text-lg leading-relaxed text-slate-600">
                 A kill goes in the bank. A serve error comes out. What is left is
                 one balance that tells you what a player is adding to the team
-                win, scored against what her position is on the court to do.
+                win, scored against what that position is on the court to do.
               </p>
               <ul className="mt-6 space-y-3">
                 {BANK_POINTS.map((p) => (
@@ -390,7 +390,7 @@ export default function LandingPage() {
             <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
               <div className="eyebrow">Position-fair comparison</div>
               <h2 className="mt-3 font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl">
-                Your libero doesn&apos;t hit. Stop grading her like she does.
+                A libero doesn&apos;t hit. The scoring should know that.
               </h2>
               <p className="mt-5 text-lg leading-relaxed text-slate-600">
                 Raw totals punish defensive players and flatter big hitters. The
@@ -615,7 +615,7 @@ export default function LandingPage() {
             <p className="mt-5 text-lg leading-relaxed text-slate-600">
               It reads your team&apos;s stat lines, knows the Bank Account rules,
               and answers in plain volleyball. Position-aware, so it never tells
-              a libero to work on her hitting.
+              a libero to work on hitting.
             </p>
           </div>
           <div className="lg:col-span-7">
@@ -632,10 +632,10 @@ export default function LandingPage() {
                 <div className="rounded-lg rounded-tl-sm border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700">
                   <p>
                     <span className="font-semibold text-slate-900">Jade.</span> Over
-                    the last two tournaments she is passing 2.31 to Sam&apos;s 2.02
+                    the last two tournaments Jade is passing 2.31 to Sam&apos;s 2.02
                     and has no passes rated 0 in 41 attempts. Sam&apos;s serving is
                     the better of the two (4 aces, 1 error), so if you are short on
-                    servers, bring him in at position 1 and let Jade take the rest
+                    servers, put Sam in at position 1 and let Jade take the rest
                     of the rotation.
                   </p>
                   <p className="mt-2 text-xs text-slate-500">

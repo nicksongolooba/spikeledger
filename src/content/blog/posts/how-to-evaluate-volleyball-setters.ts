@@ -67,7 +67,7 @@ For a deeper look at how hitting efficiency works and what the benchmarks are by
 
 ## The Position-Fair Point
 
-Do not judge a setter on the stats hitters produce. If your outside hitter hits .050 on a night when she is getting perfect sets, that is on the hitter. If she hits .050 because every set is tight to the net or three feet off the antenna, that is on the setter. Separating those two takes honest film review, not a stat sheet alone.
+Do not judge a setter on the stats hitters produce. If your outside hitter hits .050 on a night of perfect sets, that is on the hitter. If that same hitter hits .050 because every set is tight to the net or three feet off the antenna, that is on the setter. Separating those two takes honest film review, not a stat sheet alone.
 
 The same principle applies in reverse: a setter who plays behind an inconsistent passing group will always have lower assist totals and more out-of-system sets. Context matters. For a side-by-side example of how different positions require different evaluation lenses, [comparing liberos to hitters](/blog/comparing-liberos-to-hitters) walks through exactly this problem.
 

@@ -68,7 +68,9 @@ export async function POST(req: Request) {
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${APP_URL}/settings/billing?success=true`,
+    // The session id comes back so the redirect can confirm the payment
+    // straight from Stripe, without waiting for a webhook.
+    success_url: `${APP_URL}/settings/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${APP_URL}/settings/billing?canceled=true`,
     allow_promotion_codes: true,
     subscription_data: {

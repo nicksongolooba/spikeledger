@@ -40,14 +40,14 @@ interface SeedPlayer {
 
 const ROSTER: SeedPlayer[] = [
   { name: "Maya", number: 7, primaryPosition: "OH" },
-  { name: "Zara", number: 12, primaryPosition: "OH" },
+  { name: "Mateo", number: 12, primaryPosition: "OH" },
   { name: "Nia", number: 8, primaryPosition: "RS" },
   { name: "Priya", number: 11, primaryPosition: "RS" },
   { name: "Jordan", number: 6, primaryPosition: "RS", secondaryPosition: "L" },
   { name: "Riley", number: 1, primaryPosition: "S" },
   { name: "Tess", number: 3, primaryPosition: "MB" },
-  { name: "Kira", number: 9, primaryPosition: "MB" },
-  { name: "Lena", number: 4, primaryPosition: "MB" },
+  { name: "Deven", number: 9, primaryPosition: "MB" },
+  { name: "Owen", number: 4, primaryPosition: "MB" },
   { name: "Mika", number: 10, primaryPosition: "S" },
   { name: "Jade", number: 5, primaryPosition: "L" },
   { name: "Sam", number: 2, primaryPosition: "L", secondaryPosition: "S" },
@@ -317,17 +317,19 @@ function makeStatLineForPlayer(
 // Second demo team: Thunder Hawks 13U plays WITHOUT set positions - every
 // player is stored as UTIL and the team is scored on the universal formula.
 // ---------------------------------------------------------------------------
+// Mixed names on purpose. Volleyball is not a girls-only sport, and a demo
+// roster that reads as one tells every boys' coach the app is not for them.
 const ROSTER_13U: SeedPlayer[] = [
   { name: "Ava", number: 2, primaryPosition: "UTIL" },
   { name: "Chloe", number: 4, primaryPosition: "UTIL" },
   { name: "Sofia", number: 5, primaryPosition: "UTIL" },
   { name: "Emma", number: 7, primaryPosition: "UTIL" },
-  { name: "Harper", number: 8, primaryPosition: "UTIL" },
+  { name: "Noah", number: 8, primaryPosition: "UTIL" },
   { name: "Lily", number: 9, primaryPosition: "UTIL" },
   { name: "Grace", number: 10, primaryPosition: "UTIL" },
   { name: "Zoe", number: 11, primaryPosition: "UTIL" },
-  { name: "Ella", number: 12, primaryPosition: "UTIL" },
-  { name: "Nora", number: 14, primaryPosition: "UTIL" },
+  { name: "Kofi", number: 12, primaryPosition: "UTIL" },
+  { name: "Luca", number: 14, primaryPosition: "UTIL" },
 ];
 
 const TOURNAMENTS_13U = [

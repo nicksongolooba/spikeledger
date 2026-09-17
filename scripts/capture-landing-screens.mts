@@ -109,7 +109,7 @@ async function main() {
     // ---- Mobile courtside (390x844 @2x, like the originals) ----
     const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, storageState: await desktop.storageState() });
     const mp = await mobile.newPage();
-    const onCourt = ["Riley", "Maya", "Tess", "Nia", "Jade", "Zara"].map((n) => byName(n).id);
+    const onCourt = ["Riley", "Maya", "Tess", "Nia", "Jade", "Mateo"].map((n) => byName(n).id);
     const positions = Object.fromEntries(t16.players.map((p) => [p.id, p.position]));
     const persisted = { onCourt, positions, setIdx: 0, sets: [{ us: 0, them: 0 }], rotation: 1, serving: "us", undo: [], opponentErrors: 0, liberoSwap: null, configuredSets: [0] };
     await mp.addInitScript(({ key, value }) => { window.localStorage.setItem(key, value); }, { key: `spikeledger:entry:${match.id}`, value: JSON.stringify(persisted) });
