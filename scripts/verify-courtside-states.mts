@@ -84,6 +84,19 @@ async function main() {
     check("a match with no lineup cannot be ended", !canEnd("no_lineup"));
     check("an ended match cannot be ended again", !canEnd("ended"));
 
+    // ------------------------------------------- the data the bug left behind
+    console.log("\n1b. No phantom set rows anywhere");
+    const neverStarted = await prisma.match.findMany({
+      where: { startedAt: null },
+      select: { id: true, setScores: { select: { us: true, them: true } } },
+    });
+    const phantom = neverStarted.filter((m) => m.setScores.some((x) => x.us === 0 && x.them === 0));
+    check(
+      "no match that was never started carries a 0-0 set row",
+      phantom.length === 0,
+      phantom.map((m) => m.id).join(", "),
+    );
+
     // ------------------------------------------------------- the browser
     const browser = await chromium.launch({ headless: true });
     try {
