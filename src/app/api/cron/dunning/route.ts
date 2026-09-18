@@ -14,6 +14,9 @@ import { sendDueDunningEmails } from "@/lib/dunning";
 // Safe to call as often as you like. Each account gets each reminder once,
 // which is enforced in sendDunningEmailIfDue rather than here.
 export const dynamic = "force-dynamic";
+// Vercel caps this to whatever the plan allows; asking for more than the
+// default 10 seconds is what stops a queue of reminders being cut off.
+export const maxDuration = 60;
 
 // Constant time, so the response time cannot be used to guess the secret one
 // character at a time.
@@ -43,7 +46,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const sent = await sendDueDunningEmails();
-  console.info(`[billing] dunning sweep sent ${sent} reminder(s)`);
-  return NextResponse.json({ ok: true, sent });
+  const sweep = await sendDueDunningEmails();
+  console.info(
+    `[billing] dunning sweep sent ${sweep.sent} of ${sweep.considered} due` +
+      (sweep.outOfTime ? `, ${sweep.remaining} left for the next run` : ""),
+  );
+  return NextResponse.json({ ok: true, ...sweep });
 }
