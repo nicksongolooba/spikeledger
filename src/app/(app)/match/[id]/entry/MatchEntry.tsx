@@ -822,6 +822,12 @@ export function MatchEntry({
           player={selectedPlayer}
           positionPlayed={selectedPosition}
           restrictByPosition={usesPositions}
+          // Slot 1 is the server; onCourt is kept in court order, so the index
+          // is the slot. Null when the tapped player is somehow not on court,
+          // and null means nothing is gated.
+          slot={selectedId ? (onCourt.indexOf(selectedId) >= 0 ? onCourt.indexOf(selectedId) + 1 : null) : null}
+          serving={serving}
+          onFixCourt={() => setShowLineup(true)}
           onAction={handleAction}
           onOpponentError={handleOpponentError}
           opponentErrors={opponentErrors}
