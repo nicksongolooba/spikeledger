@@ -14,6 +14,8 @@ export interface DerivedStats {
   hittingEfficiency: number; // (kills - errors) / attempts
   killsPerMatch: number;
   totalKills: number;
+  // Zero means no attempts were recorded, not that efficiency was poor.
+  totalAttackAttempts: number;
   totalAttackErrors: number;
 
   // Serving
@@ -21,6 +23,7 @@ export interface DerivedStats {
   serveErrorPercentage: number;
   acesPerMatch: number;
   totalAces: number;
+  totalServeAttempts: number;
   totalServeErrors: number;
 
   // Passing (serve receive)
@@ -138,9 +141,15 @@ export function computeDerivedStats(
     killsPerMatch: safeDiv(kills, matchesPlayed),
     totalKills: kills,
     totalAttackErrors: attackErrors,
+    // Exposed so callers can tell "efficiency is genuinely low" from
+    // "efficiency was never measured". No button records an attempt, so this
+    // is zero for every courtside-recorded player, and safeDiv turns that into
+    // an efficiency of 0, which is below every bar there is.
+    totalAttackAttempts: attackAttempts,
 
     acePercentage: safeDiv(aces, serveAttempts),
     serveErrorPercentage: safeDiv(serveErrors, serveAttempts),
+    totalServeAttempts: serveAttempts,
     acesPerMatch: safeDiv(aces, matchesPlayed),
     totalAces: aces,
     totalServeErrors: serveErrors,

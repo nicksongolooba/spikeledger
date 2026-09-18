@@ -70,6 +70,8 @@ const RULES: Rule[] = [
     evaluate: (s) => {
       // Only relevant once you've put up enough swings.
       if (s.totalKills + s.totalAttackErrors < 5) return null;
+      // No attempts recorded means no efficiency to judge. Say nothing.
+      if (s.totalAttackAttempts === 0) return null;
       if (s.hittingEfficiency >= 0.15) return null;
       return {
         metric: "Shot selection",
@@ -88,6 +90,8 @@ const RULES: Rule[] = [
     appliesTo: ["middle_blocker"],
     evaluate: (s) => {
       if (s.totalKills + s.totalAttackErrors < 5) return null;
+      // No attempts recorded means no efficiency to judge. Say nothing.
+      if (s.totalAttackAttempts === 0) return null;
       if (s.hittingEfficiency >= 0.15) return null;
       return {
         metric: "Quick attack efficiency",
@@ -106,6 +110,8 @@ const RULES: Rule[] = [
     appliesTo: ["pin_hitter", "middle_blocker", "setter", "libero_ds"],
     evaluate: (s) => {
       if (s.totalServeErrors + s.totalAces < 3) return null;
+      // No serve attempts recorded means no rate to judge.
+      if (s.totalServeAttempts === 0) return null;
       if (s.serveErrorPercentage <= 0.3) return null;
       return {
         metric: "Serve consistency",
@@ -241,6 +247,7 @@ const UNIVERSAL_RULES: Array<(s: DerivedStats) => ImprovementArea | null> = [
     };
   },
   (s) => {
+    if (s.totalServeAttempts === 0) return null;
     if (s.totalServeErrors + s.totalAces < 3 || s.serveErrorPercentage <= 0.25) return null;
     return {
       metric: "Serve consistency",
@@ -253,6 +260,7 @@ const UNIVERSAL_RULES: Array<(s: DerivedStats) => ImprovementArea | null> = [
     };
   },
   (s) => {
+    if (s.totalAttackAttempts === 0) return null;
     if (s.totalKills + s.totalAttackErrors < 5 || s.hittingEfficiency >= 0.15) return null;
     return {
       metric: "Attacking",
