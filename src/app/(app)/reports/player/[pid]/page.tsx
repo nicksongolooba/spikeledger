@@ -39,7 +39,7 @@ function statTilesFor(
       { label: "Errors / Match", value: fmtNum(s.errorsPerMatch, 1), accent: "red" },
     ];
   }
-  if (group === "setter_middle") {
+  if ((group === "setter" || group === "middle_blocker")) {
     // Combined view; per-position emphasis in labels.
     return [
       { label: "Assists / Match", value: fmtNum(s.assistsPerMatch, 1), accent: "cyan" },
@@ -177,7 +177,7 @@ export default async function PlayerReportPage({
     let primary = 0;
     if (!usesPositions) primary = ds.srAverage;
     else if (group === "libero_ds") primary = ds.srAverage;
-    else if (group === "setter_middle") {
+    else if ((group === "setter" || group === "middle_blocker")) {
       // Setters → assists/match; Middles → blocks/match
       if (mostPlayed === "S") primary = ds.assistsPerMatch;
       else primary = ds.blocksPerMatch;
@@ -193,7 +193,7 @@ export default async function PlayerReportPage({
     ? "SR Avg"
     : group === "libero_ds"
       ? "SR Avg"
-      : group === "setter_middle"
+      : (group === "setter" || group === "middle_blocker")
         ? mostPlayed === "S"
           ? "Assists/Match"
           : "Blocks/Match"
@@ -201,7 +201,7 @@ export default async function PlayerReportPage({
   const primaryColor =
     group === "libero_ds"
       ? "#00cafd"
-      : group === "setter_middle"
+      : (group === "setter" || group === "middle_blocker")
         ? mostPlayed === "S"
           ? "#00cafd"
           : "#00cafd"

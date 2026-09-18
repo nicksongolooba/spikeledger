@@ -22,10 +22,10 @@ const COURT_LAYOUT: Record<number, { col: 0 | 1 | 2; row: 0 | 1 }> = {
 
 // Subtle position-group tint on each tile's ring, matching PositionBadge.
 const GROUP_RING: Record<PositionGroup, string> = {
-  hitter: "ring-navy-200",
-  middle: "ring-sky-200",
+  pin_hitter: "ring-navy-200",
+  middle_blocker: "ring-sky-200",
   setter: "ring-cyan-200",
-  libero: "ring-green-200",
+  libero_ds: "ring-green-200",
 };
 
 // Renders the six on-court players in real volleyball formation. Each card is

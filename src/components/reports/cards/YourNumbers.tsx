@@ -117,7 +117,7 @@ function sectionsFor(data: ReportCardData): Section[] {
               label: "Assists",
               total: `${s.totalAssists}`,
               perMatch:
-                group === "setter_middle" || group === null
+                (group === "setter" || group === "middle_blocker") || group === null
                   ? `${fmtNum(s.assistsPerMatch, 1)}/match`
                   : "",
             },

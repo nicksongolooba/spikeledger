@@ -57,11 +57,11 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
       `Steady contributor: Bank Account ${ba.balance >= 0 ? "+" : ""}${ba.balance} this scope.`,
     );
   }
-  if (group === "libero" && s.srAverage !== undefined && s.srAverage >= 1.8) {
+  if (group === "libero_ds" && s.srAverage !== undefined && s.srAverage >= 1.8) {
     out.push(`Reliable passing - SR average ${s.srAverage.toFixed(2)} keeps the offense in system.`);
   }
   if (
-    (group === "hitter" || group === "middle") &&
+    (group === "pin_hitter" || group === "middle_blocker") &&
     s.hittingEfficiency !== undefined &&
     s.hittingEfficiency >= 0.15
   ) {
@@ -76,7 +76,7 @@ function strengthsFor(req: PlayerInsightRequest): string[] {
     );
   }
   if (
-    (group === "setter" || group === "middle") &&
+    (group === "setter" || group === "middle_blocker") &&
     s.blocksPerMatch !== undefined &&
     s.blocksPerMatch >= 1.0
   ) {
@@ -175,11 +175,11 @@ export function generateRuleBasedPlayerInsight(
   const group = POSITION_GROUP[req.player.position];
   const coachingNote = req.usesPositions === false
     ? "Keep rotating this player through serve receive and the front row - at this level reps in every spot beat specializing early."
-    : group === "libero"
+    : group === "libero_ds"
       ? "Lean on this player as the floor anchor - get them more reps in serve receive rotations 1 and 6."
       : group === "setter"
         ? "Reward clean first balls by speeding up tempo - run your middle on a quick when this setter is in system."
-        : group === "middle"
+        : group === "middle_blocker"
           ? "Feed this middle more first-tempo sets and slides - net touches turn into blocks and quick kills."
           : "Run a quick attack ahead of this player's outside set to soften the block.";
 

@@ -44,7 +44,7 @@ export function statsForGroup(
       errorsPerMatch: derived.errorsPerMatch,
     };
   }
-  if (group === "setter_middle") {
+  if ((group === "setter" || group === "middle_blocker")) {
     return {
       matchesPlayed: derived.matchesPlayed,
       assistsPerMatch: derived.assistsPerMatch,

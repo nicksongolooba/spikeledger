@@ -42,7 +42,7 @@ function calloutsFor(data: ReportCardData): Callout[] {
       { label: "Errors / Match", value: fmtNum(s.errorsPerMatch, 1) },
     ];
   }
-  if (group === "setter_middle") {
+  if ((group === "setter" || group === "middle_blocker")) {
     return [
       { label: "Assists / Match", value: fmtNum(s.assistsPerMatch, 1) },
       { label: "Blocks / Match", value: fmtNum(s.blocksPerMatch, 1) },

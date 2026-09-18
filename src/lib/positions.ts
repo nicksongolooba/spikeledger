@@ -13,18 +13,46 @@ export const POSITION_LABELS: Record<Position, string> = {
   UTIL: "Utility",
 };
 
-export type PositionGroup = "hitter" | "middle" | "setter" | "libero";
+// The one definition of a position group. The engine used to carry a second,
+// three-way version of this and the bar chart a third; both now read this.
+//
+// "Pin hitter" rather than "hitter": a middle is a hitter too, so a category
+// called Hitters that excludes middles is wrong volleyball, and every
+// experienced coach reading it notices. "Middle blocker" rather than "middle"
+// because middle is also a place on the court, and pairing it with pin hitter
+// keeps both names describing the job rather than the location.
+export type PositionGroup = "pin_hitter" | "middle_blocker" | "setter" | "libero_ds";
 
 export const POSITION_GROUP: Record<Position, PositionGroup> = {
-  OH: "hitter",
-  RS: "hitter",
-  OPP: "hitter",
-  UTIL: "hitter",
-  MB: "middle",
+  OH: "pin_hitter",
+  RS: "pin_hitter",
+  OPP: "pin_hitter",
+  UTIL: "pin_hitter",
+  MB: "middle_blocker",
   S: "setter",
-  L: "libero",
-  DS: "libero",
+  L: "libero_ds",
+  DS: "libero_ds",
 };
+
+// Every place a coach reads a group name.
+export const POSITION_GROUP_LABELS: Record<PositionGroup, string> = {
+  pin_hitter: "Pin hitters",
+  middle_blocker: "Middle blockers",
+  setter: "Setters",
+  libero_ds: "Liberos / DS",
+};
+
+// Display order, front row job first, then the back row specialists.
+export const POSITION_GROUP_ORDER: PositionGroup[] = [
+  "pin_hitter",
+  "middle_blocker",
+  "setter",
+  "libero_ds",
+];
+
+export function positionGroupOf(position: Position): PositionGroup {
+  return POSITION_GROUP[position];
+}
 
 // Tailwind class strings for position badges. Four position groups, four
 // solid chips: hitters navy, middles steel blue, setters cyan (they run the

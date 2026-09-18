@@ -60,8 +60,8 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
 function isMuted(row: ReviewRow, col: SortKey, usesPositions: boolean): boolean {
   if (!usesPositions) return false; // no-positions teams: every stat counts
   const group = POSITION_GROUP_MAP[row.position];
-  if (col === "srAvg") return group === "setter_middle"; // setters/middles aren't in SR
-  if (col === "assists") return group !== "setter_middle"; // only setters/middles set
+  if (col === "srAvg") return (group === "setter" || group === "middle_blocker"); // setters/middles aren't in SR
+  if (col === "assists") return (group !== "setter" && group !== "middle_blocker"); // only setters/middles set
   if (col === "blocks") return group === "libero_ds"; // liberos don't block
   if (col === "kills") return group === "libero_ds"; // liberos don't attack
   return false;

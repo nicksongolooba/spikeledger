@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Modal } from "@/components/ui/Modal";
 import { AlertTriangle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,13 @@ interface TeamSettings {
   showBenchStatusToParents: boolean;
   notifyParentsOnStart: boolean;
   playerCount: number;
+}
+
+interface PositionsImpact {
+  // -1 means the count could not be fetched; the warning still stands.
+  matches: number;
+  players: number;
+  shareLinks: number;
 }
 
 export function TeamSettingsForm({ team }: { team: TeamSettings }) {
@@ -31,9 +39,42 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set when a positions-mode change is waiting to be confirmed.
+  const [impact, setImpact] = useState<PositionsImpact | null>(null);
+  const [checkingImpact, setCheckingImpact] = useState(false);
 
+  const modeChanged = usesPositions !== team.usesPositions;
+
+  // Anything that re-scores history gets confirmed with the real size of it
+  // first, never applied silently. Scoring is derived on read, so flipping the
+  // mode changes every past match at once, including the numbers already on
+  // report cards parents downloaded and share links already sent.
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!modeChanged) {
+      await save();
+      return;
+    }
+    setCheckingImpact(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/teams/${team.id}/positions-impact`);
+      const j = (await res.json().catch(() => ({}))) as Partial<PositionsImpact>;
+      setImpact({
+        matches: j.matches ?? 0,
+        players: j.players ?? 0,
+        shareLinks: j.shareLinks ?? 0,
+      });
+    } catch {
+      // If the count cannot be fetched, still confirm; the warning matters
+      // more than the number.
+      setImpact({ matches: -1, players: -1, shareLinks: -1 });
+    } finally {
+      setCheckingImpact(false);
+    }
+  }
+
+  async function save() {
     setBusy(true);
     setError(null);
     setSaved(false);
@@ -181,6 +222,68 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
         </label>
       </section>
 
+      <Modal
+        open={impact !== null}
+        onClose={() => setImpact(null)}
+        title="This changes every match you have already played"
+      >
+        {impact && (
+          <div className="space-y-4 text-sm">
+            <p className="text-slate-700">
+              Scoring is worked out fresh every time it is read, never stored. Turning positions{" "}
+              <span className="font-semibold">{usesPositions ? "on" : "off"}</span> re-scores this
+              team&apos;s whole history the moment you save, not just matches from here on.
+            </p>
+            <ul className="space-y-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+              <li>
+                <span className="stat-number font-bold">
+                  {impact.matches < 0 ? "Every" : impact.matches}
+                </span>{" "}
+                {impact.matches === 1 ? "match is" : "matches are"} re-scored, for{" "}
+                <span className="stat-number font-bold">
+                  {impact.players < 0 ? "every" : impact.players}
+                </span>{" "}
+                {impact.players === 1 ? "player" : "players"}.
+              </li>
+              <li>
+                <span className="stat-number font-bold">
+                  {impact.shareLinks < 0 ? "Any" : impact.shareLinks}
+                </span>{" "}
+                share {impact.shareLinks === 1 ? "link" : "links"} already sent to parents will show
+                the old numbers, because the images were made before the change.
+              </li>
+              <li>Report cards parents have already downloaded will not match either.</li>
+            </ul>
+            <p className="text-slate-600">
+              Nothing is deleted, and switching back restores the old numbers exactly.
+            </p>
+            <div className="flex flex-wrap justify-end gap-2 pt-1">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setUsesPositions(team.usesPositions);
+                  setImpact(null);
+                }}
+              >
+                Keep it as it is
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={busy}
+                onClick={async () => {
+                  setImpact(null);
+                  await save();
+                }}
+              >
+                {busy ? "Saving…" : "Re-score the whole season"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       {error && (
         <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           <AlertTriangle size={16} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden />
@@ -189,8 +292,8 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
       )}
 
       <div className="flex items-center gap-3">
-        <button type="submit" disabled={busy} className="btn-primary">
-          {busy ? "Saving…" : "Save settings"}
+        <button type="submit" disabled={busy || checkingImpact} className="btn-primary">
+          {busy ? "Saving…" : checkingImpact ? "Checking…" : "Save settings"}
         </button>
         {saved && (
           <span className="inline-flex items-center gap-1 text-sm font-medium text-green-700">

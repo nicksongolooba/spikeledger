@@ -18,8 +18,28 @@
 // libero rules.
 
 import type { Position, StatLine } from "@prisma/client";
+import { POSITION_GROUP, positionGroupOf, type PositionGroup } from "@/lib/positions";
 
-export type PositionGroup = "libero_ds" | "hitter" | "setter_middle";
+// GROUPING RULE
+//
+// Group positions together only when they have similar expected values in the
+// categories where both of them produce data. A shared category does no damage
+// when one position has no data in it, because that calibration never fires
+// for them. It does damage when both have data and the bar should differ.
+//
+// That is why setter and middle are no longer one group. Both attack and both
+// block, and the expected values are nothing alike: a middle is usually the
+// most efficient attacker on the team and blocks on nearly every front row
+// rally, while a setter swings once or twice a set and blocks only from
+// position 2. One group means one bar, set by whichever side has more data.
+//
+// It is also why outside and opposite stay together. Their attack profiles
+// genuinely are similar, and they differ in serve receive only, where an
+// opposite who never passes produces no data, so that calibration never fires
+// for them.
+
+export type { PositionGroup };
+export { positionGroupOf };
 
 // How a team is scored. "positions" is the default position-fair ledger.
 // "universal" is for teams that play without set positions (12U/13U, rec
@@ -29,20 +49,9 @@ export type PositionGroup = "libero_ds" | "hitter" | "setter_middle";
 //   withdrawals = serve errors, attack errors, net errors, general errors, SR 0s
 export type BankAccountMode = "positions" | "universal";
 
-export const POSITION_GROUP_MAP: Record<Position, PositionGroup> = {
-  L: "libero_ds",
-  DS: "libero_ds",
-  OH: "hitter",
-  RS: "hitter",
-  OPP: "hitter",
-  UTIL: "hitter",
-  MB: "setter_middle",
-  S: "setter_middle",
-};
-
-export function positionGroupOf(pos: Position): PositionGroup {
-  return POSITION_GROUP_MAP[pos];
-}
+// One definition, in src/lib/positions.ts. This alias is kept because call
+// sites and charts import it by this name.
+export const POSITION_GROUP_MAP: Record<Position, PositionGroup> = POSITION_GROUP;
 
 export type Rating = "GREEN" | "BLUE" | "ORANGE" | "RED" | "GREY";
 
@@ -169,14 +178,25 @@ function contributionsFor(
     deposits.sr3 = line.sr3;
     withdrawals.sr0 = line.sr0;
     // Liberos rarely attack or play at the net - those errors don't count.
-  } else if (group === "hitter") {
-    // Hitters: only perfect passes (SR 3) are deposits; good passes are baseline.
+  } else if (group === "pin_hitter") {
+    // Pin hitters (OH, RS, OPP): only perfect passes (SR 3) are deposits;
+    // good passes are baseline.
     deposits.sr3 = line.sr3;
     withdrawals.sr0 = line.sr0;
     withdrawals.attackErrors = line.attackErrors;
     withdrawals.blockErrors = line.blockErrors; // net touches during blocking
+  } else if (group === "setter") {
+    // Setters: not in serve receive, but they still attack and block.
+    //
+    // These are the same rules middles get today. The split is structural for
+    // now: the per-group calibration that would actually move a setter's
+    // number, weighting assists against setter volume and stopping one attack
+    // error swinging a balance built on one or two swings a set, is a separate
+    // piece of work. Splitting the group first is what makes it possible.
+    withdrawals.attackErrors = line.attackErrors;
+    withdrawals.blockErrors = line.blockErrors;
   } else {
-    // Setters / Middles: not in serve receive, but they still attack and block.
+    // Middle blockers: not in serve receive; attack and block both count.
     withdrawals.attackErrors = line.attackErrors;
     withdrawals.blockErrors = line.blockErrors;
   }

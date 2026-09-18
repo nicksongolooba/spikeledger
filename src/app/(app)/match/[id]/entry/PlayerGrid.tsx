@@ -12,10 +12,10 @@ import type { PositionByPlayer, RosterPlayer } from "./types";
 
 // Subtle position-group tint on each tile's ring, matching PositionBadge.
 const GROUP_RING: Record<PositionGroup, string> = {
-  hitter: "ring-navy-200",
-  middle: "ring-sky-200",
+  pin_hitter: "ring-navy-200",
+  middle_blocker: "ring-sky-200",
   setter: "ring-cyan-200",
-  libero: "ring-green-200",
+  libero_ds: "ring-green-200",
 };
 
 export function PlayerGrid({
@@ -57,7 +57,7 @@ export function PlayerGrid({
 
   // A team's liberos = anyone whose primary slot is L or DS.
   const liberos = roster.filter(
-    (p) => POSITION_GROUP[p.primaryPosition] === "libero",
+    (p) => POSITION_GROUP[p.primaryPosition] === "libero_ds",
   );
   // No libero rules on no-positions teams - everyone is just a player.
   const hasLibero = usesPositions && liberos.length > 0;
@@ -70,7 +70,7 @@ export function PlayerGrid({
     .filter(
       (p): p is RosterPlayer =>
         !!p &&
-        POSITION_GROUP[positions[p.id] ?? p.primaryPosition] !== "libero",
+        POSITION_GROUP[positions[p.id] ?? p.primaryPosition] !== "libero_ds",
     );
 
   function handleLiberoButton() {
