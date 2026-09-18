@@ -41,3 +41,44 @@ export function genderedWordIn(text: string): string | null {
 export function isGenderNeutral(text: string): boolean {
   return genderedWordIn(text) === null;
 }
+
+// ---------------------------------------------------------------------------
+// Playing time
+// ---------------------------------------------------------------------------
+//
+// Playing time is the thing that turns a parent into a Monday morning email to
+// the coach, and it is the coach who decides whether parents get access at
+// all. So nothing the app generates for a parent talks about it: not how many
+// sets, not how many matches, not who started, not who came off.
+//
+// The prompts say so, but a prompt is a request, not a guarantee. This is the
+// guarantee: anything the model writes for a parent is checked, and copy that
+// mentions playing time is thrown away in favour of the rule-based sentence,
+// which cannot produce it.
+
+export const PLAYING_TIME_PATTERNS: { label: string; re: RegExp }[] = [
+  { label: "sets played", re: /\b(sets?|games?|matches|match)\s+(played|in|out)\b/i },
+  { label: "played N sets", re: /\bplayed\s+(in\s+)?\d+\b/i },
+  { label: "number of sets or matches", re: /\b\d+\s+(sets?|matches|games?)\b/i },
+  { label: "across N matches", re: /\b(across|over|in)\s+(all\s+)?\d+\s+(sets?|matches|games?|tournaments?)\b/i },
+  { label: "time on court", re: /\b(time|minutes)\s+on\s+(the\s+)?court\b/i },
+  { label: "court time", re: /\bcourt\s+time\b/i },
+  { label: "playing time", re: /\bplaying\s+time\b/i },
+  { label: "bench", re: /\bbench(ed|ing)?\b/i },
+  { label: "substitution", re: /\bsub(bed|bing|stitut\w*)\b/i },
+  { label: "starting or not", re: /\b(started|starter|starting lineup|did not (play|start)|dnp)\b/i },
+  { label: "rotation count", re: /\b(every|each|most|few)\s+(sets?|matches|games?)\b/i },
+  { label: "appearances", re: /\bappearances?\b/i },
+];
+
+// The first playing-time phrase in the text, or null when it is clean.
+export function playingTimeMentionIn(text: string): string | null {
+  for (const { label, re } of PLAYING_TIME_PATTERNS) {
+    if (re.test(text)) return label;
+  }
+  return null;
+}
+
+export function mentionsPlayingTime(text: string): boolean {
+  return playingTimeMentionIn(text) !== null;
+}

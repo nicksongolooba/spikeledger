@@ -463,11 +463,29 @@ function ParentAccessModal({
           <p className="text-sm text-slate-600">
             Give this code to {player.name}&apos;s parent. They enter it when
             they create a SpikeLedger account (choosing &ldquo;I&apos;m a
-            parent&rdquo;) or later in their settings. They will see only{" "}
-            {player.name}&apos;s stats, compared to team averages - never
-            another player&apos;s numbers. A code works 3 times (parents,
-            aunts, uncles) for 30 days.
+            parent&rdquo;) or later in their settings. A code works 3 times
+            (parents, aunts, uncles) for 30 days.
           </p>
+          {/* Said before the code is handed over, not after a parent emails
+              about playing time. */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
+            <p className="font-semibold text-slate-900">What the parent will see</p>
+            <ul className="mt-2 space-y-1 text-slate-600">
+              <li>
+                {player.name}&apos;s own stats, live during a match and across
+                the season, next to team averages.
+              </li>
+              <li>The team score while a match is being played.</li>
+            </ul>
+            <p className="mt-3 font-semibold text-slate-900">What they will not</p>
+            <ul className="mt-2 space-y-1 text-slate-600">
+              <li>Any other player&apos;s numbers, or any player named but their own.</li>
+              <li>
+                Playing time totals of any kind: no sets played, no matches
+                played, no record of which sets {player.name} was in or out.
+              </li>
+            </ul>
+          </div>
 
           {current && status ? (
             <div

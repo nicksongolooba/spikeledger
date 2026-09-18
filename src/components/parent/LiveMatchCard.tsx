@@ -182,12 +182,12 @@ export function LiveMatchCard({
   const isLive = snap.status === "live";
   const isFinal = snap.status === "final";
   const firstName = playerName.split(" ")[0] || playerName;
-  // Once the match is over nobody is on court, so the live states stop
-  // applying. "Not in this match" still does, and stays.
-  const shownState =
-    isLive || snap.playerState === "not_in_match" ? snap.playerState : "unknown";
+  // The payload decides whether there is any state to show at all: it is
+  // "unknown" once the match is over, and whenever the coach has turned bench
+  // status off for the team. Nothing here needs to second-guess that.
+  const shownState = snap.playerState;
   const copy = playerStateCopy(shownState, firstName);
-  const notInMatch = snap.playerState === "not_in_match";
+  const notInMatch = shownState === "not_in_match";
   const chip = backOn && isLive ? BACK_ON_COURT_CHIP : copy.chip;
   const matchStatsLabel = isFinal ? "This match" : copy.matchStatsLabel;
 
@@ -287,9 +287,9 @@ export function LiveMatchCard({
         </>
       ) : notInMatch ? null : (
         <p className="px-5 py-4 text-sm text-slate-600">
-          {shownState === "bench"
-            ? `Nothing recorded for ${firstName} in this match yet.`
-            : `${firstName} hasn't recorded a stat in this match yet.`}
+          {isFinal
+            ? `No stats recorded for ${firstName} in this match.`
+            : `Nothing recorded for ${firstName} in this match yet.`}
         </p>
       )}
 

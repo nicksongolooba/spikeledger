@@ -12,6 +12,7 @@ interface TeamSettings {
   season: string | null;
   usesPositions: boolean;
   allowParentView: boolean;
+  showBenchStatusToParents: boolean;
   notifyParentsOnStart: boolean;
   playerCount: number;
 }
@@ -23,6 +24,9 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
   const [season, setSeason] = useState(team.season ?? "");
   const [usesPositions, setUsesPositions] = useState(team.usesPositions);
   const [allowParentView, setAllowParentView] = useState(team.allowParentView);
+  const [showBenchStatusToParents, setShowBenchStatusToParents] = useState(
+    team.showBenchStatusToParents,
+  );
   const [notifyParentsOnStart, setNotifyParentsOnStart] = useState(team.notifyParentsOnStart);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -36,7 +40,15 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
     const res = await fetch(`/api/teams/${team.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, ageGroup, season, usesPositions, allowParentView, notifyParentsOnStart }),
+      body: JSON.stringify({
+        name,
+        ageGroup,
+        season,
+        usesPositions,
+        allowParentView,
+        notifyParentsOnStart,
+        showBenchStatusToParents,
+      }),
     });
     setBusy(false);
     if (!res.ok) {
@@ -121,9 +133,29 @@ export function TeamSettingsForm({ team }: { team: TeamSettings }) {
           <span>
             <span className="block font-semibold text-slate-900">Allow parent live view</span>
             <span className="block text-sm text-slate-600">
-              Linked parents can see their own child&apos;s stats, live during
-              matches and across the season. Turn it off to pause every
-              parent&apos;s view without unlinking anyone.
+              Parents see their child&apos;s stats and the team score. They do
+              not see other players, and they do not see playing time totals.
+              Turn it off to pause every parent&apos;s view without unlinking
+              anyone.
+            </span>
+          </span>
+        </label>
+        <label className={cn("mt-4 flex items-start gap-3", allowParentView ? "cursor-pointer" : "cursor-not-allowed opacity-60")}>
+          <input
+            type="checkbox"
+            checked={allowParentView && showBenchStatusToParents}
+            disabled={!allowParentView}
+            onChange={(e) => setShowBenchStatusToParents(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-cyan-500"
+            name="showBenchStatusToParents"
+          />
+          <span>
+            <span className="block font-semibold text-slate-900">Show live bench status to parents</span>
+            <span className="block text-sm text-slate-600">
+              Turn this off if you would rather not show parents when their
+              child is on or off the court. They still see the score and their
+              own child&apos;s stats.
+              {!allowParentView && " Needs parent live view on."}
             </span>
           </span>
         </label>

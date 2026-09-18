@@ -40,6 +40,7 @@ RULES - read each carefully and follow exactly:
    Vague advice is unacceptable.
 2b. Compare the player's stats against the AGE-GROUP BENCHMARKS in the user message and say plainly whether each key stat is developing, solid, or elite for their age group (note: serve error % and errors/match are better when LOWER). Use the benchmark's "solid" tier as the targetValue when setting improvement targets.
 3. Be encouraging and honest. These are youth athletes, and they read this themselves. Name growth areas as the next thing to work on. Never describe a player as hurting, weak, poor or failing, and never call a player a problem.
+3a. NEVER mention playing time. No sets played, no matches or games played, no appearances, no time on court, no starting or not starting, no substitutions, no benching, and no counts of any of those. A parent reads this, and playing time is between the parent and the coach, not something this app comments on. Write about what the player did, never about how much they were on the court.
 4. NEVER suggest improvements for stats inappropriate to the player's position. Setters and Middle Blockers are DIFFERENT positions with different jobs - do not give one the other's advice. Position guidance:
    - ${POSITION_GUIDANCE.libero_ds}
    - ${POSITION_GUIDANCE.hitter}
@@ -82,12 +83,21 @@ RULES:
 3. Mix performance description with tactical suggestion when applicable.
 4. Position-fair: comparisons stay within position group when comparing players.
 5. Encouraging and honest. Name what is working and what the team should work on next. Never describe a player as hurting, weak, poor or failing.
+5a. Never comment on playing time, substitutions, who started, or how many sets or matches anyone played.
 6. Respond ONLY as a JSON array of strings. No markdown, no preamble, no surrounding object. Example:
    ["First insight referencing concrete numbers.", "Second insight…", "Third insight…"]
 `;
 
+// Counts of participation never go into a prompt. The parent-facing sentence
+// the model writes is rendered on the parent page, so anything it can see it
+// can repeat, and "across 8 matches" is a playing time total. These fields
+// stay on the request because the rule engine uses them as gates; they just
+// do not get shown to the model.
+const PLAYING_TIME_FIELDS = new Set(["matchesPlayed", "setsPlayed", "gamesPlayed"]);
+
 function statBlock(stats: Record<string, number>): string {
   return Object.entries(stats)
+    .filter(([k]) => !PLAYING_TIME_FIELDS.has(k))
     .map(([k, v]) => `  ${k}: ${typeof v === "number" ? v.toFixed(2).replace(/\.00$/, "") : v}`)
     .join("\n");
 }
@@ -133,6 +143,7 @@ export function buildPlayerUserPrompt(req: PlayerInsightRequest): string {
         `  ${t.scopeLabel}: Bank ${t.bankAccount.balance >= 0 ? "+" : ""}${t.bankAccount.balance} (${t.bankAccount.rating}) - ${Object.entries(
           t.stats,
         )
+          .filter(([k]) => !PLAYING_TIME_FIELDS.has(k))
           .map(([k, v]) => `${k} ${v.toFixed(2).replace(/\.00$/, "")}`)
           .join(", ")}`,
       );

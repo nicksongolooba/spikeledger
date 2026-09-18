@@ -95,10 +95,12 @@ export default async function ParentPlayerPage({ params }: { params: { playerId:
                   </span>
                 </div>
               )}
+              {/* No matches-played total. It is a playing-time count in its
+                  own right, and it is the denominator that would turn every
+                  "per match" figure below back into raw totals. */}
               <p className="mt-3 text-sm text-slate-600">
                 {season.bankAccount.deposits} good plays against{" "}
-                {season.bankAccount.withdrawals} errors across {season.matchesPlayed}{" "}
-                {season.matchesPlayed === 1 ? "match" : "matches"}.{" "}
+                {season.bankAccount.withdrawals} errors so far this season.{" "}
                 {team.usesPositions
                   ? "Scored on what their position is asked to do, not on everyone else's stats."
                   : "Everyone on this team is scored on the same all-around formula."}

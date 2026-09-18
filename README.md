@@ -125,6 +125,7 @@ node --import tsx scripts/verify-parent-flow.mts      # 122 DB-backed checks: pa
 DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --parents 200 --seconds 120   # parent live view load test against a running dev server
 node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-start alerts (push or email, never both), real web push + Resend against local mocks
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
+node --env-file=.env --import tsx scripts/verify-parent-playing-time.mts   # 38 checks (46 with BASE set): no parent surface exposes playing time, with the team setting both on and off
 node --import tsx scripts/verify-safeguards.mts       # 54 checks (62 with BASE set): share-link privacy, rating language, gender-neutral generated copy, and the courtside grace tournament
 node --env-file=.env --import tsx scripts/verify-billing.mts   # 73 checks: plan reconciliation without a webhook, past_due grace, dunning emails, and deferred downgrades
 BASE=http://127.0.0.1:3212 node --import tsx scripts/verify-install-detection.mts   # 18 browser checks: the install prompt never shows to someone who already installed the app (needs a running server)
@@ -142,6 +143,37 @@ node scripts/preview-app-icons.mjs     # render a sheet showing them on iPhone, 
 
 Icon files are versioned in their filename (`-v4`). Phones and browsers cache an
 app icon by URL, so new art always gets a new path.
+
+## Playing time is not the parent view's business
+
+Playing time is what turns a parent into a Monday morning email to the coach,
+and it is the coach who decides whether parents get access at all. So the
+parent view is about what a child did, never about what they did not get to do.
+
+**No totals of participation reach a parent.** No sets played, no matches
+played, no percentage, no appearances. Per-match averages stay, but the
+denominator that would turn them back into raw totals does not. That includes
+the report cards parents download and the images behind every share link.
+
+**Bench status is the present moment only.** The four live states say where a
+child is standing right now. The payload carries no per-set history, so there
+is nothing to scroll back through, and once a match is finalised the view stops
+saying anything about where the child was and shows what they recorded.
+
+**The coach can turn it off.** "Show live bench status to parents" sits next to
+the parent live view toggle in team settings, default on. Off means parents
+still get the score and their own child's stats with nothing said about on or
+off the court.
+
+**Generated copy cannot mention it.** Participation counts are never put in an
+AI prompt, the prompts forbid the subject outright, and anything the model
+writes for a parent is checked afterwards. Copy that mentions playing time is
+replaced with the rule-based sentence, which cannot produce it. The guard lives
+in `src/lib/generated-copy-guard.ts`.
+
+**Coaches are told before they share a code.** The parent access dialog lists
+what a parent will and will not see, including the playing time rule, so no
+coach finds out from an email.
 
 ## Billing that does not strand a coach
 
