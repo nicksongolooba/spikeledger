@@ -80,39 +80,26 @@ export function actionAvailability(id: StatActionId, ctx: CourtContext): Availab
   }
 }
 
-// One short line saying why a button is not there. The slot number is included
-// because a wrong slot is the usual cause, and seeing it is what tells a coach
-// the rotation has drifted.
+// One short line saying why a disabled button did nothing. Shown when a coach
+// taps it: a button that responds to nothing at all is the same silent failure
+// as the blank court was.
 export function unavailableLine(
   reason: UnavailableReason,
-  name: string,
-  slot: number | null,
+  // The serving rules cover both Ace and Serve err, and a coach looking at
+  // Serve err should not be told about aces.
+  id?: StatActionId,
 ): string {
-  const where = slot === null ? "" : ` (slot ${slot})`;
+  const serveThing = id === "S_ERR" ? "a serve error" : "an ace";
   switch (reason) {
     case "not-serve-slot":
-      return `${name} is not in the serving slot${where}. Only slot 1 serves.`;
+      return `Only the server can record ${serveThing}.`;
     case "opponent-serving":
-      return "The other team is serving.";
+      return `The scoreboard says the other team is serving, so nobody can record ${serveThing}.`;
     case "back-row":
-      return `${name} is back row${where}. Blocks happen in slots 2, 3 and 4.`;
+      return "Back row players cannot block.";
     case "libero-block":
-      return `${name} is the libero, and a libero cannot block.`;
+      return "A libero cannot block.";
     case "we-are-serving":
-      return "We are serving, so there is no serve to receive.";
+      return "Serve receive only applies when the other team is serving.";
   }
-}
-
-// Every distinct reason across a set of actions, in the order the actions were
-// given, so the panel can say each thing once.
-export function reasonsFor(
-  ids: StatActionId[],
-  ctx: CourtContext,
-): UnavailableReason[] {
-  const seen: UnavailableReason[] = [];
-  for (const id of ids) {
-    const a = actionAvailability(id, ctx);
-    if (!a.available && !seen.includes(a.reason)) seen.push(a.reason);
-  }
-  return seen;
 }
