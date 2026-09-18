@@ -22,6 +22,7 @@ export const CANONICAL_FIELDS = [
   "sr2",
   "sr3",
   "digs",
+  "digErrors",
   "generalErrors",
   "setsPlayed",
 ] as const;
@@ -47,6 +48,7 @@ export const CANONICAL_LABELS: Record<CanonicalField, string> = {
   sr2: "SR 2 (good)",
   sr3: "SR 3 (perfect)",
   digs: "Digs",
+  digErrors: "Dig errors",
   generalErrors: "General errors",
   setsPlayed: "Sets / matches played",
 };
@@ -79,6 +81,7 @@ const HEADER_ALIASES: Record<CanonicalField, string[]> = {
   sr2: ["sr2", "passing2", "p2", "goodpass", "goodpasses"],
   sr3: ["sr3", "passing3", "p3", "perfectpass", "perfectpasses"],
   digs: ["digs", "dig", "d"],
+  digErrors: ["digerrors", "digerror", "digerr", "de"],
   generalErrors: ["generalerrors", "generalerror", "errors", "err", "miscerrors", "otherrors"],
   setsPlayed: ["setsplayed", "sets", "setplayed", "sp", "matchesplayed", "matchplayed", "gamesplayed", "mp", "gp"],
 };

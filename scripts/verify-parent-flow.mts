@@ -217,7 +217,8 @@ async function main() {
     });
     snap = await liveNow();
     check("snapshot during play = live with the child's numbers", snap.status === "live" && snap.stats?.digs === 6 && snap.stats?.aces === 1);
-    check("live snapshot carries a Bank Account", snap.bankAccount !== null && snap.bankAccount!.balance === 4);
+    // 6 digs now count as deposits for a libero, so this is +10 rather than +4.
+    check("live snapshot carries a Bank Account", snap.bankAccount !== null && snap.bankAccount!.balance === 10, String(snap.bankAccount?.balance));
     check("no set scores yet = no current set", snap.sets.length === 0 && snap.currentSet === null);
     check("no finished matches = no historical rally rate", (await teamHistoricalRallyRate(teamA.id)) === null);
 

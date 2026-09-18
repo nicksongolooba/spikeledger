@@ -69,6 +69,8 @@ type AggregatableLine = Pick<
   | "sr2"
   | "sr3"
   | "generalErrors"
+  | "settingErrors"
+  | "digErrors"
   | "digs"
   | "setsPlayed"
   | "didNotPlay"
@@ -90,6 +92,8 @@ export function computeDerivedStats(
 ): DerivedStats {
   let kills = 0;
   let attackErrors = 0;
+  let settingErrors = 0;
+  let digErrors = 0;
   let attackAttempts = 0;
   let aces = 0;
   let serveErrors = 0;
@@ -123,6 +127,8 @@ export function computeDerivedStats(
     sr2 += l.sr2;
     sr3 += l.sr3;
     generalErrors += l.generalErrors;
+    settingErrors += l.settingErrors ?? 0;
+    digErrors += l.digErrors ?? 0;
     digs += l.digs;
     setsPlayed += l.setsPlayed;
   }
@@ -131,7 +137,7 @@ export function computeDerivedStats(
   const srAverage = srTotal > 0 ? (sr1 + 2 * sr2 + 3 * sr3) / srTotal : 0;
   const perfectPassPercentage = safeDiv(sr3, srTotal);
   const totalErrors =
-    serveErrors + attackErrors + generalErrors + blockErrors;
+    serveErrors + attackErrors + generalErrors + blockErrors + settingErrors + digErrors;
 
   return {
     hittingEfficiency: safeDiv(kills - attackErrors, attackAttempts),

@@ -10,6 +10,8 @@ export type StatActionId =
   | "S_ERR"
   | "NET_ERR"
   | "A_ERR"
+  | "SET_ERR"
+  | "DIG_ERR"
   | "GEN_ERR"
   | "SR_0"
   | "SR_1"
@@ -25,6 +27,8 @@ export const STAT_ACTION_FIELDS = {
   S_ERR: "serveErrors",
   NET_ERR: "blockErrors",
   A_ERR: "attackErrors",
+  SET_ERR: "settingErrors",
+  DIG_ERR: "digErrors",
   GEN_ERR: "generalErrors",
   SR_0: "sr0",
   SR_1: "sr1",
@@ -43,7 +47,9 @@ export const STAT_ACTION_LABELS: Record<StatActionId, string> = {
   S_ERR: "S.Err",
   NET_ERR: "Net.Err",
   A_ERR: "A.Err",
-  GEN_ERR: "Gen.Err",
+  SET_ERR: "Set.Err",
+  DIG_ERR: "Dig.Err",
+  GEN_ERR: "Other.Err",
   SR_0: "SR 0",
   SR_1: "SR 1",
   SR_2: "SR 2",
@@ -61,6 +67,8 @@ export const STAT_ACTION_CATEGORY: Record<StatActionId, ActionCategory> = {
   S_ERR: "negative",
   NET_ERR: "negative",
   A_ERR: "negative",
+  SET_ERR: "negative",
+  DIG_ERR: "negative",
   GEN_ERR: "negative",
   SR_0: "sr",
   SR_1: "sr",

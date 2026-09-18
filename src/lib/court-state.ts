@@ -22,6 +22,8 @@ export const BASELINE_FIELDS = [
   "attackErrors",
   "generalErrors",
   "blockErrors",
+  "settingErrors",
+  "digErrors",
   "sr0",
   "sr1",
   "sr2",

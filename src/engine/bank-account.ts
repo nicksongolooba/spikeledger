@@ -112,7 +112,11 @@ export interface StatLineLike {
   sr2: number;
   sr3: number;
   generalErrors: number;
-  digs?: number; // only the universal formula reads it
+  digs?: number;
+  // Optional so older callers and fixtures still type-check; both default to
+  // zero, which is what a line recorded before these buttons existed holds.
+  settingErrors?: number;
+  digErrors?: number;
 }
 
 function ratingFromRatio(deposits: number, withdrawals: number): {
@@ -158,14 +162,28 @@ function contributionsFor(
   const withdrawals: Record<string, number> = {
     serveErrors: line.serveErrors,
     generalErrors: line.generalErrors,
+    // Scored for every group. The field already existed and the CSV import
+    // already wrote it; the engine ignored all of it, so imported and
+    // courtside teams were scored differently on the same mistake. It is a
+    // ball-handling failure whoever makes it, so it counts for whoever does.
+    settingErrors: line.settingErrors ?? 0,
   };
+
+  // Digs count for everyone, and so does failing to keep the ball alive.
+  //
+  // Digs were recorded on most player-matches and credited to nobody outside
+  // the universal formula, which made a libero's core defensive action worth
+  // nothing under libero rules. Adding the deposit on its own would have made
+  // a distribution that already reads three quarters Strong contribution worse
+  // still, so the deposit and its failure arrive together.
+  deposits.digs = line.digs ?? 0;
+  withdrawals.digErrors = line.digErrors ?? 0;
 
   if (group === "universal") {
     // No-positions teams: everyone passes, hits, blocks and digs, so every
     // good action is a deposit and every error is a withdrawal.
     deposits.sr2 = line.sr2;
     deposits.sr3 = line.sr3;
-    deposits.digs = line.digs ?? 0;
     withdrawals.sr0 = line.sr0;
     withdrawals.attackErrors = line.attackErrors;
     withdrawals.blockErrors = line.blockErrors;
