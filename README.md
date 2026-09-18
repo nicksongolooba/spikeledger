@@ -125,6 +125,7 @@ node --import tsx scripts/verify-parent-flow.mts      # 122 DB-backed checks: pa
 DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --parents 200 --seconds 120   # parent live view load test against a running dev server
 node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-start alerts (push or email, never both), real web push + Resend against local mocks
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
+BASE=http://127.0.0.1:3216 node --env-file=.env --import tsx scripts/verify-courtside-states.mts   # 54 checks: every courtside state (no lineup, ready, live, ended, reopened) in both team modes
 node --env-file=.env --import tsx scripts/verify-parent-playing-time.mts   # 38 checks (46 with BASE set): no parent surface exposes playing time, with the team setting both on and off
 node --import tsx scripts/verify-safeguards.mts       # 54 checks (62 with BASE set): share-link privacy, rating language, gender-neutral generated copy, and the courtside grace tournament
 node --env-file=.env --import tsx scripts/verify-billing.mts   # 73 checks: plan reconciliation without a webhook, past_due grace, dunning emails, and deferred downgrades
