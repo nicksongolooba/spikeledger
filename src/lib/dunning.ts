@@ -180,7 +180,26 @@ export async function sendDunningEmailIfDue(userId: string, now: Date = new Date
 
 // Every account with a warning due right now. Driven by a scheduled call to
 // /api/cron/dunning, and safe to run as often as you like.
-export async function sendDueDunningEmails(now: Date = new Date()): Promise<number> {
+//
+// Emails go one at a time, so a long queue could outlast the serverless
+// timeout and the whole run would send nothing. Instead it works to a budget
+// and stops cleanly, reporting what is left. Reminders are chosen by date
+// rather than by position in a queue, so anything skipped is simply picked up
+// on the next run.
+export interface DunningSweep {
+  sent: number;
+  considered: number;
+  remaining: number;
+  outOfTime: boolean;
+}
+
+const SWEEP_BUDGET_MS = 8_000;
+const SWEEP_BATCH = 200;
+
+export async function sendDueDunningEmails(
+  now: Date = new Date(),
+  budgetMs: number = SWEEP_BUDGET_MS,
+): Promise<DunningSweep> {
   const due = await prisma.user.findMany({
     where: {
       subscriptionStatus: "past_due",
@@ -189,11 +208,25 @@ export async function sendDueDunningEmails(now: Date = new Date()): Promise<numb
       plan: { not: "FREE" },
     },
     select: { id: true },
-    take: 200,
+    orderBy: { paymentFailedAt: "asc" }, // the longest-waiting owner first
+    take: SWEEP_BATCH,
   });
+
+  const deadline = Date.now() + budgetMs;
   let sent = 0;
-  for (const u of due) if (await sendDunningEmailIfDue(u.id, now)) sent += 1;
-  return sent;
+  let done = 0;
+  for (const u of due) {
+    if (Date.now() > deadline) break;
+    if (await sendDunningEmailIfDue(u.id, now)) sent += 1;
+    done += 1;
+  }
+  const outOfTime = done < due.length;
+  if (outOfTime) {
+    console.warn(
+      `[billing] dunning sweep ran out of time after ${done}/${due.length}; the rest go on the next run`,
+    );
+  }
+  return { sent, considered: due.length, remaining: due.length - done, outOfTime };
 }
 
 // Recorded the first time a payment fails; left alone on later failures for

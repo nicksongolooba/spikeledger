@@ -30,6 +30,7 @@ import {
   dunningStateFor,
   paymentFailedEmail,
   recordPaymentFailure,
+  sendDueDunningEmails,
   sendDunningEmailIfDue,
   updateCardUrl,
 } from "@/lib/dunning";
@@ -245,6 +246,14 @@ async function main() {
     check("a wrong secret gets a plain 404", routeSource.includes("status: 404"));
     check("the comparison is constant time", routeSource.includes("timingSafeEqual"));
     check("the sweep is only reached after the check", routeSource.indexOf("sendDueDunningEmails()") > routeSource.indexOf("status: 404"));
+    check("it asks for more than the default function timeout", /export const maxDuration = \d+/.test(routeSource));
+
+    // A long queue must not mean a run that sends nothing.
+    const sweep = await sendDueDunningEmails(new Date(), 8_000);
+    check("the sweep reports what it did", typeof sweep.sent === "number" && typeof sweep.considered === "number");
+    const noTime = await sendDueDunningEmails(new Date(), -1);
+    check("a spent budget stops it cleanly rather than timing out", noTime.sent === 0);
+    check("and it says what is left for the next run", noTime.remaining === noTime.considered);
 
   } finally {
     if (clubId) await prisma.club.deleteMany({ where: { id: clubId } });

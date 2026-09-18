@@ -126,7 +126,7 @@ DEV_LOG=/tmp/dev.log node --import tsx scripts/load-test-parent-live.mts --paren
 node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-start alerts (push or email, never both), real web push + Resend against local mocks
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
 node --import tsx scripts/verify-safeguards.mts       # 54 checks (62 with BASE set): share-link privacy, rating language, gender-neutral generated copy, and the courtside grace tournament
-node --import tsx scripts/verify-billing.mts          # 60 checks: plan reconciliation without a webhook, past_due grace, dunning emails, and deferred downgrades
+node --env-file=.env --import tsx scripts/verify-billing.mts   # 73 checks: plan reconciliation without a webhook, past_due grace, dunning emails, and deferred downgrades
 BASE=http://127.0.0.1:3212 node --import tsx scripts/verify-install-detection.mts   # 18 browser checks: the install prompt never shows to someone who already installed the app (needs a running server)
 node scripts/verify-app-icons.mjs                    # 48 checks: measures the generated platform icons pixel by pixel
 node --import tsx scripts/verify-club-gating.mts      # 58 DB-backed checks: Club-plan gating and what happens when a club owner downgrades
@@ -186,6 +186,20 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://yourdomain.com/api/cron/dun
 On the Hobby plan Vercel allows one run per day per cron and fires it within
 about an hour of the stated time, which is fine for a reminder that is
 scheduled in days.
+
+**If the cron does not appear in Vercel's Cron Jobs page**, the entry is read
+from the vercel.json of the current *production* deployment, not from the
+default branch. Check in this order:
+
+1. Is the route live? `curl https://yourdomain.com/api/cron/dunning` should
+   answer with JSON: 503 when `CRON_SECRET` is unset, 404 when it is set and
+   the request has no secret. The app's own HTML 404 page means production is
+   running a build from before the route existed, so there is nothing for
+   Vercel to register yet.
+2. Did the merge actually deploy? Look at the Deployments tab for a build on
+   the merge commit, and at whether it failed.
+3. Redeploy production. Cron entries register at deploy time, so a merge that
+   never built leaves the schedule untouched.
 
 ## Safeguards
 
