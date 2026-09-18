@@ -11,8 +11,13 @@ import {
   YAxis,
 } from "recharts";
 import type { Position } from "@prisma/client";
-import { POSITION_GROUP_MAP, type PositionGroup } from "@/engine/bank-account";
-import { POSITION_LABELS } from "@/lib/positions";
+import { POSITION_GROUP_MAP } from "@/engine/bank-account";
+import {
+  POSITION_GROUP_LABELS,
+  POSITION_GROUP_ORDER,
+  POSITION_LABELS,
+  type PositionGroup,
+} from "@/lib/positions";
 import { fmtSigned } from "@/engine/derived-stats";
 import { AXIS_LINE, AXIS_TICK, CHART } from "./chartTheme";
 
@@ -26,13 +31,10 @@ export interface BankAccountBarDatum {
   position: Position;
 }
 
-const GROUP_ORDER: PositionGroup[] = ["hitter", "setter_middle", "libero_ds"];
-
-const GROUP_TITLES: Record<PositionGroup, string> = {
-  hitter: "Hitters",
-  setter_middle: "Setters & Middles",
-  libero_ds: "Liberos / DS",
-};
+// The only surface where a coach reads a group name, so it uses the shared
+// labels rather than a fourth copy of them.
+const GROUP_ORDER = POSITION_GROUP_ORDER;
+const GROUP_TITLES = POSITION_GROUP_LABELS;
 
 function ChartTooltip({ active, payload }: {
   active?: boolean;
@@ -77,11 +79,15 @@ export default function BankAccountBars({
   }
 
   const byGroup: Record<PositionGroup, BankAccountBarDatum[]> = {
-    hitter: [],
-    setter_middle: [],
+    pin_hitter: [],
+    middle_blocker: [],
+    setter: [],
     libero_ds: [],
   };
-  for (const d of data) byGroup[grouped ? POSITION_GROUP_MAP[d.position] : "hitter"].push(d);
+  // A no-positions team is one list, not four: `grouped` is false there and
+  // everything lands in a single section titled "All players", so no group
+  // name is ever shown for those teams.
+  for (const d of data) byGroup[grouped ? POSITION_GROUP_MAP[d.position] : "pin_hitter"].push(d);
   // Sort within each group: highest balance first.
   for (const g of GROUP_ORDER) byGroup[g].sort((a, b) => b.balance - a.balance);
 

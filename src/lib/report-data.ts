@@ -51,7 +51,7 @@ function primaryAndSecondaryFor(
       secondaryLabel: "Digs / Match",
     };
   }
-  if (group === "setter_middle") {
+  if ((group === "setter" || group === "middle_blocker")) {
     if (position === "S") {
       return {
         primary: stats.assistsPerMatch,

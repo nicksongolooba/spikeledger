@@ -2,11 +2,10 @@
 // for a player, taking position into account so a libero isn't told to work on
 // hitting efficiency, and a middle is never told to work on assists.
 //
-// Position groups here are the FOUR-way split (hitter / middle / setter /
-// libero) from lib/positions, NOT the Bank Account's three-way grouping that
-// lumps setters and middles together. Coaching advice for a setter (assists,
-// distribution) is wrong for a middle (blocking, quick attacks), so the two
-// must stay separate.
+// Position groups come from lib/positions, which is now the only definition of
+// them. This file argued for the four-way split before the engine had it:
+// coaching advice for a setter (assists, distribution) is wrong for a middle
+// (blocking, quick attacks). The engine agrees now.
 
 import type { Position } from "@prisma/client";
 import { POSITION_GROUP, type PositionGroup } from "@/lib/positions";
@@ -32,7 +31,7 @@ interface Rule {
 const RULES: Rule[] = [
   // --- Passing (Libero / hitter only - setters and middles don't pass) ---
   {
-    appliesTo: ["libero"],
+    appliesTo: ["libero_ds"],
     evaluate: (s) => {
       if (s.srTotal < 5) return null; // not enough data
       if (s.srAverage >= 2.0) return null;
@@ -49,7 +48,7 @@ const RULES: Rule[] = [
     },
   },
   {
-    appliesTo: ["hitter"],
+    appliesTo: ["pin_hitter"],
     evaluate: (s) => {
       if (s.srTotal < 5) return null;
       if (s.srAverage >= 1.8) return null;
@@ -67,7 +66,7 @@ const RULES: Rule[] = [
 
   // --- Attacking: hitters work shot selection ---
   {
-    appliesTo: ["hitter"],
+    appliesTo: ["pin_hitter"],
     evaluate: (s) => {
       // Only relevant once you've put up enough swings.
       if (s.totalKills + s.totalAttackErrors < 5) return null;
@@ -86,7 +85,7 @@ const RULES: Rule[] = [
 
   // --- Attacking: middles work quick-attack efficiency (never set) ---
   {
-    appliesTo: ["middle"],
+    appliesTo: ["middle_blocker"],
     evaluate: (s) => {
       if (s.totalKills + s.totalAttackErrors < 5) return null;
       if (s.hittingEfficiency >= 0.15) return null;
@@ -104,7 +103,7 @@ const RULES: Rule[] = [
 
   // --- Serving (everyone who serves) ---
   {
-    appliesTo: ["hitter", "middle", "setter", "libero"],
+    appliesTo: ["pin_hitter", "middle_blocker", "setter", "libero_ds"],
     evaluate: (s) => {
       if (s.totalServeErrors + s.totalAces < 3) return null;
       if (s.serveErrorPercentage <= 0.3) return null;
@@ -122,7 +121,7 @@ const RULES: Rule[] = [
 
   // --- Ball control (everyone) ---
   {
-    appliesTo: ["hitter", "middle", "setter", "libero"],
+    appliesTo: ["pin_hitter", "middle_blocker", "setter", "libero_ds"],
     evaluate: (s) => {
       if (s.matchesPlayed === 0) return null;
       const epm = s.errorsPerMatch;
@@ -141,7 +140,7 @@ const RULES: Rule[] = [
 
   // --- Blocking (middles + front-row setters) ---
   {
-    appliesTo: ["middle", "setter"],
+    appliesTo: ["middle_blocker", "setter"],
     evaluate: (s) => {
       if (s.matchesPlayed < 2) return null;
       if (s.blocksPerMatch >= 1.0) return null;
@@ -180,7 +179,7 @@ const RULES: Rule[] = [
 // to fill the slot with something specific and encouraging. Keyed by the
 // four-way position group so setters and middles get distinct advice.
 const MAINTAIN_AREAS: Record<PositionGroup, ImprovementArea[]> = {
-  hitter: [
+  pin_hitter: [
     {
       metric: "Stay aggressive late",
       current: "-",
@@ -190,7 +189,7 @@ const MAINTAIN_AREAS: Record<PositionGroup, ImprovementArea[]> = {
       severity: 0,
     },
   ],
-  middle: [
+  middle_blocker: [
     {
       metric: "Own transition attacking",
       current: "-",
@@ -212,7 +211,7 @@ const MAINTAIN_AREAS: Record<PositionGroup, ImprovementArea[]> = {
       severity: 0,
     },
   ],
-  libero: [
+  libero_ds: [
     {
       metric: "Lead from the back",
       current: "-",

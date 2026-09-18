@@ -62,7 +62,7 @@ export function ActionPanel({
     ? POSITION_GROUP[positionPlayed ?? player.primaryPosition]
     : null;
   const restrict = (id: StatActionId) =>
-    restrictByPosition && group === "libero" && LIBERO_RESTRICTED.has(id);
+    restrictByPosition && group === "libero_ds" && LIBERO_RESTRICTED.has(id);
 
   return (
     <div className="card p-3 sm:p-4">

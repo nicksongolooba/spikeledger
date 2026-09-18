@@ -17,11 +17,12 @@ import {
 import { LOGO_RATIO } from "@/components/layout/Wordmark";
 
 // Position-group accent for the stripe under the header band. Same families
-// as the position badges in src/lib/positions.ts: hitters navy, setters and
-// middles steel blue, liberos green.
+// as the position badges in src/lib/positions.ts: pin hitters navy, middles
+// and setters steel blue and cyan, liberos green.
 const GROUP_ACCENT: Record<PositionGroup, string> = {
-  hitter: "#1f3557",
-  setter_middle: "#0369a1",
+  pin_hitter: "#1f3557",
+  middle_blocker: "#0369a1",
+  setter: "#0e7490",
   libero_ds: "#1b9757",
 };
 
