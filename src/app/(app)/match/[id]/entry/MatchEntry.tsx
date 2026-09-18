@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Match, Position, StatLine } from "@prisma/client";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -13,6 +14,8 @@ import { PlayerGrid } from "./PlayerGrid";
 import { ActionPanel } from "./ActionPanel";
 import { UndoBar } from "./UndoBar";
 import { LineupModal } from "./LineupModal";
+import { NoLineupState } from "./NoLineupState";
+import { canEnd, canRecord, matchState } from "@/lib/match-state";
 import { SetStartModal } from "./SetStartModal";
 import { ToastStack, type ToastMsg } from "./Toast";
 import {
@@ -154,6 +157,16 @@ export function MatchEntry({
   const [rotationFlash, setRotationFlash] = useState<number>(0);
   // Bumped each time the serve switches so the Scoreboard highlights "Serving".
   const [servingFlash, setServingFlash] = useState<number>(0);
+  // The page renders from this rather than from whatever is in memory. Before
+  // a lineup exists there is no live match to render, and nothing that writes
+  // to one is put on the screen.
+  const entryState = matchState({
+    result: match.result ?? null,
+    onCourtCount: onCourt.length,
+    pointsScored: sets.reduce((n, s) => n + s.us + s.them, 0),
+    statCount: initialStatLines.length,
+  });
+  const tournamentHref = `/team/${team.id}/tournament/${tournament.id}`;
 
   // Restore the saved session (localStorage + WAL + online status) AFTER the
   // first paint, so the initial client render matches the server. `hydrated`
@@ -180,9 +193,10 @@ export function MatchEntry({
       }
       if (persisted.configuredSets) setConfiguredSets(persisted.configuredSets);
       if (persisted.pointLog) setPointLog(persisted.pointLog);
-      // Keep the lineup modal up only if there's still no lineup set.
+      // Keep the lineup modal up only if there's still no lineup set, and
+      // never on a match that has already been finalised.
       const hasLineup = (persisted.onCourt?.length ?? 0) > 0;
-      setShowLineup(!hasLineup);
+      setShowLineup(!hasLineup && !match.result);
       // A saved lineup means Start match already ran on this device.
       if (hasLineup) startSentRef.current = true;
       // Once the lineup exists but the current set's serve/rotation start was
@@ -266,6 +280,10 @@ export function MatchEntry({
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!hydrated) return;
+    // No lineup means no match yet. Syncing a 0-0 score here is what put a set
+    // row on matches that were never started, and put a phantom scoreboard in
+    // front of parents watching them.
+    if (!canRecord(entryState)) return;
     if (syncTimer.current) clearTimeout(syncTimer.current);
     const history = pointLog[setIdx] ?? [];
     syncTimer.current = setTimeout(() => {
@@ -278,7 +296,7 @@ export function MatchEntry({
     return () => {
       if (syncTimer.current) clearTimeout(syncTimer.current);
     };
-  }, [hydrated, matchId, setIdx, currentUs, currentThem, pointLog]);
+  }, [hydrated, matchId, setIdx, currentUs, currentThem, pointLog, entryState]);
 
   // Set win probability for the current set, recomputed on every point.
   const winChance = useMemo(
@@ -345,6 +363,7 @@ export function MatchEntry({
     : null;
 
   const currentScore = sets[setIdx] ?? { us: 0, them: 0 };
+
 
   // ---- Toast helper ----
   const toastTimer = useRef(0);
@@ -722,17 +741,41 @@ export function MatchEntry({
               : "Stats auto-save · all synced"}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={endMatch}
-          disabled={ending}
-          className="btn-secondary text-sm"
-        >
-          {ending ? "Finalizing…" : "End match"}
-        </button>
+        {/* Ending a match that never began is what wrote the one phantom
+            result in production: a score, a WIN, and no stats. */}
+        {canEnd(entryState) && (
+          <button
+            type="button"
+            onClick={endMatch}
+            disabled={ending}
+            className="btn-secondary text-sm"
+          >
+            {ending ? "Finalizing…" : "End match"}
+          </button>
+        )}
       </header>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      {entryState === "ended" && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+          <span className="text-slate-700">
+            This match is finished. Anything you change here updates the record.
+          </span>
+          <Link href={`/match/${matchId}/review`} className="btn-secondary text-sm">
+            Open the match report
+          </Link>
+        </div>
+      )}
+
+      {!canRecord(entryState) && entryState === "no_lineup" ? (
+        <div className="mt-4">
+          <NoLineupState
+            onOpenLineup={() => setShowLineup(true)}
+            backHref={tournamentHref}
+            backLabel={`Back to ${tournament.name}`}
+          />
+        </div>
+      ) : (
+      <div className="mt-4 grid gap-3 md:grid-cols-2" data-match-state={entryState}>
         <div className="md:col-span-2">
           <Scoreboard
             teamName={team.name}
@@ -784,6 +827,7 @@ export function MatchEntry({
           opponentErrors={opponentErrors}
         />
       </div>
+      )}
 
       <UndoBar entries={undoStack} onUndo={handleUndo} />
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
@@ -795,6 +839,7 @@ export function MatchEntry({
         initialOnCourt={onCourt}
         initialPositions={positions}
         onClose={() => setShowLineup(false)}
+        onCancel={() => router.push(tournamentHref)}
         onConfirm={applyLineup}
       />
 

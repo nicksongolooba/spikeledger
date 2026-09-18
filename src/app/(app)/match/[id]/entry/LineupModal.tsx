@@ -18,6 +18,7 @@ export function LineupModal({
   initialOnCourt,
   initialPositions,
   onClose,
+  onCancel,
   onConfirm,
 }: {
   open: boolean;
@@ -25,7 +26,12 @@ export function LineupModal({
   usesPositions?: boolean;
   initialOnCourt: string[];
   initialPositions: PositionByPlayer;
+  // Escape and the backdrop. Dismissing in place lands on the no-lineup empty
+  // state, which has one obvious action on it.
   onClose: () => void;
+  // The Cancel button, for a coach who opened the wrong match and wants out of
+  // it rather than into a blank version of it.
+  onCancel: () => void;
   onConfirm: (
     onCourt: string[],
     positionsByPlayer: PositionByPlayer,
@@ -234,8 +240,8 @@ export function LineupModal({
       )}
 
       <div className="mt-5 flex justify-end gap-2">
-        <button type="button" onClick={onClose} className="btn-secondary">
-          Cancel
+        <button type="button" onClick={onCancel} className="btn-secondary">
+          Leave match
         </button>
         <button
           type="button"

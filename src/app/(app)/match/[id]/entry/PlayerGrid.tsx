@@ -8,6 +8,11 @@ import { PositionBadge } from "@/components/ui/PositionBadge";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/lib/utils";
 import { CourtFormation } from "./CourtGrid";
+import {
+  EMPTY_COURT_ACTION,
+  EMPTY_COURT_BODY,
+  EMPTY_COURT_HEADLINE,
+} from "@/lib/match-state";
 import type { PositionByPlayer, RosterPlayer } from "./types";
 
 // Subtle position-group tint on each tile's ring, matching PositionBadge.
@@ -96,9 +101,14 @@ export function PlayerGrid({
   return (
     <div className="card p-3 sm:p-4">
       <div className="mb-2 flex items-center justify-between">
+        {/* A count is the right information in the wrong form when the count
+            is zero. Six of six is worth showing; none of six needs a
+            sentence, and the block below carries it. */}
         <h3 className="font-display text-base font-bold uppercase tracking-wide text-slate-700">
-          On court{" "}
-          <span className="stat-number text-slate-500">({onCourt.length}/6)</span>
+          On court
+          {onCourt.length > 0 && (
+            <span className="stat-number ml-1 text-slate-500">({onCourt.length}/6)</span>
+          )}
         </h3>
         <div className="flex items-center gap-2">
           {hasLibero && (
@@ -127,6 +137,22 @@ export function PlayerGrid({
         </div>
       </div>
 
+      {/* Permanent guard. The court must never render empty and silent, so if
+          it ever has nobody on it the page says so and offers the way out.
+          The page-level no-lineup state should mean this is unreachable,
+          which is exactly why it is worth keeping. */}
+      {onCourt.length === 0 ? (
+        <div
+          data-empty-court="1"
+          className="rounded-lg border border-dashed border-amber-300 bg-amber-50 px-4 py-6 text-center"
+        >
+          <p className="font-semibold text-amber-900">{EMPTY_COURT_HEADLINE}</p>
+          <p className="mt-1 text-sm text-amber-800">{EMPTY_COURT_BODY}</p>
+          <button type="button" onClick={onOpenLineup} className="btn-primary mt-4">
+            {EMPTY_COURT_ACTION}
+          </button>
+        </div>
+      ) : (
       <CourtFormation
         ordered={onCourt}
         roster={roster}
@@ -135,6 +161,7 @@ export function PlayerGrid({
         onSelect={onSelect}
         neutral={neutral}
       />
+      )}
 
       {bench.length > 0 && (
         <>
