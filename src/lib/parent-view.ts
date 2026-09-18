@@ -135,7 +135,9 @@ function liveStatsFromCounters(c: PlayerCounters): LiveStats {
     blocks: c.blocks,
     digs: c.digs,
     assists: c.assists,
-    errors: c.serveErrors + c.attackErrors + c.generalErrors + c.blockErrors,
+    errors:
+      c.serveErrors + c.attackErrors + c.generalErrors + c.blockErrors +
+      c.settingErrors + c.digErrors,
     srAttempts,
     srAverage: srAttempts > 0 ? (c.sr1 + 2 * c.sr2 + 3 * c.sr3) / srAttempts : null,
   };

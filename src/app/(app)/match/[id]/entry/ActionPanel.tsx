@@ -9,6 +9,9 @@ import type { RosterPlayer } from "./types";
 interface ActionButton {
   id: StatActionId;
   label: string;
+  // What belongs in this button, for a coach who is not sure. Shown on hover
+  // and read out by a screen reader.
+  hint?: string;
 }
 
 const POSITIVE: ActionButton[] = [
@@ -26,7 +29,15 @@ const NEGATIVE: ActionButton[] = [
   { id: "S_ERR", label: "Serve err" },
   { id: "NET_ERR", label: "Net err" },
   { id: "A_ERR", label: "Attack err" },
-  { id: "GEN_ERR", label: "Gen. err" },
+  // The setter's own mistake: a double, a lift, or a set the attacker cannot
+  // swing on. Recorded but never scored until now.
+  { id: "SET_ERR", label: "Set err", hint: "A double, a lift, or a set the attacker could not swing on" },
+  // A ball touched in defence and not kept alive. Pairs with Dig.
+  { id: "DIG_ERR", label: "Dig err", hint: "A ball touched in defence and not kept alive" },
+  // Renamed from "Gen. err". It was a catch-all by omission: no label, no
+  // definition, and nothing downstream could tell its contents apart. Now that
+  // setting and digging have their own buttons, this is what is left.
+  { id: "GEN_ERR", label: "Other err", hint: "Anything without its own button: rotation faults, foot faults, illegal contact" },
 ];
 
 // Serve-receive quality 0 (shank) to 3 (perfect). Solid fills so the four
@@ -198,10 +209,13 @@ function ActionRow({
               baseByCategory,
               isRestricted && "opacity-40",
             )}
+            title={a.hint}
             aria-label={
               isRestricted
                 ? `${a.label} - uncommon for this position`
-                : a.label
+                : a.hint
+                  ? `${a.label} - ${a.hint}`
+                  : a.label
             }
           >
             {a.label}

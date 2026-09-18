@@ -311,6 +311,9 @@ model StatLine {
   // General
   generalErrors Int @default(0)
   digs          Int @default(0)
+  // A ball touched in defence and not kept alive. Pairs with digs so the
+  // deposit has a matching negative.
+  digErrors     Int @default(0)
 
   // Playing time
   setsPlayed Int     @default(0)

@@ -66,9 +66,11 @@ async function main() {
   check("universal result has no position group", uni.positionGroup === null);
   check("universal breakdown includes digs", uni.depositBreakdown.digs === 5);
 
-  // 2. Positions mode unchanged for the same line
+  // 2. Positions mode on the same line. Digs now count for every group, so a
+  // libero's deposits include the 5 digs; attack and net errors are still
+  // ignored for them, which is the part this is guarding.
   const lib = calculateBankAccount(line, "L");
-  check("libero rules ignore attack/net errors (withdrawals 3)", lib.withdrawals === 3 && lib.deposits === 14);
+  check("libero rules ignore attack/net errors (withdrawals 3)", lib.withdrawals === 3 && lib.deposits === 19, `${lib.withdrawals} / ${lib.deposits}`);
 
   // 3. Aggregate + derived stats carry the mode
   const agg = calculateAggregateBankAccount([{ ...line, positionPlayed: "UTIL" }, { ...line, positionPlayed: "UTIL" }], "UTIL", "universal");

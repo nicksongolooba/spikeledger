@@ -33,12 +33,13 @@ function check(name: string, cond: boolean, detail = "") {
   }
 }
 
-// One fixed line, scored as every position. Nothing random: these numbers are
-// what the engine produced before the rename, so if any of them move the
-// refactor moved something it should not have.
+// One fixed line, scored as every position. These numbers moved once, on
+// purpose, when digs became a deposit for every group and setting errors and
+// dig errors became withdrawals. Nothing else has moved them since.
 const LINE = {
   id: "x", matchId: "m", playerId: "p",
   kills: 5, attackErrors: 2, attackAttempts: 20,
+  digErrors: 0,
   aces: 1, serveErrors: 1, serveAttempts: 12,
   blocks: 2, blockErrors: 1,
   assists: 3, settingErrors: 0,
@@ -98,16 +99,16 @@ function main() {
   // -------------------------------------------------------- unchanged output
   console.log("\n3. Nothing moved that should not have");
   const pin = score("OH");
-  check("pin hitter: 14 deposits", pin.deposits === 14, String(pin.deposits));
+  check("pin hitter: 18 deposits, digs now among them", pin.deposits === 18, String(pin.deposits));
   check("pin hitter: 6 withdrawals", pin.withdrawals === 6, String(pin.withdrawals));
-  check("pin hitter: balance +8", pin.balance === 8, String(pin.balance));
+  check("pin hitter: balance +12", pin.balance === 12, String(pin.balance));
   check("RS and OPP score identically to OH", JSON.stringify(score("RS")) === JSON.stringify(pin) && JSON.stringify(score("OPP")) === JSON.stringify(pin));
   check("UTIL still scores as a pin hitter in positions mode", JSON.stringify(score("UTIL")) === JSON.stringify(pin));
 
   const lib = score("L");
-  check("libero: 16 deposits, both good passes credited", lib.deposits === 16, String(lib.deposits));
+  check("libero: 20 deposits, both good passes and the digs", lib.deposits === 20, String(lib.deposits));
   check("libero: 3 withdrawals, attack and net errors ignored", lib.withdrawals === 3, String(lib.withdrawals));
-  check("libero: balance +13", lib.balance === 13, String(lib.balance));
+  check("libero: balance +17", lib.balance === 17, String(lib.balance));
   check("DS scores identically to L", JSON.stringify(score("DS")) === JSON.stringify(lib));
 
   const uni = score("UTIL", "universal");
@@ -122,7 +123,7 @@ function main() {
   check("a setter and a middle are no longer in the same group", setter.group !== middle.group, `${setter.group} vs ${middle.group}`);
   check("the setter's group is setter", setter.group === "setter");
   check("the middle's group is middle_blocker", middle.group === "middle_blocker");
-  check("neither is graded on serve receive", setter.deposits === 11 && middle.deposits === 11, `${setter.deposits} / ${middle.deposits}`);
+  check("neither is graded on serve receive", setter.deposits === 15 && middle.deposits === 15, `${setter.deposits} / ${middle.deposits}`);
 
   // The honest state of it: the split is structural for now. Their numbers are
   // still identical because the per-group calibration that would separate them
@@ -133,6 +134,23 @@ function main() {
     `${setter.balance} vs ${middle.balance}`,
   );
   check("and both differ from a pin hitter, as they did before", setter.balance !== pin.balance);
+
+  // ------------------------------------------------ the recording gaps
+  console.log("\n5. Every positive has its negative");
+  const GROUP_POS: [string, Position][] = [
+    ["pin hitter", "OH"], ["middle blocker", "MB"], ["setter", "S"], ["libero", "L"],
+  ];
+  for (const [label, pos] of GROUP_POS) {
+    const withDig = score(pos);
+    const noDig = calculateBankAccount({ ...LINE, digs: 0 } as StatLine, pos, "positions");
+    check(`${label}: a dig is a deposit`, withDig.deposits === noDig.deposits + 4, `${withDig.deposits} vs ${noDig.deposits}`);
+    const digErr = calculateBankAccount({ ...LINE, digErrors: 2 } as StatLine, pos, "positions");
+    check(`${label}: a dig error is a withdrawal`, digErr.withdrawals === withDig.withdrawals + 2);
+    const setErr = calculateBankAccount({ ...LINE, settingErrors: 3 } as StatLine, pos, "positions");
+    check(`${label}: a setting error is a withdrawal`, setErr.withdrawals === withDig.withdrawals + 3);
+  }
+  const uniDigErr = calculateBankAccount({ ...LINE, digErrors: 2, settingErrors: 3 } as StatLine, "UTIL", "universal");
+  check("universal counts both too", uniDigErr.withdrawals === uni.withdrawals + 5, String(uniDigErr.withdrawals));
 
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);

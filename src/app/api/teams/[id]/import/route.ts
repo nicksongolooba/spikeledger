@@ -201,6 +201,7 @@ export async function POST(
     blockErrors: number;
     assists: number;
     settingErrors: number;
+    digErrors: number;
     sr0: number;
     sr1: number;
     sr2: number;
@@ -242,6 +243,7 @@ export async function POST(
         blockErrors: 0,
         assists: 0,
         settingErrors: 0,
+        digErrors: 0,
         sr0: 0,
         sr1: 0,
         sr2: 0,
@@ -260,6 +262,7 @@ export async function POST(
     existing.blockErrors += numericField(r, "blockErrors");
     existing.assists += numericField(r, "assists");
     existing.settingErrors += numericField(r, "settingErrors");
+    existing.digErrors += numericField(r, "digErrors");
     existing.sr0 += numericField(r, "sr0");
     existing.sr1 += numericField(r, "sr1");
     existing.sr2 += numericField(r, "sr2");
