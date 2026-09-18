@@ -265,9 +265,9 @@ export function PerformanceOverview({ data }: { data: ReportCardData }) {
           color: REPORT_MUTED,
         }}
       >
-        <span>
-          {data.stats.matchesPlayed} matches · {data.stats.setsPlayed} sets
-        </span>
+        {/* This card goes to parents, in the set they can download and behind
+            every share link. No matches played, no sets played. */}
+        <span>{data.scopeLabel}</span>
         <span>{data.usesPositions ? "Position-fair evaluation" : "All-around evaluation"}</span>
       </div>
     </ReportShell>

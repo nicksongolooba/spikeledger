@@ -15,6 +15,7 @@ import {
   generateRuleBasedPlayerInsight,
   generateRuleBasedTeamInsight,
 } from "./rule-based";
+import { playingTimeMentionIn } from "@/lib/generated-copy-guard";
 import type {
   PlayerInsightRequest,
   PlayerInsightResponse,
@@ -42,6 +43,35 @@ function looksLikePlayerInsight(value: unknown): value is Omit<
   return Array.isArray(v.strengths) && Array.isArray(v.improvements);
 }
 
+// The two fields a parent can read: the plain-English sentence on the parent
+// page, and the summary printed on report card 01, which is the image behind
+// every share link a coach texts home.
+//
+// The prompt tells the model not to mention playing time. This is what happens
+// when it does anyway: the offending field is replaced with the rule-based
+// one, which is built from templates and cannot produce it. Better a plainer
+// sentence than one that starts an argument about who played.
+function scrubPlayingTime(
+  raw: Omit<PlayerInsightResponse, "provider" | "cached" | "generatedAt">,
+  req: PlayerInsightRequest,
+): Omit<PlayerInsightResponse, "provider" | "cached" | "generatedAt"> {
+  const out = { ...raw };
+  let fallback: PlayerInsightResponse | null = null;
+  const safe = () => (fallback ??= generateRuleBasedPlayerInsight(req));
+
+  for (const field of ["parentFriendly", "summary"] as const) {
+    const text = out[field];
+    if (typeof text !== "string") continue;
+    const mention = playingTimeMentionIn(text);
+    if (!mention) continue;
+    console.warn(
+      `[ai] ${field} mentioned playing time (${mention}); using the rule-based sentence instead`,
+    );
+    out[field] = safe()[field];
+  }
+  return out;
+}
+
 export async function getPlayerInsight(
   req: PlayerInsightRequest,
   opts: { forceRefresh?: boolean } = {},
@@ -64,7 +94,7 @@ export async function getPlayerInsight(
       );
       if (looksLikePlayerInsight(raw)) {
         const response: PlayerInsightResponse = {
-          ...raw,
+          ...scrubPlayingTime(raw, req),
           provider: provider.name,
           cached: false,
           generatedAt: new Date().toISOString(),

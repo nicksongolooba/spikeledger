@@ -12,6 +12,7 @@ const UpdateTeamSchema = z.object({
   season: z.string().max(20).nullable().optional(),
   usesPositions: z.boolean().optional(),
   allowParentView: z.boolean().optional(),
+  showBenchStatusToParents: z.boolean().optional(),
   notifyParentsOnStart: z.boolean().optional(),
 });
 
@@ -41,6 +42,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(d.season !== undefined && { season: d.season?.trim() || null }),
       ...(d.usesPositions !== undefined && { usesPositions: d.usesPositions }),
       ...(d.allowParentView !== undefined && { allowParentView: d.allowParentView }),
+      ...(d.showBenchStatusToParents !== undefined && {
+        showBenchStatusToParents: d.showBenchStatusToParents,
+      }),
       ...(d.notifyParentsOnStart !== undefined && { notifyParentsOnStart: d.notifyParentsOnStart }),
     },
   });

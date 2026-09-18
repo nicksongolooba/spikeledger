@@ -112,20 +112,24 @@ enum ClubRole {
 // ============================================================
 
 model Team {
-  id                   String   @id @default(cuid())
-  name                 String
-  ageGroup             String?
-  season               String?
-  clubId               String?
-  coachId              String
-  createdAt            DateTime @default(now())
+  id                       String   @id @default(cuid())
+  name                     String
+  ageGroup                 String?
+  season                   String?
+  clubId                   String?
+  coachId                  String
+  createdAt                DateTime @default(now())
   // false = "no positions" mode: everyone rotates through everything, the
   // Bank Account uses the universal formula, and position UI is hidden.
-  usesPositions        Boolean  @default(true)
+  usesPositions            Boolean  @default(true)
   // Coach can pause the parent live view for the whole team.
-  allowParentView      Boolean  @default(true)
+  allowParentView          Boolean  @default(true)
   // Alert linked parents (push, else email) when a match starts.
-  notifyParentsOnStart Boolean  @default(true)
+  notifyParentsOnStart     Boolean  @default(true)
+  // Whether parents see "on court" / "on the bench" / "off the court right
+  // now" at all. Off means they still get the score and their own child's
+  // stats, with nothing said about where the child is standing.
+  showBenchStatusToParents Boolean  @default(true)
 
   club        Club?        @relation(fields: [clubId], references: [id])
   coach       User         @relation(fields: [coachId], references: [id], onDelete: Cascade)

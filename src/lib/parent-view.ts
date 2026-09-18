@@ -158,6 +158,9 @@ export interface TeamLive {
   teamName: string;
   fetchedAt: string;
   allowParentView: boolean;
+  // Coach setting. Off means the parent view says nothing at all about where
+  // the child is standing, live or otherwise.
+  showBenchStatusToParents: boolean;
   usesPositions: boolean;
   players: Record<
     string,
@@ -207,6 +210,7 @@ async function loadTeamLive(teamId: string): Promise<TeamLive | null> {
     select: {
       name: true,
       allowParentView: true,
+      showBenchStatusToParents: true,
       usesPositions: true,
       players: {
         select: {
@@ -248,6 +252,7 @@ async function loadTeamLive(teamId: string): Promise<TeamLive | null> {
     teamName: team.name,
     fetchedAt: new Date().toISOString(),
     allowParentView: team.allowParentView,
+    showBenchStatusToParents: team.showBenchStatusToParents,
     usesPositions: team.usesPositions,
     players,
     latestMatchId: latest?.id ?? null,
@@ -386,12 +391,23 @@ export function buildLivePayload(
     match.statCount > 0,
   );
   const line = match.lines[playerId] ?? null;
-  const playerState = playerCourtState(match, playerId);
+  // Where the child is standing is a live fact and nothing else.
+  //
+  //   - the coach can turn it off entirely, and then nothing is said
+  //   - once the match is over it stops being said, because a finished match
+  //     is about what the child recorded, not where they were sitting
+  //
+  // Nothing about earlier sets is ever sent: the payload carries the current
+  // set's state and no history, so there is nothing for a parent to scroll
+  // back through.
+  const rawState = playerCourtState(match, playerId);
+  const playerState: PlayerCourtState =
+    team.showBenchStatusToParents && status === "live" ? rawState : "unknown";
   // Recorded since this set's lineup was synced. The match totals
   // stay in `stats` either way: a substitution never takes numbers off screen.
   const currentCourt = match.courtStates[match.courtStates.length - 1] ?? null;
   const setStats =
-    line && currentCourt
+    line && currentCourt && playerState !== "unknown"
       ? liveStatsFromCounters(countersSince(line, playerBaseline(currentCourt.baseline, playerId)))
       : null;
   const mode: BankAccountMode = team.usesPositions ? "positions" : "universal";
