@@ -1,7 +1,11 @@
 // Only enable the actions the tapped player could actually have performed.
 //
-// Gated on what the app knows for certain: who is in which slot, who the
-// libero is, which team is serving. Never on rally phase, which it cannot know.
+// Two rules decide what is gated:
+//   1. Gate only on what the app knows for certain. That is the lineup - who
+//      is in which slot, and who the libero is.
+//   2. Never gate on a state the action itself is used to correct. That rules
+//      out the serving flag entirely, because an ace, a serve error and a pass
+//      are all proof of who served, and the app uses them to repair it.
 //
 // Nothing is ever removed from the pad. An action a player cannot perform is
 // present and disabled, so "absent" is a failure here, not a pass. A button
@@ -15,6 +19,7 @@ import bcrypt from "bcryptjs";
 import { chromium, type Page } from "playwright";
 import { prisma } from "@/lib/prisma";
 import { actionAvailability, isFrontRow, type CourtContext } from "@/lib/action-availability";
+import { servingAssertionFor } from "@/lib/rotation";
 import type { StatActionId } from "@/lib/stat-actions";
 
 const BASE = process.env.BASE ?? "http://127.0.0.1:3218";
@@ -36,9 +41,7 @@ const ATTACK: StatActionId[] = ["KILL", "A_ERR"];
 const ALWAYS: StatActionId[] = ["DIG", "ASSIST", "SET_ERR", "DIG_ERR", "GEN_ERR"];
 const ALL: StatActionId[] = [...ATTACK, ...SERVE, ...BLOCKING, ...SR, ...ALWAYS];
 
-function ctx(slot: number | null, serving: "us" | "them", isLibero = false): CourtContext {
-  return { slot, serving, isLibero };
-}
+const ctx = (slot: number | null, isLibero = false): CourtContext => ({ slot, isLibero });
 const can = (id: StatActionId, c: CourtContext) => actionAvailability(id, c).available;
 
 // --------------------------------------------------------------- the rules
@@ -47,28 +50,40 @@ function unit() {
   check("slot 2, 3 and 4 are front row", isFrontRow(2) && isFrontRow(3) && isFrontRow(4));
   check("slot 1, 5 and 6 are not", !isFrontRow(1) && !isFrontRow(5) && !isFrontRow(6));
 
+  console.log("\n   nothing is gated on a state its own action repairs");
+  check("ACE and S_ERR assert the serving state", SERVE.every((id) => servingAssertionFor(id) === "us"));
+  check("so does every serve receive grade", SR.every((id) => servingAssertionFor(id) === "them"));
+  check("blocking asserts nothing, so it may stay gated on the lineup", BLOCKING.every((id) => servingAssertionFor(id) === undefined));
+  // The serving flag is not in CourtContext at all, so this holds structurally
+  // rather than by convention: there is no state here to gate on.
+  check(
+    "no asserting action is disabled anywhere its lineup rule allows it",
+    ALL.filter((id) => servingAssertionFor(id)).every((id) =>
+      SERVE.includes(id) ? can(id, ctx(1)) : [1, 2, 3, 4, 5, 6].every((s) => can(id, ctx(s))),
+    ),
+  );
+
   console.log("\n   serving");
-  check("slot 1 while we serve can ace", SERVE.every((a) => can(a, ctx(1, "us"))));
+  check("slot 1 can ace", SERVE.every((a) => can(a, ctx(1))));
   for (const s of [2, 3, 4, 5, 6]) {
-    check(`slot ${s} cannot serve`, SERVE.every((a) => !can(a, ctx(s, "us"))));
+    check(`slot ${s} cannot serve`, SERVE.every((a) => !can(a, ctx(s))));
   }
-  check("nobody serves while the other team is serving", [1, 2, 3, 4, 5, 6].every((s) => SERVE.every((a) => !can(a, ctx(s, "them")))));
 
   console.log("\n   serve receive");
-  check("appears while the opponent serves", [1, 2, 3, 4, 5, 6].every((s) => SR.every((a) => can(a, ctx(s, "them")))));
-  check("does not while we serve", [1, 2, 3, 4, 5, 6].every((s) => SR.every((a) => !can(a, ctx(s, "us")))));
-  check("a middle or setter still gets it", SR.every((a) => can(a, ctx(3, "them"))));
+  check("available from every slot", [1, 2, 3, 4, 5, 6].every((s) => SR.every((a) => can(a, ctx(s)))));
+  check("a middle or setter still gets it", SR.every((a) => can(a, ctx(3))));
+  check("a libero gets it too", SR.every((a) => can(a, ctx(5, true))));
 
   console.log("\n   blocking");
-  for (const s of [2, 3, 4]) check(`slot ${s} can block`, BLOCKING.every((a) => can(a, ctx(s, "us"))));
-  for (const s of [1, 5, 6]) check(`slot ${s} cannot block`, BLOCKING.every((a) => !can(a, ctx(s, "us"))));
-  check("a libero cannot block in any slot", [1, 2, 3, 4, 5, 6].every((s) => BLOCKING.every((a) => !can(a, ctx(s, "us", true)))));
+  for (const s of [2, 3, 4]) check(`slot ${s} can block`, BLOCKING.every((a) => can(a, ctx(s))));
+  for (const s of [1, 5, 6]) check(`slot ${s} cannot block`, BLOCKING.every((a) => !can(a, ctx(s))));
+  check("a libero cannot block in any slot", [1, 2, 3, 4, 5, 6].every((s) => BLOCKING.every((a) => !can(a, ctx(s, true)))));
 
   console.log("\n   what is always enabled");
-  check("every slot keeps attack", [1, 2, 3, 4, 5, 6].every((s) => ATTACK.every((a) => can(a, ctx(s, "us")))));
-  check("a libero keeps attack", ATTACK.every((a) => can(a, ctx(5, "us", true))));
-  check("every slot keeps dig, assist and the handling errors", [1, 2, 3, 4, 5, 6].every((s) => ALWAYS.every((a) => can(a, ctx(s, "us")))));
-  check("an unknown slot gates nothing", [...SERVE, ...BLOCKING, ...ATTACK].every((a) => can(a, ctx(null, "us"))));
+  check("every slot keeps attack", [1, 2, 3, 4, 5, 6].every((s) => ATTACK.every((a) => can(a, ctx(s)))));
+  check("a libero keeps attack", ATTACK.every((a) => can(a, ctx(5, true))));
+  check("every slot keeps dig, assist and the handling errors", [1, 2, 3, 4, 5, 6].every((s) => ALWAYS.every((a) => can(a, ctx(s)))));
+  check("an unknown slot gates nothing", ALL.every((a) => can(a, ctx(null))));
 }
 
 // ------------------------------------------------------------- the browser
@@ -100,6 +115,12 @@ async function allAre(page: Page, ids: StatActionId[], want: string) {
   for (const id of ids) if ((await stateOf(page, id)) !== want) return false;
   return true;
 }
+
+async function servingSays(page: Page) {
+  return (await page.locator('button[aria-label^="Serving"]').first().getAttribute("aria-label")) ?? "?";
+}
+
+const OUR_SCORE = '[aria-label="Our score: tap to add, hold to subtract"]';
 
 // Tapping the already-selected player deselects them, so a repeat tap would
 // leave an empty panel and make every later assertion meaningless.
@@ -171,14 +192,15 @@ async function browser(usesPositions: boolean) {
       check(`${label}: slot ${n} has all 15 buttons present`, missing.length === 0, missing.join(","));
     }
 
-    // --- we are serving --------------------------------------------------
+    // --- serving: slot 1 only, whatever the scoreboard says --------------
     await tapSlot(page, 1);
-    check(`${label}: the slot 1 player on the serving team has Ace ENABLED`, (await stateOf(page, "ACE")) === "enabled", await stateOf(page, "ACE"));
+    check(`${label}: the slot 1 player has Ace enabled`, (await stateOf(page, "ACE")) === "enabled", await stateOf(page, "ACE"));
     check(`${label}: and Serve err enabled`, (await stateOf(page, "S_ERR")) === "enabled");
-    check(`${label}: serve receive is disabled while we serve`, await allAre(page, SR, "disabled"));
+    check(`${label}: serve receive is enabled while we serve`, await allAre(page, SR, "enabled"));
     for (const n of [2, 3, 4, 5, 6]) {
       await tapSlot(page, n);
       check(`${label}: slot ${n} has the serve actions disabled`, await allAre(page, SERVE, "disabled"));
+      check(`${label}: slot ${n} still has serve receive enabled`, await allAre(page, SR, "enabled"));
     }
 
     // --- blocking, and the libero ----------------------------------------
@@ -223,13 +245,40 @@ async function browser(usesPositions: boolean) {
       check(`${label}: slot ${n} keeps every attack button enabled`, await allAre(page, ATTACK, "enabled"));
     }
 
-    // --- the other team serving -------------------------------------------
-    await page.locator('button[aria-label^="Serving"]').first().click();
-    await page.waitForTimeout(600);
+    // --- THE DEADLOCK ------------------------------------------------------
+    // A stale serving flag used to disable the one button that repairs it, so
+    // it stayed wrong for the rest of the set. The flag drifts for real: a
+    // manual score correction deliberately does not move it.
+    console.log(`\n   ${label}: a stale serving flag`);
+    if ((await servingSays(page)).includes("Us")) {
+      await page.locator('button[aria-label^="Serving"]').first().click();
+      await page.waitForTimeout(500);
+    }
+    check(`${label}: the flag wrongly says the other team is serving`, (await servingSays(page)).includes("Them"), await servingSays(page));
+
     await tapSlot(page, 1);
-    check(`${label}: serve receive is enabled when they serve`, await allAre(page, SR, "enabled"));
-    check(`${label}: and the serve actions are disabled for everyone`, await allAre(page, SERVE, "disabled"));
-    check(`${label}: there is a way to correct the court`, (await page.locator('button:has-text("Fix the lineup")').count()) > 0);
+    check(`${label}: the slot 1 player STILL has Ace enabled`, (await stateOf(page, "ACE")) === "enabled", await stateOf(page, "ACE"));
+
+    const acesBefore = await prisma.statLine.count({ where: { matchId: m.id, aces: { gt: 0 } } });
+    await page.locator('[data-action="ACE"]').first().click();
+    await page.waitForTimeout(1800);
+    const acesAfter = await prisma.statLine.count({ where: { matchId: m.id, aces: { gt: 0 } } });
+    check(`${label}: the ace records`, acesAfter === acesBefore + 1, `${acesBefore} -> ${acesAfter}`);
+    check(`${label}: and the flag corrects itself to Us`, (await servingSays(page)).includes("Us"), await servingSays(page));
+
+    // The same repair in reverse: a pass proves the other team served.
+    const scoreBefore = await page.locator(OUR_SCORE).first().innerText();
+    await tapSlot(page, 4);
+    await page.locator('[data-action="SR_2"]').first().click();
+    await page.waitForTimeout(1500);
+    check(`${label}: recording a pass corrects the flag back to Them`, (await servingSays(page)).includes("Them"), await servingSays(page));
+    check(`${label}: and scores nothing`, (await page.locator(OUR_SCORE).first().innerText()) === scoreBefore, scoreBefore);
+
+    // Recording a stat clears the selection, so re-select before looking at
+    // the panel. The court's own "Edit lineup" is there either way.
+    check(`${label}: the court always offers Edit lineup`, (await page.locator('button:has-text("Edit lineup")').count()) > 0);
+    await tapSlot(page, 2);
+    check(`${label}: and the pad offers Fix the lineup`, (await page.locator('button:has-text("Fix the lineup")').count()) > 0);
 
     // --- buttons must not move ---------------------------------------------
     const boxes: Record<string, Record<string, number[]>> = {};

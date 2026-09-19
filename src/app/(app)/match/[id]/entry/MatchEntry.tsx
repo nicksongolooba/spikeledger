@@ -644,6 +644,12 @@ export function MatchEntry({
       applyPoint("us", servingBefore);
     } else if (SCORES_THEM.has(action)) {
       applyPoint("them", servingBefore);
+    } else if (servingBefore && servingBefore !== serving) {
+      // Proof of who served that did not end the rally: a serve receive. It
+      // scores nothing and rotates nobody, but it does settle who was serving,
+      // so the next rally-ending action gets the side-out math right.
+      setServing(servingBefore);
+      flashServing();
     }
 
     await processWalEntry(walEntry);
@@ -826,7 +832,6 @@ export function MatchEntry({
           // is the slot. Null when the tapped player is somehow not on court,
           // and null means nothing is gated.
           slot={selectedId ? (onCourt.indexOf(selectedId) >= 0 ? onCourt.indexOf(selectedId) + 1 : null) : null}
-          serving={serving}
           onFixCourt={() => setShowLineup(true)}
           onAction={handleAction}
           onOpponentError={handleOpponentError}

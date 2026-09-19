@@ -32,11 +32,20 @@ export function rotateLineup<T>(onCourt: T[], dir: 1 | -1 = 1): T[] {
     : [onCourt[onCourt.length - 1], ...onCourt.slice(0, -1)];
 }
 
-// Some actions only happen on our serve - an ace or a serve error prove we
-// were the serving team, regardless of what the toggle said. Returning a
-// value here lets applyRally correct a wrong toggle without faking a rotation.
+// Some actions are proof of who served, regardless of what the toggle said.
+// An ace or a serve error can only happen on our serve. A serve receive can
+// only happen against theirs. Returning a value here lets the caller correct
+// a wrong toggle without faking a rotation.
+//
+// Anything this returns a value for must never be gated on the serving state:
+// it is the repair, so blocking it on the thing it repairs leaves the state
+// stuck wrong. See action-availability.ts.
 export function servingAssertionFor(action: StatActionId): Serving | undefined {
-  return action === "ACE" || action === "S_ERR" ? "us" : undefined;
+  if (action === "ACE" || action === "S_ERR") return "us";
+  if (action === "SR_0" || action === "SR_1" || action === "SR_2" || action === "SR_3") {
+    return "them";
+  }
+  return undefined;
 }
 
 // Apply a won rally (a single point) to the serve/rotation state.
