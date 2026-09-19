@@ -32,6 +32,7 @@ export function PlayerGrid({
   positions,
   onSelect,
   onSub,
+  onSwap,
   onOpenLineup,
   liberoActive,
   onLiberoIn,
@@ -45,12 +46,49 @@ export function PlayerGrid({
   positions: PositionByPlayer;
   onSelect: (playerId: string) => void;
   onSub: (benchId: string, courtId: string, position: Position) => void;
+  onSwap: (aId: string, bId: string) => void;
   onOpenLineup: () => void;
   liberoActive: boolean;
   onLiberoIn: (liberoId: string, courtId: string) => void;
   onLiberoOut: () => void;
 }) {
   const [subFor, setSubFor] = useState<RosterPlayer | null>(null);
+  // Swap mode. A bare tap on the court already means "record a stat for this
+  // player", so swapping is armed by an explicit control - the same shape as
+  // the Libero button next to it - rather than overloading the tap.
+  const [swapArmed, setSwapArmed] = useState(false);
+  const [swapFirst, setSwapFirst] = useState<string | null>(null);
+  // Nothing refuses silently. One line, same as the greyed action buttons.
+  const [note, setNote] = useState<string | null>(null);
+
+  function disarmSwap() {
+    setSwapArmed(false);
+    setSwapFirst(null);
+  }
+
+  function handleSwapPick(id: string) {
+    setNote(null);
+    if (!swapFirst) {
+      setSwapFirst(id);
+      return;
+    }
+    if (swapFirst === id) {
+      // Tapping the same player again puts them back down.
+      setSwapFirst(null);
+      return;
+    }
+    onSwap(swapFirst, id);
+    disarmSwap();
+  }
+
+  // A drag that landed on another court player. Same swap, different gesture,
+  // and it does not need swap mode armed because a long press is already
+  // unambiguous.
+  function handleDragSwap(aId: string, bId: string) {
+    setNote(null);
+    onSwap(aId, bId);
+    disarmSwap();
+  }
   // Two-step libero picker: pick which libero (only when 2+ are available),
   // then pick the on-court player they sub in for.
   const [liberoStep, setLiberoStep] = useState<"closed" | "libero" | "court">(
@@ -111,6 +149,26 @@ export function PlayerGrid({
           )}
         </h3>
         <div className="flex items-center gap-2">
+          {onCourt.length > 1 && (
+            <button
+              type="button"
+              data-swap-toggle="1"
+              onClick={() => {
+                setNote(null);
+                if (swapArmed) disarmSwap();
+                else setSwapArmed(true);
+              }}
+              aria-pressed={swapArmed}
+              className={cn(
+                "min-h-[36px] rounded-full border px-3 font-display text-xs font-bold uppercase tracking-wide transition-colors",
+                swapArmed
+                  ? "border-cyan-600 bg-cyan-600 text-white"
+                  : "border-slate-300 bg-white text-slate-600 hover:border-cyan-500 hover:text-cyan-700",
+              )}
+            >
+              {swapArmed ? "Cancel swap" : "Swap"}
+            </button>
+          )}
           {hasLibero && (
             <button
               type="button"
@@ -160,7 +218,28 @@ export function PlayerGrid({
         selectedId={selectedId}
         onSelect={onSelect}
         neutral={neutral}
+        swapArmed={swapArmed}
+        swapFirstId={swapFirst}
+        onSwapPick={handleSwapPick}
+        onSwap={handleDragSwap}
+        onSwapRefused={setNote}
       />
+      )}
+
+      {/* Swap mode says what it wants, and every refusal says why. Fixed
+          height so arming the mode never shifts the court above it. */}
+      {(swapArmed || note) && onCourt.length > 0 && (
+        <p
+          data-swap-note="1"
+          aria-live="polite"
+          className="mt-2 min-h-[20px] text-sm text-slate-600"
+        >
+          {note
+            ? note
+            : swapFirst
+              ? `${playerById(swapFirst)?.name ?? "Player"} picked up. Tap who they change places with, or tap them again to put them back.`
+              : "Tap two players on court to change their places."}
+        </p>
       )}
 
       {bench.length > 0 && (
@@ -176,15 +255,27 @@ export function PlayerGrid({
               if (!p) return null;
               const pos = positions[id] ?? p.primaryPosition;
               return (
-                <PlayerCard
-                  key={id}
-                  player={p}
-                  positionPlayed={pos}
-                  dim
-                  selected={false}
-                  neutral={neutral}
-                  onClick={() => setSubFor(p)}
-                />
+                <div key={id} data-bench-tile={id}>
+                  <PlayerCard
+                    player={p}
+                    positionPlayed={pos}
+                    dim
+                    selected={false}
+                    neutral={neutral}
+                    onClick={() => {
+                      // Correction and substitution are different actions and
+                      // must not share a gesture. Refused with a reason, and
+                      // the sub flow is one tap away once swap is cancelled.
+                      if (swapArmed) {
+                        setNote(
+                          `${p.name} is on the bench. Swapping changes places between two players already on court - cancel the swap to sub them in.`,
+                        );
+                        return;
+                      }
+                      setSubFor(p);
+                    }}
+                  />
+                </div>
               );
             })}
           </div>

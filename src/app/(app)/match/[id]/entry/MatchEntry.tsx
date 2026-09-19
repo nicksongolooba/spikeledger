@@ -559,6 +559,37 @@ export function MatchEntry({
     pushToast(`Subbed ${playerById(benchId)?.name} in`, "info");
   }
 
+  // ---- Correction: two players already on court change places ----
+  // This is not a substitution. Nobody enters or leaves the match, so the
+  // rotation number, the serving flag and the score are all untouched - only
+  // the order of `onCourt`, which is who is standing in which slot.
+  //
+  // `positions` is not touched either: a position played is a role the player
+  // carries with them, not a property of the slot they stand in.
+  //
+  // An active libero pairing survives. handleLiberoOut finds the libero by id
+  // wherever they are standing, so the player they replaced still comes back
+  // in the right place.
+  //
+  // Swapping two entries in an array is its own inverse, so tapping the same
+  // pair again restores the previous order exactly.
+  function handleSwap(aId: string, bId: string) {
+    if (aId === bId) return;
+    setOnCourt((prev) => {
+      const i = prev.indexOf(aId);
+      const j = prev.indexOf(bId);
+      if (i < 0 || j < 0) return prev;
+      const next = [...prev];
+      next[i] = bId;
+      next[j] = aId;
+      return next;
+    });
+    pushToast(
+      `${playerById(aId)?.name} and ${playerById(bId)?.name} changed places`,
+      "info",
+    );
+  }
+
   // ---- Libero quick swap ----
   // Bring a libero in for an on-court player. Remembers who they replaced so
   // the next LIB tap can send that player straight back (libero out).
@@ -818,6 +849,7 @@ export function MatchEntry({
             setSelectedId((prev) => (prev === id ? null : id))
           }
           onSub={handleSub}
+          onSwap={handleSwap}
           onOpenLineup={() => setShowLineup(true)}
           liberoActive={liberoSwap !== null}
           onLiberoIn={handleLiberoIn}
