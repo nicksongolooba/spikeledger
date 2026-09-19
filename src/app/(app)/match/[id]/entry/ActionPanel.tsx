@@ -74,7 +74,6 @@ export function ActionPanel({
   opponentErrors,
   restrictByPosition = true,
   slot = null,
-  serving = "us",
   onFixCourt,
 }: {
   player: RosterPlayer | null;
@@ -87,7 +86,6 @@ export function ActionPanel({
   // Where the tapped player is standing, 1 to 6. Null when unknown, which
   // means nothing gets gated.
   slot?: number | null;
-  serving?: "us" | "them";
   // Rotation drifts when a coach misses a rotation or a sub goes unrecorded,
   // and a drifted court is what disables the wrong buttons. Always offered.
   onFixCourt?: () => void;
@@ -97,9 +95,10 @@ export function ActionPanel({
     : null;
   // The libero rule is about the position, not the team's mode: a no-positions
   // team has no libero, so it simply never fires.
+  // No serving flag here on purpose: the pad must not gate on a state that
+  // its own buttons are used to correct.
   const court: CourtContext = {
     slot,
-    serving,
     isLibero: restrictByPosition && group === "libero_ds",
   };
   const available = (id: StatActionId) => actionAvailability(id, court).available;
@@ -111,7 +110,7 @@ export function ActionPanel({
   // nothing at all is the same failure as the blank court was.
   const [blocked, setBlocked] = useState<string | null>(null);
   // A different player is a different question, so the old answer goes away.
-  useEffect(() => setBlocked(null), [player?.id, slot, serving]);
+  useEffect(() => setBlocked(null), [player?.id, slot]);
 
   function handle(id: StatActionId) {
     const a = actionAvailability(id, court);
@@ -198,39 +197,30 @@ export function ActionPanel({
               <span className="eyebrow text-slate-600">Serve receive</span>
               <span className="text-[11px] text-slate-500">0 shank · 3 perfect</span>
             </div>
+            {/* Never gated. A pass is proof the other team served, so it is
+                one of the things that corrects the serving flag rather than
+                something the flag is allowed to switch off. */}
             <div className="grid grid-cols-4 gap-2">
-              {SR.map((sr) => {
-                const on = available(sr.id);
-                return (
-                  <button
-                    key={sr.id}
-                    data-action={sr.id}
-                    data-disabled={on ? undefined : "1"}
-                    type="button"
-                    aria-disabled={!on}
-                    tabIndex={on ? undefined : -1}
-                    onClick={() => handle(sr.id)}
-                    className={cn(
-                      "flex min-h-[64px] flex-col items-center justify-center rounded-md transition-all",
-                      on
-                        ? cn("text-white active:scale-95", sr.className)
-                        : DISABLED,
-                    )}
-                    aria-label={
-                      on
-                        ? `Serve receive ${sr.label}`
-                        : `Serve receive ${sr.label} - unavailable. ${unavailableLine("we-are-serving")}`
-                    }
-                  >
-                    <span className="stat-number text-3xl font-bold leading-none">
-                      {sr.label}
-                    </span>
-                    <span className="mt-0.5 font-display text-[10px] font-bold uppercase tracking-widest opacity-80">
-                      SR
-                    </span>
-                  </button>
-                );
-              })}
+              {SR.map((sr) => (
+                <button
+                  key={sr.id}
+                  data-action={sr.id}
+                  type="button"
+                  onClick={() => handle(sr.id)}
+                  className={cn(
+                    "flex min-h-[64px] flex-col items-center justify-center rounded-md text-white transition-all active:scale-95",
+                    sr.className,
+                  )}
+                  aria-label={`Serve receive ${sr.label}`}
+                >
+                  <span className="stat-number text-3xl font-bold leading-none">
+                    {sr.label}
+                  </span>
+                  <span className="mt-0.5 font-display text-[10px] font-bold uppercase tracking-widest opacity-80">
+                    SR
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
           {/* Sits below every button, so what it says can never move one. */}

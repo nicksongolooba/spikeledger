@@ -9,6 +9,7 @@ import {
   type RallyState,
 } from "./rotation";
 import type { StatActionId } from "./stat-actions";
+import { actionAvailability } from "./action-availability";
 
 test("nextRotation cycles R1..R6 and wraps", () => {
   assert.equal(nextRotation(1), 2);
@@ -90,12 +91,42 @@ test("six straight side-outs return to the starting rotation", () => {
   assert.equal(state.rotation, 1);
 });
 
-test("servingAssertionFor flags only ace and serve error", () => {
+test("servingAssertionFor flags the actions that prove who served", () => {
+  // Only happen on our serve.
   assert.equal(servingAssertionFor("ACE"), "us");
   assert.equal(servingAssertionFor("S_ERR"), "us");
+  // Only happen against theirs: you cannot pass your own serve.
+  assert.equal(servingAssertionFor("SR_0"), "them");
+  assert.equal(servingAssertionFor("SR_1"), "them");
+  assert.equal(servingAssertionFor("SR_2"), "them");
+  assert.equal(servingAssertionFor("SR_3"), "them");
+  // Prove nothing either way: they happen on both sides of the serve.
   assert.equal(servingAssertionFor("KILL"), undefined);
   assert.equal(servingAssertionFor("A_ERR"), undefined);
   assert.equal(servingAssertionFor("BLOCK"), undefined);
+  assert.equal(servingAssertionFor("DIG"), undefined);
+  assert.equal(servingAssertionFor("ASSIST"), undefined);
+});
+
+// The rule this exists to protect: anything servingAssertionFor speaks for is
+// a repair to the serving flag, so it must never be disabled by that flag.
+// Gating one on the other is what left a stale flag stuck wrong.
+test("no action that corrects the serving flag is gated on it", () => {
+  const ids: StatActionId[] = [
+    "KILL", "ACE", "BLOCK", "ASSIST", "DIG", "S_ERR", "NET_ERR", "A_ERR",
+    "SET_ERR", "DIG_ERR", "GEN_ERR", "SR_0", "SR_1", "SR_2", "SR_3",
+  ];
+  for (const id of ids) {
+    if (!servingAssertionFor(id)) continue;
+    // Available in every slot the action's own lineup rule allows, whatever
+    // the serving state - because CourtContext no longer carries one.
+    const slot = id === "SR_0" || id === "SR_1" || id === "SR_2" || id === "SR_3" ? 4 : 1;
+    assert.equal(
+      actionAvailability(id, { slot, isLibero: false }).available,
+      true,
+      `${id} must not be gated on the state it corrects`,
+    );
+  }
 });
 
 // ---- Integration: drive the exact action sequence the entry page wires up.
