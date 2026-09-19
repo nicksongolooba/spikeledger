@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Position } from "@prisma/client";
 import { POSITION_GROUP } from "@/lib/positions";
 import { cn } from "@/lib/utils";
 import type { StatActionId } from "@/lib/stat-actions";
 import {
   actionAvailability,
-  reasonsFor,
   unavailableLine,
   type CourtContext,
 } from "@/lib/action-availability";
@@ -59,6 +59,13 @@ const SR: { id: StatActionId; label: string; className: string }[] = [
 // still allow taps for the rare rec-league override case.
 const LIBERO_RESTRICTED = new Set<StatActionId>(["KILL", "BLOCK"]);
 
+// One treatment for every action a player cannot perform: clearly grey, no
+// press animation, still readable at arm's length. Not so faint that it reads
+// as a rendering fault - the coach should see a button that is switched off,
+// not a button that failed to load.
+const DISABLED =
+  "border border-slate-300 bg-slate-200 text-slate-500 cursor-not-allowed";
+
 export function ActionPanel({
   player,
   positionPlayed,
@@ -82,7 +89,7 @@ export function ActionPanel({
   slot?: number | null;
   serving?: "us" | "them";
   // Rotation drifts when a coach misses a rotation or a sub goes unrecorded,
-  // so every hidden action comes with a way to put the court right.
+  // and a drifted court is what disables the wrong buttons. Always offered.
   onFixCourt?: () => void;
 }) {
   const group = player
@@ -98,12 +105,23 @@ export function ActionPanel({
   const available = (id: StatActionId) => actionAvailability(id, court).available;
   const restrict = (id: StatActionId) =>
     restrictByPosition && group === "libero_ds" && LIBERO_RESTRICTED.has(id);
-  const hiddenReasons = player
-    ? reasonsFor(
-        [...POSITIVE, ...NEUTRAL, ...NEGATIVE].map((a) => a.id).concat(SR.map((sr) => sr.id)),
-        court,
-      )
-    : [];
+
+  // Why the last disabled button a coach tapped did nothing. A disabled button
+  // records nothing, but it must not be silent: a control that responds to
+  // nothing at all is the same failure as the blank court was.
+  const [blocked, setBlocked] = useState<string | null>(null);
+  // A different player is a different question, so the old answer goes away.
+  useEffect(() => setBlocked(null), [player?.id, slot, serving]);
+
+  function handle(id: StatActionId) {
+    const a = actionAvailability(id, court);
+    if (a.available) {
+      setBlocked(null);
+      onAction(id);
+      return;
+    }
+    setBlocked(unavailableLine(a.reason, id));
+  }
 
   return (
     <div className="card p-3 sm:p-4">
@@ -153,21 +171,24 @@ export function ActionPanel({
           <ActionRow
             actions={POSITIVE}
             category="positive"
-            onAction={onAction}
+            court={court}
+            onTap={handle}
             restrict={restrict}
             available={available}
           />
           <ActionRow
             actions={NEUTRAL}
             category="neutral"
-            onAction={onAction}
+            court={court}
+            onTap={handle}
             restrict={restrict}
             available={available}
           />
           <ActionRow
             actions={NEGATIVE}
             category="negative"
-            onAction={onAction}
+            court={court}
+            onTap={handle}
             restrict={restrict}
             available={available}
           />
@@ -178,18 +199,28 @@ export function ActionPanel({
               <span className="text-[11px] text-slate-500">0 shank · 3 perfect</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {SR.map((sr) =>
-                available(sr.id) ? (
+              {SR.map((sr) => {
+                const on = available(sr.id);
+                return (
                   <button
                     key={sr.id}
                     data-action={sr.id}
+                    data-disabled={on ? undefined : "1"}
                     type="button"
-                    onClick={() => onAction(sr.id)}
+                    aria-disabled={!on}
+                    tabIndex={on ? undefined : -1}
+                    onClick={() => handle(sr.id)}
                     className={cn(
-                      "flex min-h-[64px] flex-col items-center justify-center rounded-md text-white transition-all active:scale-95",
-                      sr.className,
+                      "flex min-h-[64px] flex-col items-center justify-center rounded-md transition-all",
+                      on
+                        ? cn("text-white active:scale-95", sr.className)
+                        : DISABLED,
                     )}
-                    aria-label={`Serve receive ${sr.label}`}
+                    aria-label={
+                      on
+                        ? `Serve receive ${sr.label}`
+                        : `Serve receive ${sr.label} - unavailable. ${unavailableLine("we-are-serving")}`
+                    }
                   >
                     <span className="stat-number text-3xl font-bold leading-none">
                       {sr.label}
@@ -198,62 +229,46 @@ export function ActionPanel({
                       SR
                     </span>
                   </button>
-                ) : (
-                  <EmptySlot key={sr.id} action={sr.id} />
-                ),
-              )}
+                );
+              })}
             </div>
           </div>
-          {hiddenReasons.length > 0 && player && (
-            <div
-              data-hidden-reasons="1"
-              className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
-            >
-              {hiddenReasons.map((r) => (
-                <p key={r} className="text-slate-700">
-                  {unavailableLine(r, player.name.split(" ")[0] || player.name, slot)}
-                </p>
-              ))}
-              {onFixCourt && (
-                <button
-                  type="button"
-                  onClick={onFixCourt}
-                  className="btn-ghost mt-1.5 px-2 py-1 text-xs"
-                >
-                  Court wrong? Fix the lineup
-                </button>
-              )}
-            </div>
-          )}
+          {/* Sits below every button, so what it says can never move one. */}
+          <div
+            data-blocked-reason={blocked ? "1" : undefined}
+            className="mt-3 flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+          >
+            <p aria-live="polite" className="text-slate-700">
+              {blocked}
+            </p>
+            {onFixCourt && (
+              <button
+                type="button"
+                onClick={onFixCourt}
+                className="btn-ghost shrink-0 px-2 py-1 text-xs"
+              >
+                Court wrong? Fix the lineup
+              </button>
+            )}
+          </div>
         </>
       )}
     </div>
   );
 }
 
-// An action that is unavailable keeps its place. The pad never reflows to
-// close the gap: a coach taps by muscle memory in a loud gym, and a pad that
-// rearranges itself produces exactly the mis-taps this exists to prevent.
-function EmptySlot({ action }: { action: StatActionId }) {
-  return (
-    <div
-      data-action-empty={action}
-      aria-hidden
-      className="min-h-[64px] rounded-md border border-dashed border-slate-200 bg-slate-50/60"
-    />
-  );
-}
-
 function ActionRow({
   actions,
   category,
-  onAction,
+  court,
+  onTap,
   restrict,
   available,
 }: {
   actions: ActionButton[];
   category: "positive" | "neutral" | "negative";
-  onAction: (a: StatActionId) => void;
+  court: CourtContext;
+  onTap: (a: StatActionId) => void;
   restrict: (id: StatActionId) => boolean;
   available: (id: StatActionId) => boolean;
 }) {
@@ -275,28 +290,41 @@ function ActionRow({
   return (
     <div className={cn("mt-2 grid gap-2", gridCols)}>
       {actions.map((a) => {
-        // Unavailable actions keep their cell. Never filtered out, so the
-        // column count and therefore every button position is fixed.
-        if (!available(a.id)) return <EmptySlot key={a.id} action={a.id} />;
-        const isRestricted = restrict(a.id);
+        // Every action is always here, for every player, in every slot. An
+        // unavailable one renders inert rather than vanishing: a button that
+        // disappears takes its own explanation with it, and a pad whose
+        // contents change under a coach's thumb is what causes mis-taps.
+        const on = available(a.id);
+        const why = on ? null : actionAvailability(a.id, court);
+        const isRestricted = on && restrict(a.id);
         return (
           <button
             key={a.id}
             data-action={a.id}
+            data-disabled={on ? undefined : "1"}
             type="button"
-            onClick={() => onAction(a.id)}
+            aria-disabled={!on}
+            // Inert controls stay out of the tab order: reachable to a screen
+            // reader, which reads the reason, but never focused by a coach
+            // tabbing for the next thing they can actually record.
+            tabIndex={on ? undefined : -1}
+            onClick={() => onTap(a.id)}
             className={cn(
-              "flex min-h-[64px] items-center justify-center rounded-md px-2 font-display text-lg font-bold uppercase tracking-wide text-white transition-all active:scale-95",
-              baseByCategory,
+              "flex min-h-[64px] items-center justify-center rounded-md px-2 font-display text-lg font-bold uppercase tracking-wide transition-all",
+              on
+                ? cn("text-white active:scale-95", baseByCategory)
+                : DISABLED,
               isRestricted && "opacity-40",
             )}
-            title={a.hint}
+            title={why && !why.available ? unavailableLine(why.reason, a.id) : a.hint}
             aria-label={
-              isRestricted
-                ? `${a.label} - uncommon for this position`
-                : a.hint
-                  ? `${a.label} - ${a.hint}`
-                  : a.label
+              why && !why.available
+                ? `${a.label} - unavailable. ${unavailableLine(why.reason, a.id)}`
+                : isRestricted
+                  ? `${a.label} - uncommon for this position`
+                  : a.hint
+                    ? `${a.label} - ${a.hint}`
+                    : a.label
             }
           >
             {a.label}
