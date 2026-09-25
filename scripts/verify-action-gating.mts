@@ -120,7 +120,7 @@ async function servingSays(page: Page) {
   return (await page.locator('button[aria-label^="Serving"]').first().getAttribute("aria-label")) ?? "?";
 }
 
-const OUR_SCORE = '[aria-label="Our score: tap to add, hold to subtract"]';
+const OUR_SCORE = '[data-score="us"]';
 
 // Tapping the already-selected player deselects them, so a repeat tap would
 // leave an empty panel and make every later assertion meaningless.

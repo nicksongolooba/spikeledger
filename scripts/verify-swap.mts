@@ -47,8 +47,8 @@ async function slotOrder(page: Page): Promise<string[]> {
 async function scoreboard(page: Page) {
   const serving = (await page.locator('button[aria-label^="Serving"]').first().getAttribute("aria-label")) ?? "?";
   const rotation = (await page.locator("text=/^R[1-6]$/").first().innerText().catch(() => "?")) ?? "?";
-  const us = await page.locator('[aria-label="Our score: tap to add, hold to subtract"]').first().innerText();
-  const them = await page.locator('[aria-label="Opponent score: tap to add, hold to subtract"]').first().innerText();
+  const us = await page.locator('[data-score="us"]').first().innerText();
+  const them = await page.locator('[data-score="them"]').first().innerText();
   return { serving, rotation, us, them };
 }
 
