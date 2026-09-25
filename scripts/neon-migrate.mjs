@@ -12,6 +12,19 @@
 //      SQL inside a single statement batch + record it
 //
 // Idempotent — safe to re-run.
+//
+// Where it runs:
+//   - Vercel production builds (vercel.json buildCommand). This is the only
+//     place it may touch the production database.
+//   - Vercel preview builds skip it, whatever their DATABASE_URL is.
+//   - Locally, against the Neon dev branch only. It refuses production.
+//
+// `--baseline` records every migration on disk as applied without running
+// its SQL. It is for a schema-only Neon branch, which copies production's
+// tables but leaves _prisma_migrations empty. Run it from a checkout of the
+// commit production is on (main after its last deploy): a migration that is
+// on disk but not yet in production would be recorded without being run.
+// It refuses if _prisma_migrations has any rows or the "User" table is missing.
 
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -20,18 +33,31 @@ import { createHash, randomUUID } from "node:crypto";
 import { config as loadEnv } from "dotenv";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import { refuseProductionDatabase } from "../src/lib/production-guard.mjs";
+
+// Vercel sets VERCEL=1 and VERCEL_ENV on every build. Read them before
+// loading .env, so a value in a local env file can't pass for a Vercel build.
+const onVercel = process.env.VERCEL === "1";
+const vercelEnv = process.env.VERCEL_ENV;
 
 loadEnv();
 neonConfig.webSocketConstructor = ws;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, "..", "prisma", "migrations");
+const BASELINE = process.argv.includes("--baseline");
+
+if (onVercel && vercelEnv !== "production") {
+  console.log(`Skipping migrations: this is a Vercel ${vercelEnv ?? "non-production"} build.`);
+  process.exit(0);
+}
 
 const CONNECTION = process.env.DATABASE_URL;
 if (!CONNECTION) {
   console.error("DATABASE_URL is not set");
   process.exit(1);
 }
+if (!onVercel || BASELINE) refuseProductionDatabase("db:migrate:neon", CONNECTION);
 
 // Match the columns Prisma's own bookkeeping table uses so a later
 // `prisma migrate status` doesn't get confused.
@@ -82,6 +108,39 @@ async function main() {
     const migrations = discoverMigrations();
     if (migrations.length === 0) {
       console.warn("No migrations found in prisma/migrations/.");
+      return;
+    }
+
+    if (BASELINE) {
+      // One transaction, so a dropped connection can't leave half a baseline.
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const { rows } = await client.query(`SELECT count(*)::int AS n FROM "_prisma_migrations"`);
+        if (rows[0].n > 0) {
+          throw new Error(`--baseline refused: _prisma_migrations already has ${rows[0].n} row(s).`);
+        }
+        const { rows: schema } = await client.query(`SELECT to_regclass('public."User"') IS NOT NULL AS ok`);
+        if (!schema[0].ok) {
+          throw new Error(`--baseline refused: this database has no "User" table, so the migrations haven't run here. Run db:migrate:neon without --baseline.`);
+        }
+        for (const name of migrations) {
+          await client.query(
+            `INSERT INTO "_prisma_migrations"
+              (id, checksum, migration_name, started_at, finished_at, applied_steps_count)
+             VALUES ($1, $2, $3, now(), now(), 1)`,
+            [randomUUID(), sha256(readMigrationSql(name)), name],
+          );
+          console.log(`  ✓ ${name}  recorded as applied.`);
+        }
+        await client.query("COMMIT");
+      } catch (err) {
+        await client.query("ROLLBACK").catch(() => undefined);
+        throw err;
+      } finally {
+        client.release();
+      }
+      console.log(`\nDone. ${migrations.length} migration(s) recorded, none run.`);
       return;
     }
 

@@ -44,6 +44,11 @@ const nextConfig = {
   // Worth doing once real traffic makes page speed matter more than the free
   // tier limit, or when the project moves to Vercel Pro.
   images: { unoptimized: true },
+  // Fixed into the bundle at build time. src/lib/prisma.ts lets only a server
+  // built on Vercel use the production database, so a local `next dev` or a
+  // local `next build && next start` refuses it. Vercel sets VERCEL=1 during
+  // its builds; scripts/neon-migrate.mjs fails the build first if it doesn't.
+  env: { BUILT_ON_VERCEL: process.env.VERCEL === "1" ? "1" : "" },
   // Keep these as native Node `require()` calls — don't let webpack bundle
   // them. Bundling `ws` strips its optional native-addon fallback (bufferutil)
   // and the WebSocket Sender.frame() then crashes mid-handshake. Neon's

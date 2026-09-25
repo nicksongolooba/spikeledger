@@ -2,9 +2,11 @@
 import { config as loadEnv } from "dotenv";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import { refuseProductionDatabase } from "../src/lib/production-guard.mjs";
 
 loadEnv();
 neonConfig.webSocketConstructor = ws;
+refuseProductionDatabase("neon-verify");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 try {

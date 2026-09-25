@@ -1,9 +1,16 @@
+import "dotenv/config"; // tsx doesn't load .env, and a driver adapter stops Prisma loading it
 import { PrismaClient, Position, MatchResult } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
+import { refuseProductionDatabase } from "../src/lib/production-guard.mjs";
+
+// The seed deletes every coach's teams, players and matches. Refuse before a
+// connection exists if DATABASE_URL is production. This sits in the header,
+// not in main(), so a script copied from this header keeps the check.
+refuseProductionDatabase("db:seed");
 
 // Route the seed script through Neon's WebSocket pool too, so it works from
 // networks that block port 5432.
