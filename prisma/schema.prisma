@@ -218,6 +218,9 @@ model Match {
   createdAt      DateTime     @default(now())
   // Set when the coach confirms the starting lineup ("Start match").
   startedAt      DateTime?
+  // 3 or 5 (best of 3 / best of 5). Null on every match saved before formats
+  // existed; the app reads null as best of 5, the rule it always used.
+  bestOf         Int?
 
   tournament    Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   statLines     StatLine[]

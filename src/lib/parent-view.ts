@@ -17,7 +17,7 @@ import { generateRuleBasedPlayerInsight } from "@/engine/ai/rule-based";
 import { getPlayerInsight } from "@/engine/ai";
 import { getEffectivePlan } from "@/lib/club";
 import { hasFeature } from "@/lib/plan-limits";
-import { computeSetWinChance, setWinner, setRulesFor } from "@/engine/win-probability";
+import { bestOfFor, computeSetWinChance, setWinner, setRulesFor } from "@/engine/win-probability";
 import { parseScoreHistory, teamHistoricalRallyRate } from "@/lib/win-probability-data";
 import { cachedLive, matchLiveKey, teamLiveKey } from "@/lib/live-cache";
 import {
@@ -183,6 +183,8 @@ export interface MatchLive {
   result: MatchResult | null;
   setsWon: number;
   setsLost: number;
+  // Saved format (3 or 5), or null for a match saved before formats existed.
+  bestOf: number | null;
   createdAt: string;
   startedAt: string | null;
   statCount: number;
@@ -285,6 +287,7 @@ async function loadMatchLive(matchId: string): Promise<MatchLive | null> {
     result: m.result,
     setsWon: m.setsWon,
     setsLost: m.setsLost,
+    bestOf: m.bestOf,
     createdAt: m.createdAt.toISOString(),
     startedAt: m.startedAt?.toISOString() ?? null,
     statCount: m.statLines.length,
@@ -360,11 +363,14 @@ export function buildLivePayload(
   const player = team.players[playerId];
   if (!player || !match) return emptySnapshot();
 
+  // The same format-aware rule as courtside and End match. No saved format
+  // reads as best of 5, the old rule, so past matches show what they always did.
+  const bestOf = bestOfFor(match.bestOf);
   const sets = match.setScores.map((sc) => ({
     setNumber: sc.setNumber,
     us: sc.us,
     them: sc.them,
-    decided: setWinner(sc.us, sc.them, setRulesFor(sc.setNumber)),
+    decided: setWinner(sc.us, sc.them, setRulesFor(sc.setNumber, bestOf)),
   }));
   const lastSet = match.setScores[match.setScores.length - 1] ?? null;
   let currentSet: LiveSnapshot["currentSet"] = null;
@@ -372,6 +378,7 @@ export function buildLivePayload(
     const history = lastSet.history.length > 0 ? lastSet.history : [[lastSet.us, lastSet.them] as [number, number]];
     const wc = computeSetWinChance(history, {
       setNumber: lastSet.setNumber,
+      bestOf,
       historicalRate: team.historicalRallyRate,
     });
     currentSet = {

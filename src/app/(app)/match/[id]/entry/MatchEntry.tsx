@@ -8,7 +8,17 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { STAT_ACTION_LABELS, type StatActionId } from "@/lib/stat-actions";
 import { applyRally, rotateLineup, servingAssertionFor } from "@/lib/rotation";
 import { POSITION_GROUP } from "@/lib/positions";
-import { computeSetWinChance } from "@/engine/win-probability";
+import {
+  bestOfFor,
+  computeSetWinChance,
+  matchTally,
+  setRulesFor,
+  setWinner,
+  type BestOf,
+} from "@/engine/win-probability";
+import { Modal } from "@/components/ui/Modal";
+import { FORMAT_LABEL, MatchFormatChoice } from "@/components/match/MatchFormatChoice";
+import { EndPrompt } from "./EndPrompt";
 import { Scoreboard } from "./Scoreboard";
 import { PlayerGrid } from "./PlayerGrid";
 import { ActionPanel } from "./ActionPanel";
@@ -139,6 +149,10 @@ export function MatchEntry({
   const [configuredSets, setConfiguredSets] = useState<number[]>([]);
   const [showSetStart, setShowSetStart] = useState<boolean>(false);
   const [pointLog, setPointLog] = useState<PointLog>({});
+  // Best of 3 or 5. A match saved before formats existed reads as best of 5,
+  // the rule the app always used (see win-probability.ts).
+  const [bestOf, setBestOf] = useState<BestOf>(bestOfFor(match.bestOf));
+  const [showFormat, setShowFormat] = useState(false);
   // Start match bookkeeping (see notifyStart).
   const startSentRef = useRef(false);
   const pendingStartRef = useRef<string[] | null>(null);
@@ -303,9 +317,10 @@ export function MatchEntry({
     () =>
       computeSetWinChance(pointLog[setIdx] ?? [[currentUs, currentThem]], {
         setNumber: setIdx + 1,
+        bestOf,
         historicalRate: historicalRallyRate,
       }),
-    [pointLog, setIdx, currentUs, currentThem, historicalRallyRate],
+    [pointLog, setIdx, currentUs, currentThem, historicalRallyRate, bestOf],
   );
 
   // Track online/offline transitions to drive the WAL replay.
@@ -722,18 +737,94 @@ export function MatchEntry({
     await processWalEntry(walEntry);
   }
 
-  // ---- End match ----
+  // ---- Ending a set and the match ----
+  // One rule decides every set and the match (win-probability.ts), the same
+  // one the win chance and the parent view use. The coach always decides:
+  // a winning score only asks, and nothing ends by itself.
+  const MAX_SETS = 5;
+  const isLatestSet = setIdx === sets.length - 1;
+  const currentWinner = setWinner(currentUs, currentThem, setRulesFor(setIdx + 1, bestOf));
+  const tally = matchTally(sets, bestOf);
   const [ending, setEnding] = useState(false);
+  const [confirmEndSet, setConfirmEndSet] = useState(false);
+  const [confirmEndMatch, setConfirmEndMatch] = useState<string | null>(null);
+
+  // "Not yet" on the set question holds only while the score stays put: once
+  // it moves, a winning score asks again.
+  const setPromptKey = `${setIdx}:${currentUs}-${currentThem}`;
+  const [dismissedSetPrompt, setDismissedSetPrompt] = useState<string | null>(null);
+  useEffect(() => {
+    setDismissedSetPrompt((d) => (d && d !== setPromptKey ? null : d));
+  }, [setPromptKey]);
+
+  // The match question is asked when a set is ended, and stands only while
+  // nothing has changed since. Its wording is worked out from the live score,
+  // so a point fixed afterwards can never leave an old "Match won" on screen.
+  const matchStateKey = `${bestOf}|${sets.length}|${setIdx}|${currentUs}-${currentThem}`;
+  const [matchPromptKey, setMatchPromptKey] = useState<string | null>(null);
+  // Any change after the set was ended (a point fixed, another tab, the
+  // format) withdraws the question; a winning score then asks about the set
+  // again first.
+  useEffect(() => {
+    setMatchPromptKey((k) => (k && k !== matchStateKey ? null : k));
+  }, [matchStateKey]);
+  const showMatchPrompt =
+    !ending &&
+    canRecord(entryState) &&
+    matchPromptKey === matchStateKey &&
+    (tally.winner !== null || sets.length >= MAX_SETS);
+  const showSetPrompt =
+    !ending &&
+    canRecord(entryState) &&
+    isLatestSet &&
+    currentWinner !== null &&
+    !showMatchPrompt &&
+    dismissedSetPrompt !== setPromptKey;
+  const matchMessage =
+    tally.winner === "us"
+      ? `Match won ${tally.won}-${tally.lost}. End match?`
+      : tally.winner === "them"
+        ? `Match lost ${tally.won}-${tally.lost}. End match?`
+        : `All ${sets.length} sets played, ${tally.won}-${tally.lost}. End match?`;
+
+  // The End set button. A set that isn't won yet asks first.
+  function requestEndSet() {
+    if (currentWinner) endSet();
+    else setConfirmEndSet(true);
+  }
+  function endSet() {
+    setConfirmEndSet(false);
+    // A won match, or no room for another set: ask about the match instead.
+    if (matchTally(sets, bestOf).winner || sets.length >= MAX_SETS) {
+      setMatchPromptKey(matchStateKey);
+      return;
+    }
+    // The next set starts exactly as the "+" tab starts one: serve and rotation.
+    handleAddSet();
+  }
+
+  // The End match button. An unfinished last set asks first; it will not
+  // count for either team.
+  function requestEndMatch() {
+    const last = sets[sets.length - 1];
+    const lastNumber = sets.length;
+    const unfinished =
+      last && last.us + last.them > 0 && !setWinner(last.us, last.them, setRulesFor(lastNumber, bestOf));
+    if (unfinished) {
+      setConfirmEndMatch(`Set ${lastNumber} is ${last.us}-${last.them} and not finished. End the match anyway?`);
+      return;
+    }
+    void endMatch();
+  }
+
   async function endMatch() {
     if (ending) return;
+    setConfirmEndMatch(null);
+    setMatchPromptKey(null);
     setEnding(true);
-    // Count sets we won/lost from local score tracking.
-    let setsWon = 0;
-    let setsLost = 0;
-    for (const s of sets) {
-      if (s.us > s.them) setsWon += 1;
-      else if (s.them > s.us) setsLost += 1;
-    }
+    // Only finished sets count, by the same rule as everywhere else. An
+    // unfinished set counts for nobody.
+    const { won: setsWon, lost: setsLost } = matchTally(sets, bestOf);
     const result =
       setsWon > setsLost ? "WIN" : setsWon < setsLost ? "LOSS" : "DRAW";
     try {
@@ -749,6 +840,26 @@ export function MatchEntry({
     } catch {
       setEnding(false);
       pushToast("Could not finalize match - check connection.", "danger");
+    }
+  }
+
+  // The format can change until the match ends; the server refuses it after.
+  async function changeFormat(next: BestOf) {
+    setShowFormat(false);
+    if (next === bestOf) return;
+    const previous = bestOf;
+    setBestOf(next);
+    try {
+      const res = await fetch(`/api/matches/${matchId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bestOf: next }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      pushToast(`Format: ${FORMAT_LABEL[next]}`, "info");
+    } catch {
+      setBestOf(previous);
+      pushToast("Could not change the format - check connection.", "danger");
     }
   }
 
@@ -772,10 +883,30 @@ export function MatchEntry({
           <h1 className="mt-0.5 font-display text-3xl font-bold leading-none tracking-tight text-slate-900 sm:text-4xl">
             vs {match.opponent}
           </h1>
-          <div className="mt-1.5 text-xs text-slate-500">
-            {queueSize > 0
-              ? `Stats auto-save · ${queueSize} pending sync`
-              : "Stats auto-save · all synced"}
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            {entryState === "ended" ? (
+              // A match finished before formats existed never had one: say nothing.
+              match.bestOf != null && (
+                <span data-format-label className="rounded-full border border-slate-200 px-2 py-0.5 font-semibold text-slate-600">
+                  {FORMAT_LABEL[bestOf]}
+                </span>
+              )
+            ) : (
+              <button
+                type="button"
+                data-format-button
+                onClick={() => setShowFormat(true)}
+                className="rounded-full border border-slate-300 bg-white px-2.5 py-1 font-semibold text-slate-700 hover:border-slate-400"
+                aria-label={`Match format: ${FORMAT_LABEL[bestOf]}. Tap to change.`}
+              >
+                {FORMAT_LABEL[bestOf]} · Change
+              </button>
+            )}
+            <span>
+              {queueSize > 0
+                ? `Stats auto-save · ${queueSize} pending sync`
+                : "Stats auto-save · all synced"}
+            </span>
           </div>
         </div>
         {/* Ending a match that never began is what wrote the one phantom
@@ -783,7 +914,7 @@ export function MatchEntry({
         {canEnd(entryState) && (
           <button
             type="button"
-            onClick={endMatch}
+            onClick={requestEndMatch}
             disabled={ending}
             className="btn-secondary text-sm"
           >
@@ -835,8 +966,37 @@ export function MatchEntry({
             onRotation={handleRotation}
             onServingToggle={handleServingToggle}
             onEditStart={() => setShowSetStart(true)}
+            onEndSet={isLatestSet && canRecord(entryState) && !ending ? requestEndSet : undefined}
           />
         </div>
+
+        {showMatchPrompt ? (
+          <div className="md:col-span-2">
+            <EndPrompt
+              kind="match"
+              message={matchMessage}
+              confirmLabel="End match"
+              onConfirm={requestEndMatch}
+              cancelLabel={sets.length >= MAX_SETS ? "Not yet" : "Play another set"}
+              onCancel={() => {
+                setMatchPromptKey(null);
+                if (sets.length >= MAX_SETS) setDismissedSetPrompt(setPromptKey);
+                else handleAddSet();
+              }}
+            />
+          </div>
+        ) : showSetPrompt ? (
+          <div className="md:col-span-2">
+            <EndPrompt
+              kind="set"
+              message={`Set ${setIdx + 1}: ${currentUs}-${currentThem}. End set?`}
+              confirmLabel="End set"
+              onConfirm={endSet}
+              cancelLabel="Not yet"
+              onCancel={() => setDismissedSetPrompt(setPromptKey)}
+            />
+          </div>
+        ) : null}
 
         <PlayerGrid
           roster={roster}
@@ -885,6 +1045,38 @@ export function MatchEntry({
         onCancel={() => router.push(tournamentHref)}
         onConfirm={applyLineup}
       />
+
+      <Modal open={showFormat} onClose={() => setShowFormat(false)} title="Match format">
+        <MatchFormatChoice value={bestOf} onChange={(n) => void changeFormat(n)} />
+      </Modal>
+
+      <Modal open={confirmEndSet} onClose={() => setConfirmEndSet(false)} title={`End set ${setIdx + 1}?`}>
+        <p className="text-sm text-slate-700" data-confirm-end-set>
+          Set {setIdx + 1} is {currentUs}-{currentThem} and not finished. End it anyway? It won&apos;t count for either team.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <button type="button" onClick={() => setConfirmEndSet(false)} className="btn-secondary">
+            Keep playing
+          </button>
+          <button type="button" onClick={endSet} className="btn-primary">
+            End set anyway
+          </button>
+        </div>
+      </Modal>
+
+      <Modal open={confirmEndMatch !== null} onClose={() => setConfirmEndMatch(null)} title="End the match?">
+        <p className="text-sm text-slate-700" data-confirm-end-match>
+          {confirmEndMatch} It won&apos;t count for either team.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <button type="button" onClick={() => setConfirmEndMatch(null)} className="btn-secondary">
+            Keep playing
+          </button>
+          <button type="button" onClick={() => void endMatch()} className="btn-primary">
+            End match anyway
+          </button>
+        </div>
+      </Modal>
 
       <SetStartModal
         open={showSetStart}
