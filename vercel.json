@@ -4,7 +4,7 @@
   "regions": [
     "cle1"
   ],
-  "buildCommand": "prisma generate && next build",
+  "buildCommand": "node scripts/neon-migrate.mjs && prisma generate && next build",
   "installCommand": "npm ci",
   "crons": [
     {

@@ -20,8 +20,8 @@ Stripe subscriptions + landing + launch polish       [Phase 6]
 1. **Database** — create a Neon project, copy the connection string.
 2. **Stripe** — create the products described in [Stripe setup](#stripe-setup) below, grab the price IDs and the secret key. (Optional — the app runs without it; billing routes return 503.)
 3. **Deploy** — push this repo to GitHub, import into Vercel, set the env vars below, deploy.
-4. **Migrate** — Vercel will run `prisma generate` during build; run `npx prisma migrate deploy` once against your Neon database (locally is fine: `DATABASE_URL=... npx prisma migrate deploy`).
-5. **Seed (optional)** — `DATABASE_URL=... npm run db:seed` to populate the Thunder Hawks demo team.
+4. **Migrate** — automatic. Vercel's build command runs `node scripts/neon-migrate.mjs` before `next build`, on production builds only (preview builds skip it). Nothing else may migrate production; see [Development database](#development-database).
+5. **Seed** — never against production. The seed deletes every coach's teams and refuses to run on the production database. Seed the dev branch instead.
 
 ## Quick start (self-host: Docker Compose)
 
@@ -40,12 +40,21 @@ To enable AI, set `ANTHROPIC_API_KEY` (see Environment variables below).
 ## Quick start (dev)
 
 ```bash
-cp .env.example .env                      # fill DATABASE_URL + NEXTAUTH_SECRET
+cp .env.example .env                      # DATABASE_URL = the Neon dev branch, + NEXTAUTH_SECRET
 npm install
-npx prisma migrate dev                    # against a local postgres
-npm run db:seed                           # demo team
+npm run db:migrate:neon -- --baseline     # once, on a new schema-only dev branch (see below)
+npm run db:migrate:neon                   # later: apply new migrations to the dev branch
+npm run db:seed                           # demo team (wipes the dev branch's teams)
 npm run dev                               # http://localhost:3000
 ```
+
+### Development database
+
+Local work never touches production. Development runs against its own Neon branch, and production's connection string lives only in Vercel.
+
+- **Set up a dev branch:** `npx neonctl branches create --name dev --schema-only`, then put its connection string in both `.env` and `.env.local` as `DATABASE_URL`. `.env` is the file the Prisma CLI, the seed, the `.mjs` scripts and `node --env-file=.env` read; `.env.local` is the one `next dev` prefers. A schema-only branch has production's tables but an empty `_prisma_migrations`, so record the migrations once with `npm run db:migrate:neon -- --baseline`, from a checkout of the commit production is on, then seed it.
+- **The guard:** `src/lib/production-guard.mjs` recognises the production database by its Neon endpoint. The seed, `neon-migrate.mjs`, `neon-verify.mjs`, `rotate-demo-password.mjs`, every script that imports `src/lib/prisma.ts`, any Next server not built on Vercel (`next dev`, or a local `next build && next start`), and the `db:push` / `db:migrate` / `db:studio` npm scripts all refuse it with one line. There is no override. `npx prisma ...` typed by hand is not covered, which is why the production string must not be in a local env file.
+- **Production migrations** run only in Vercel production builds (`vercel.json` buildCommand). Preview builds skip them.
 
 ---
 
@@ -111,10 +120,13 @@ For local webhook testing: `stripe listen --forward-to localhost:3000/api/stripe
 | --- | --- |
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build |
-| `npm run db:migrate` | Run dev migrations |
+| `npm run db:migrate:neon` | Apply migrations over Neon's WebSocket (dev branch locally; production only from Vercel builds) |
+| `npm run db:migrate` | Run dev migrations (`prisma migrate dev`, needs TCP 5432) |
 | `npm run db:push` | Push schema without a migration (dev only) |
-| `npm run db:seed` | Reset + reseed demo data |
+| `npm run db:seed` | Wipe every team, then seed the demo data (dev branch only) |
 | `npm run db:studio` | Open Prisma Studio |
+
+Every script that writes to the database refuses the production database; see [Development database](#development-database).
 
 ## Verification scripts
 

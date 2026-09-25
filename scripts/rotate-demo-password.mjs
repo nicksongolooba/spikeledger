@@ -11,6 +11,7 @@ import { config as loadEnv } from "dotenv";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import bcrypt from "bcryptjs";
+import { refuseProductionDatabase } from "../src/lib/production-guard.mjs";
 
 loadEnv();
 neonConfig.webSocketConstructor = ws;
@@ -20,6 +21,7 @@ if (!CONNECTION) {
   console.error("DATABASE_URL is not set");
   process.exit(1);
 }
+refuseProductionDatabase("rotate-demo-password", CONNECTION);
 
 const pool = new Pool({ connectionString: CONNECTION });
 
