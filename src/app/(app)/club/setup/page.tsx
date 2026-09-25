@@ -2,14 +2,14 @@
 // wants to edit club identity). Owner only.
 
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { ensureClubForOwner, getClubAccess } from "@/lib/club";
 import { ClubSetupForm } from "./ClubSetupForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClubSetupPage() {
-  const user = await requireUser();
+  const user = await requireCoach();
   if (!(await getClubAccess(user.id, user.plan)).allowed) redirect("/dashboard");
   const membership = await ensureClubForOwner(user.id);
   if (!membership) redirect("/dashboard");

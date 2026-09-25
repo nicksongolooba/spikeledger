@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { getTeamForCoach } from "@/lib/access";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { NewTournamentForm } from "./NewTournamentForm";
@@ -10,7 +10,7 @@ export default async function NewTournamentPage({
 }: {
   params: { id: string };
 }) {
-  const user = await requireUser();
+  const user = await requireCoach();
   const team = await getTeamForCoach(params.id, user.id);
 
   return (

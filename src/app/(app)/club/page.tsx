@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Volleyball } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { ensureClubForOwner, getClubAccess } from "@/lib/club";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -22,7 +22,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export default async function ClubPage() {
-  const user = await requireUser();
+  const user = await requireCoach();
   // Club tier only. A Coach Pro or Free user gets nothing here, and neither
   // does a member whose club has gone dormant.
   const access = await getClubAccess(user.id, user.plan);

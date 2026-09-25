@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOutToLogin } from "@/lib/sign-out";
 import {
   Building2,
   CreditCard,
@@ -125,7 +125,7 @@ export function AppShell({
           </div>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={signOutToLogin}
             className="mt-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-navy-200 transition-colors hover:bg-white/5 hover:text-white"
           >
             <LogOut size={18} strokeWidth={2} />
@@ -141,7 +141,7 @@ export function AppShell({
         </Link>
         <button
           type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={signOutToLogin}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
         >
           <LogOut size={16} strokeWidth={2} />

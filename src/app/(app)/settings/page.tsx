@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, CreditCard, User } from "lucide-react";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { PLAN_LABEL } from "@/lib/plan-limits";
 
 export default async function SettingsPage() {
-  const user = await requireUser();
+  const user = await requireCoach();
   return (
     <div>
       <header>

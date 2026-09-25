@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOutToLogin } from "@/lib/sign-out";
 import { Heart, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Wordmark } from "@/components/layout/Wordmark";
@@ -48,7 +48,7 @@ export function ParentShell({
             })}
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={signOutToLogin}
               className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               title={user.email}
             >

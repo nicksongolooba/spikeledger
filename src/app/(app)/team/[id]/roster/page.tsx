@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { getTeamForCoach } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { getUnseenParentLinks } from "@/lib/parent";
@@ -16,7 +16,7 @@ export default async function RosterPage({
   params: { id: string };
   searchParams?: { assignPositions?: string };
 }) {
-  const user = await requireUser();
+  const user = await requireCoach();
   const team = await getTeamForCoach(params.id, user.id);
   const [players, unseen] = await Promise.all([
     prisma.player.findMany({
