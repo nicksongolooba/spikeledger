@@ -1,5 +1,5 @@
-// POST /api/club/invites/accept - join a club via invite code (any signed-in
-// user). Re-validates expiry and the 15-coach cap at accept time.
+// POST /api/club/invites/accept - join a club via invite code (coach accounts;
+// acceptInvite refuses parents). Re-validates expiry and the 15-coach cap.
 
 import { NextResponse } from "next/server";
 import { z } from "zod";

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isParentAccount } from "@/lib/session";
 
 const CreateTeamSchema = z.object({
   name: z.string().min(1).max(100),
@@ -15,6 +16,12 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id?: string } | undefined)?.id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (await isParentAccount(userId)) {
+    return NextResponse.json(
+      { error: "Parent accounts can't create teams. Teams are created from a coach account." },
+      { status: 403 },
+    );
+  }
 
   const body = await req.json().catch(() => null);
   const parsed = CreateTeamSchema.safeParse(body);
