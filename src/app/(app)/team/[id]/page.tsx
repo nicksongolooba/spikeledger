@@ -9,7 +9,7 @@ import {
   Upload,
   Users,
 } from "lucide-react";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { getTeamForCoach } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -33,7 +33,7 @@ import { daysLeft, publicPlayerName, shareState } from "@/lib/share-links";
 export const dynamic = "force-dynamic";
 
 export default async function TeamPage({ params }: { params: { id: string } }) {
-  const user = await requireUser();
+  const user = await requireCoach();
   const effectivePlan = await getEffectivePlan(user.id);
   const team = await getTeamForCoach(params.id, user.id);
   const canManage = team.coachId === user.id;

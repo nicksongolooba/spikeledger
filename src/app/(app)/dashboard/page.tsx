@@ -7,7 +7,7 @@ import {
   FileImage,
   Users,
 } from "lucide-react";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { teamVisibleWhere } from "@/lib/access";
 import { ensureClubForOwner } from "@/lib/club";
@@ -18,7 +18,7 @@ import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const user = await requireUser();
+  const user = await requireCoach();
   // Club owners get their club auto-created on first visit after checkout.
   const membership = user.plan === "CLUB" ? await ensureClubForOwner(user.id) : null;
   const visible = teamVisibleWhere(user.id);

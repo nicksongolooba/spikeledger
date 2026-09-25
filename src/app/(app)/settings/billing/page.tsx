@@ -1,6 +1,6 @@
 import type { Plan } from "@prisma/client";
 import { AlertTriangle, Check, Minus } from "lucide-react";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { isStripeConfigured } from "@/lib/stripe";
@@ -37,7 +37,7 @@ export default async function BillingPage({
 }: {
   searchParams?: { success?: string; canceled?: string; session_id?: string };
 }) {
-  const user = await requireUser();
+  const user = await requireCoach();
 
   // The database is not trusted on its own here. Stripe is asked what it
   // thinks, at most once a minute per coach, and anything that disagrees is

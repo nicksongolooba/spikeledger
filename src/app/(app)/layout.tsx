@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { getClubAccess } from "@/lib/club";
 import { dunningStateFor } from "@/lib/dunning";
 import { AppShell } from "@/components/layout/AppShell";
@@ -10,9 +9,9 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireUser();
-  // Parent accounts have their own area - no roster, no coach tools.
-  if (user.role === "PARENT") redirect("/parent");
+  // Parent accounts have their own area - no roster, no coach tools. Every
+  // page below repeats this check; see requireCoach.
+  const user = await requireCoach();
   // Club tools are CLUB tier only. Membership alone is not enough: a coach
   // whose club has gone dormant, or who downgraded, sees no Club item.
   const showClub = (await getClubAccess(user.id, user.plan)).allowed;

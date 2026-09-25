@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { GenerateClient } from "./GenerateClient";
@@ -19,7 +19,7 @@ export default async function GeneratePage({
   params: { teamId: string };
   searchParams?: { tournament?: string; player?: string };
 }) {
-  const user = await requireUser();
+  const user = await requireCoach();
 
   const { teamVisibleWhere } = await import("@/lib/access");
   const team = await prisma.team.findFirst({

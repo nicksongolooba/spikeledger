@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { GRACE_TOURNAMENT_BANNER, isGraceTournament } from "@/lib/courtside-grace";
 import { getTeamForCoach } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
@@ -28,7 +28,7 @@ export default async function TournamentPage({
   params: { id: string; tid: string };
   searchParams?: { notice?: string };
 }) {
-  const user = await requireUser();
+  const user = await requireCoach();
   const effectivePlan = await getEffectivePlan(user.id);
   const team = await getTeamForCoach(params.id, user.id);
   const tournament = await prisma.tournament.findFirst({

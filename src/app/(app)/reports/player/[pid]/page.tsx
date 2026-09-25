@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Position } from "@prisma/client";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PositionBadge } from "@/components/ui/PositionBadge";
@@ -86,7 +86,7 @@ export default async function PlayerReportPage({
 }: {
   params: { pid: string };
 }) {
-  const user = await requireUser();
+  const user = await requireCoach();
   const effectivePlan = await getEffectivePlan(user.id);
 
   const { teamVisibleWhere } = await import("@/lib/access");

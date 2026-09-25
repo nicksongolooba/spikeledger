@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireUser } from "@/lib/session";
+import { requireCoach } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getTeamParentLinks } from "@/lib/parent";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -10,7 +10,7 @@ import { formatDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function TeamSettingsPage({ params }: { params: { id: string } }) {
-  const user = await requireUser();
+  const user = await requireCoach();
   // Settings are for the creating coach only (club owners get read-only pages).
   const team = await prisma.team.findFirst({
     where: { id: params.id, coachId: user.id },

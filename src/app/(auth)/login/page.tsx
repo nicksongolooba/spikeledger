@@ -27,10 +27,24 @@ function LoginSkeleton() {
   );
 }
 
+// Where to go after logging in, always as a path on this site. next-auth
+// 4.24.15 builds callbackUrl from NEXTAUTH_URL, which can name the other live
+// host (where this session's cookie doesn't exist), and a raw value would let
+// ?callbackUrl= send people to any site.
+function sameSitePath(raw: string | null): string {
+  if (!raw) return "/dashboard";
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "/dashboard";
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return "/dashboard";
+  }
+}
+
 function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const callbackUrl = search.get("callbackUrl") || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,7 +66,7 @@ function LoginForm() {
       setError("Email or password is incorrect.");
       return;
     }
-    router.push(callbackUrl);
+    router.push(sameSitePath(search.get("callbackUrl")));
     router.refresh();
   }
 
