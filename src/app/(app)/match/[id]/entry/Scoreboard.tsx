@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Info, Plus, WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronDown, ChevronLeft, ChevronRight, Info, Minus, Plus, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SetWinChance } from "@/engine/win-probability";
 import { WinChanceSparkline } from "@/components/charts/WinChanceSparkline";
@@ -85,38 +85,6 @@ export function Scoreboard({
   // Tap the win-chance pill to expand the sparkline.
   const [chanceOpen, setChanceOpen] = useState(false);
 
-  const usHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const themHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const usDidLongPress = useRef(false);
-  const themDidLongPress = useRef(false);
-
-  function startHold(who: "us" | "them") {
-    const timer = setTimeout(() => {
-      if (who === "us") usDidLongPress.current = true;
-      else themDidLongPress.current = true;
-      onScore(who, -1);
-    }, 500);
-    if (who === "us") usHoldTimer.current = timer;
-    else themHoldTimer.current = timer;
-  }
-  function endHold(who: "us" | "them") {
-    const timer = who === "us" ? usHoldTimer.current : themHoldTimer.current;
-    if (timer) clearTimeout(timer);
-    if (who === "us") usHoldTimer.current = null;
-    else themHoldTimer.current = null;
-  }
-  function onClickScore(who: "us" | "them") {
-    if (who === "us" && usDidLongPress.current) {
-      usDidLongPress.current = false;
-      return;
-    }
-    if (who === "them" && themDidLongPress.current) {
-      themDidLongPress.current = false;
-      return;
-    }
-    onScore(who, 1);
-  }
-
   return (
     <div className="card relative overflow-hidden">
       {/* Set tabs */}
@@ -199,45 +167,23 @@ export function Scoreboard({
 
       {/* Score - the scoreboard band */}
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-stretch bg-navy-950 text-white">
-        <button
-          type="button"
-          onPointerDown={() => startHold("us")}
-          onPointerUp={() => endHold("us")}
-          onPointerCancel={() => endHold("us")}
-          onClick={() => onClickScore("us")}
-          className={cn(
-            "flex flex-col items-center py-3 transition-colors duration-150 active:bg-white/10",
-            lit === "us" && "bg-green-500/30",
-          )}
-          aria-label="Our score: tap to add, hold to subtract"
-        >
-          <span className="max-w-full truncate px-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-cyan-500">
-            {teamName}
-          </span>
-          <span className="stat-number text-6xl font-bold leading-none sm:text-7xl">
-            {us}
-          </span>
-        </button>
+        <ScoreSide
+          who="us"
+          name={teamName}
+          score={us}
+          nameClassName="text-cyan-500"
+          litClassName={lit === "us" ? "bg-green-500/30" : undefined}
+          onScore={onScore}
+        />
         <span className="stat-number self-center text-3xl font-bold text-navy-400">-</span>
-        <button
-          type="button"
-          onPointerDown={() => startHold("them")}
-          onPointerUp={() => endHold("them")}
-          onPointerCancel={() => endHold("them")}
-          onClick={() => onClickScore("them")}
-          className={cn(
-            "flex flex-col items-center py-3 transition-colors duration-150 active:bg-white/10",
-            lit === "them" && "bg-red-500/30",
-          )}
-          aria-label="Opponent score: tap to add, hold to subtract"
-        >
-          <span className="max-w-full truncate px-2 font-display text-xs font-bold uppercase tracking-[0.16em] text-navy-300">
-            {opponent}
-          </span>
-          <span className="stat-number text-6xl font-bold leading-none sm:text-7xl">
-            {them}
-          </span>
-        </button>
+        <ScoreSide
+          who="them"
+          name={opponent}
+          score={them}
+          nameClassName="text-navy-300"
+          litClassName={lit === "them" ? "bg-red-500/30" : undefined}
+          onScore={onScore}
+        />
       </div>
 
       {/* Rotation + serving */}
@@ -305,6 +251,67 @@ export function Scoreboard({
           Start
         </button>
       </div>
+    </div>
+  );
+}
+
+// One team's score. Tap the left half of the number to take a point off, the
+// right half to add one; the signs show which half is which. Either way it is
+// a hand correction only (handleManualScore): no stat is recorded or removed,
+// and the serve and rotation stay put. The score never goes below 0.
+function ScoreSide({
+  who,
+  name,
+  score,
+  nameClassName,
+  litClassName,
+  onScore,
+}: {
+  who: "us" | "them";
+  name: string;
+  score: number;
+  nameClassName: string;
+  litClassName?: string;
+  onScore: (who: "us" | "them", delta: 1 | -1) => void;
+}) {
+  // manipulation: two quick taps are two points, never a double-tap zoom.
+  const half =
+    "absolute inset-y-0 flex w-1/2 touch-manipulation items-center transition-colors duration-150 active:bg-white/10";
+  const sign = "flex h-7 w-7 items-center justify-center rounded-full border border-white/25 text-white/80";
+  return (
+    <div
+      data-score-side={who}
+      className={cn("relative flex flex-col items-center py-3 transition-colors duration-150", litClassName)}
+    >
+      <span className={cn("max-w-full truncate px-10 font-display text-xs font-bold uppercase tracking-[0.16em]", nameClassName)}>
+        {name}
+      </span>
+      <span data-score={who} className="stat-number text-6xl font-bold leading-none sm:text-7xl">
+        {score}
+      </span>
+      <button
+        type="button"
+        data-score-minus={who}
+        disabled={score === 0}
+        onClick={() => onScore(who, -1)}
+        className={cn(half, "left-0 justify-start pl-2 disabled:active:bg-transparent")}
+        aria-label={`Take a point off ${name}, now ${score}`}
+      >
+        <span className={cn(sign, score === 0 && "opacity-30")}>
+          <Minus size={16} strokeWidth={2.75} aria-hidden />
+        </span>
+      </button>
+      <button
+        type="button"
+        data-score-plus={who}
+        onClick={() => onScore(who, 1)}
+        className={cn(half, "right-0 justify-end pr-2")}
+        aria-label={`Add a point to ${name}, now ${score}`}
+      >
+        <span className={sign}>
+          <Plus size={16} strokeWidth={2.75} aria-hidden />
+        </span>
+      </button>
     </div>
   );
 }
