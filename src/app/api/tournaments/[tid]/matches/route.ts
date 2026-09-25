@@ -8,6 +8,8 @@ import { invalidateLive } from "@/lib/live-cache";
 const CreateMatchSchema = z.object({
   opponent: z.string().min(1).max(120),
   matchNumber: z.number().int().min(1).max(99),
+  // Best of 3 or best of 5; best of 3 unless the coach picks otherwise.
+  bestOf: z.union([z.literal(3), z.literal(5)]).default(3),
 });
 
 export async function POST(
@@ -53,6 +55,7 @@ export async function POST(
       tournamentId: tournament.id,
       opponent: parsed.data.opponent.trim(),
       matchNumber: parsed.data.matchNumber,
+      bestOf: parsed.data.bestOf,
     },
   });
   // A new match becomes the one parents watch.

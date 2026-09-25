@@ -19,9 +19,33 @@ export interface SetRules {
 export const STANDARD_SET: SetRules = { target: 25, winBy: 2 };
 export const DECIDING_SET: SetRules = { target: 15, winBy: 2 };
 
-// Sets 1-4 go to 25; a fifth (deciding) set goes to 15.
-export function setRulesFor(setNumber: number): SetRules {
+// ---------------------------------------------------------------------------
+// Match format: the one set rule. The courtside page, the win chance, the
+// parent view and End match all decide sets and matches through the
+// functions below, so they can never disagree.
+//
+//   Best of 3: sets 1-2 to 25, set 3 to 15; first to 2 sets.
+//   Best of 5: sets 1-4 to 25, set 5 to 15; first to 3 sets.
+//   Every set is win by 2 with no cap. An extra set the coach adds past the
+//   format (set 4 of a best of 3) is a normal set to 25.
+//
+// A match saved before formats existed has no format. It is read as best of
+// 5, which is the rule the app always used (sets 1-4 to 25, set 5 and later
+// to 15), so nothing about a past match changes.
+// ---------------------------------------------------------------------------
+export type BestOf = 3 | 5;
+export const DEFAULT_BEST_OF: BestOf = 3; // new matches
+export function bestOfFor(saved: number | null | undefined): BestOf {
+  return saved === 3 ? 3 : 5;
+}
+
+export function setRulesFor(setNumber: number, bestOf: BestOf = 5): SetRules {
+  if (bestOf === 3) return setNumber === 3 ? DECIDING_SET : STANDARD_SET;
   return setNumber >= 5 ? DECIDING_SET : STANDARD_SET;
+}
+
+export function setsToWin(bestOf: BestOf): number {
+  return bestOf === 3 ? 2 : 3;
 }
 
 // Who has won the set at this score, if anyone.
@@ -29,6 +53,24 @@ export function setWinner(us: number, them: number, rules: SetRules = STANDARD_S
   if (us >= rules.target && us - them >= rules.winBy) return "us";
   if (them >= rules.target && them - us >= rules.winBy) return "them";
   return null;
+}
+
+// Sets won and lost by the rule above, and the match winner once a team has
+// won enough of them. An unfinished set counts for nobody.
+export function matchTally(
+  sets: ReadonlyArray<{ us: number; them: number }>,
+  bestOf: BestOf,
+): { won: number; lost: number; winner: "us" | "them" | null } {
+  let won = 0;
+  let lost = 0;
+  sets.forEach((s, i) => {
+    const w = setWinner(s.us, s.them, setRulesFor(i + 1, bestOf));
+    if (w === "us") won += 1;
+    else if (w === "them") lost += 1;
+  });
+  const need = setsToWin(bestOf);
+  const winner = won >= need && won > lost ? "us" : lost >= need && lost > won ? "them" : null;
+  return { won, lost, winner };
 }
 
 const P_MIN = 0.001;
@@ -148,9 +190,9 @@ export const MIN_RALLIES_TO_SHOW = 3;
 // after each point in the set (an initial [0, 0] is optional).
 export function computeSetWinChance(
   points: ReadonlyArray<readonly [number, number]>,
-  opts: { setNumber: number; historicalRate?: number | null; minRallies?: number },
+  opts: { setNumber: number; bestOf?: BestOf; historicalRate?: number | null; minRallies?: number },
 ): SetWinChance {
-  const rules = setRulesFor(opts.setNumber);
+  const rules = setRulesFor(opts.setNumber, opts.bestOf);
   const minRallies = opts.minRallies ?? MIN_RALLIES_TO_SHOW;
   const seq: Array<readonly [number, number]> = points.length > 0 && points[0][0] === 0 && points[0][1] === 0 ? [...points] : [[0, 0], ...points];
   const history: number[] = [];

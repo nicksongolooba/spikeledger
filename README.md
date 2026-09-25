@@ -141,6 +141,7 @@ node --import tsx scripts/verify-match-notifications.mts   # 61 checks: match-st
 node scripts/verify-entry.mjs                        # browser smoke test (requires Playwright + chromium deps)
 BASE=http://127.0.0.1:3216 node --env-file=.env --import tsx scripts/verify-courtside-states.mts   # 54 checks: every courtside state (no lineup, ready, live, ended, reopened) in both team modes
 BASE=http://127.0.0.1:3220 node --env-file=.env --import tsx scripts/verify-score-correction.mts   # 60 checks on emulated iPhone 13 + Pixel 5: tap the left of a score to take a point off, the right to add; never below 0; no stat, serve or rotation change; parents see the corrected score
+BASE=http://127.0.0.1:3221 node --env-file=.env --import tsx scripts/verify-match-format.mts   # 89 checks on emulated iPhone 13 + Pixel 5: best of 3 / best of 5, the End set button and questions, one set rule courtside, in the parent view and at End match, and past matches unchanged
 node --env-file=.env --import tsx scripts/verify-parent-playing-time.mts   # 38 checks (46 with BASE set): no parent surface exposes playing time, with the team setting both on and off
 node --import tsx scripts/verify-safeguards.mts       # 54 checks (62 with BASE set): share-link privacy, rating language, gender-neutral generated copy, and the courtside grace tournament
 node --env-file=.env --import tsx scripts/verify-billing.mts   # 73 checks: plan reconciliation without a webhook, past_due grace, dunning emails, and deferred downgrades

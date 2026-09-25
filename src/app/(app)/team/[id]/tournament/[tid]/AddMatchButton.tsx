@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertTriangle, Plus } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import { MatchFormatChoice } from "@/components/match/MatchFormatChoice";
+import { DEFAULT_BEST_OF, type BestOf } from "@/engine/win-probability";
 
 export function AddMatchButton({
   teamId: _teamId,
@@ -20,6 +22,7 @@ export function AddMatchButton({
   const [open, setOpen] = useState(false);
   const [opponent, setOpponent] = useState("");
   const [number, setNumber] = useState(nextMatchNumber.toString());
+  const [bestOf, setBestOf] = useState<BestOf>(DEFAULT_BEST_OF);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -33,6 +36,7 @@ export function AddMatchButton({
       body: JSON.stringify({
         opponent,
         matchNumber: Number(number),
+        bestOf,
       }),
     });
     setBusy(false);
@@ -86,6 +90,7 @@ export function AddMatchButton({
               Sets and the result get filled in during stat entry.
             </p>
           </div>
+          <MatchFormatChoice value={bestOf} onChange={setBestOf} />
 
           {error && (
             <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

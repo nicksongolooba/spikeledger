@@ -186,10 +186,17 @@ async function main() {
         check(`${mode}: reopening does not reopen the prompt`, (await page.locator(modalSel).count()) === 0);
 
         // --- STATE: ended ---------------------------------------------------
+        // Set 1 is 1-0, not a finished set, so End match asks first.
         await page.locator('button:has-text("End match")').click();
+        await page.waitForTimeout(500);
+        const ask = await page.locator("[data-confirm-end-match]").innerText().catch(() => "");
+        check(`${mode}: ending with an unfinished set asks first`, ask.includes("Set 1 is 1-0 and not finished. End the match anyway?"), ask);
+        await page.locator('button:has-text("End match anyway")').click();
         await page.waitForURL(/\/review/, { timeout: 30000 }).catch(() => undefined);
         await page.waitForTimeout(1200);
         check(`${mode}: ending goes to the match report`, page.url().includes("/review"), page.url());
+        const stored = await prisma.match.findUnique({ where: { id: mPlay.id }, select: { setsWon: true, setsLost: true, result: true } });
+        check(`${mode}: the unfinished set counts for nobody`, stored?.setsWon === 0 && stored?.setsLost === 0 && stored?.result === "DRAW", JSON.stringify(stored));
         await page.goto(`${BASE}/match/${mPlay.id}/entry`, { waitUntil: "networkidle" });
         await page.waitForTimeout(1500);
         const endedBody = await page.locator("body").innerText();

@@ -12,6 +12,7 @@ const UpdateMatchSchema = z.object({
   setsLost: z.number().int().min(0).max(5).optional(),
   opponentErrors: z.number().int().min(0).max(500).optional(),
   result: z.nativeEnum(MatchResult).nullable().optional(),
+  bestOf: z.union([z.literal(3), z.literal(5)]).optional(),
 });
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
@@ -28,6 +29,18 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },
       { status: 400 },
+    );
+  }
+
+  // The format decides which sets count. Once a match is finished its result
+  // is settled, so the format that produced it can no longer change.
+  if (
+    parsed.data.bestOf !== undefined &&
+    (await prisma.match.findUnique({ where: { id: params.id }, select: { result: true } }))?.result
+  ) {
+    return NextResponse.json(
+      { error: "This match is finished, so its format can't change." },
+      { status: 409 },
     );
   }
 

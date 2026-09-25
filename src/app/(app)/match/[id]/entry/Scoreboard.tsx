@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Info, Minus, Plus, WifiOff } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Flag, Info, Minus, Plus, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SetWinChance } from "@/engine/win-probability";
 import { WinChanceSparkline } from "@/components/charts/WinChanceSparkline";
@@ -31,6 +31,9 @@ interface ScoreboardProps {
   onRotation: (delta: 1 | -1) => void;
   onServingToggle: () => void;
   onEditStart: () => void;
+  // Ends the set being played. Absent while looking at an earlier set or
+  // when nothing can be recorded.
+  onEndSet?: () => void;
 }
 
 export function Scoreboard({
@@ -54,6 +57,7 @@ export function Scoreboard({
   onRotation,
   onServingToggle,
   onEditStart,
+  onEndSet,
 }: ScoreboardProps) {
   // Light up the scored side for a beat when an auto-score lands.
   const [lit, setLit] = useState<"us" | "them" | null>(null);
@@ -250,6 +254,17 @@ export function Scoreboard({
         >
           Start
         </button>
+        {onEndSet && (
+          <button
+            type="button"
+            data-end-set
+            onClick={onEndSet}
+            className="ml-auto inline-flex min-h-[40px] items-center gap-1.5 rounded-md border-2 border-navy-900 bg-white px-3 font-semibold text-navy-900 hover:bg-navy-50"
+          >
+            <Flag size={16} strokeWidth={2.25} aria-hidden />
+            End set {setIdx + 1}
+          </button>
+        )}
       </div>
     </div>
   );
