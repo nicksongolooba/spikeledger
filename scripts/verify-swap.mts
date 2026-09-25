@@ -345,11 +345,93 @@ async function touchDragSuite(browser: Browser, deviceName: string) {
       if (!box) throw new Error(`no card #${jersey}`);
       return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
     };
+    // Where a card is right now, without scrolling: for the second end of a
+    // drag, whose start was just centred (centring it too would scroll the
+    // page and leave the first point aimed at the wrong card).
+    const at = async (jersey: number) => {
+      const box = await page.locator(COURT).filter({ hasText: `#${jersey}` }).first().boundingBox();
+      if (!box) throw new Error(`no card #${jersey}`);
+      return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    };
     const touch = (type: string, pts: { x: number; y: number }[]) =>
       cdp.send("Input.dispatchTouchEvent", {
         type,
         touchPoints: pts.map((p) => ({ x: p.x, y: p.y, radiusX: 12, radiusY: 12, force: 1 })),
       } as never);
+
+    // --- a swipe on the court scrolls; only a picked-up player holds it ---
+    // The court was touch-action:none, so a thumb that landed on a player
+    // could not scroll the page at all. A swipe must scroll, in both
+    // directions, without picking anyone up or selecting them.
+    const scrollY = () => page.evaluate(() => window.scrollY);
+    const swipe = async (from: { x: number; y: number }, dy: number) => {
+      await touch("touchStart", [from]);
+      for (let i = 1; i <= 8; i += 1) {
+        await touch("touchMove", [{ x: from.x, y: from.y + (dy * i) / 8 }]);
+        await page.waitForTimeout(16);
+      }
+      await touch("touchEnd", []);
+      await page.waitForTimeout(700);
+    };
+    const s = await centre(3);
+    const y0 = await scrollY();
+    await swipe(s, -160); // finger moves up, page scrolls down
+    const y1 = await scrollY();
+    check(`${deviceName} touch: a swipe that starts on a court player scrolls the page down`, y1 > y0 + 40, `${y0} -> ${y1}`);
+    const s2 = await centre(3);
+    const y2 = await scrollY();
+    await swipe(s2, 160); // finger moves down, page scrolls up
+    const y3 = await scrollY();
+    check(`${deviceName} touch: and scrolls it back up`, y3 < y2 - 40, `${y2} -> ${y3}`);
+    check(`${deviceName} touch: a swipe picks nobody up`, (await page.locator('[data-picked="1"]').count()) === 0);
+    check(`${deviceName} touch: and selects nobody for a stat`, (await page.locator("[data-action]").count()) === 0);
+
+    // A quick tap, as a real touch, still opens the stat pad.
+    const t = await centre(4);
+    await touch("touchStart", [t]);
+    await page.waitForTimeout(60);
+    await touch("touchEnd", []);
+    await page.waitForTimeout(500);
+    check(`${deviceName} touch: a tap on a court player opens the stat pad`, (await page.locator("[data-action]").count()) > 0);
+    check(`${deviceName} touch: a tap picks nobody up`, (await page.locator('[data-picked="1"]').count()) === 0);
+    // Tap the same player again to put them down before the drags below.
+    await touch("touchStart", [await centre(4)]);
+    await page.waitForTimeout(60);
+    await touch("touchEnd", []);
+    await page.waitForTimeout(500);
+
+    // A long press that has picked a player up holds the page still while
+    // the finger moves up the court, and the drop still swaps.
+    const orderV = await slotOrder(page);
+    const v1 = await centre(1); // back row, right
+    const v2 = await at(2); // front row, right: straight up from #1
+    const yBeforeLift = await scrollY();
+    await touch("touchStart", [v1]);
+    await page.waitForTimeout(550); // hold past the 350ms pick-up
+    let drift = 0;
+    for (let i = 1; i <= 8; i += 1) {
+      await touch("touchMove", [{ x: v1.x, y: v1.y + ((v2.y - v1.y) * i) / 8 }]);
+      await page.waitForTimeout(40);
+      drift = Math.max(drift, Math.abs((await scrollY()) - yBeforeLift));
+    }
+    check(`${deviceName} touch: a picked-up player does not scroll the page while dragged`, drift === 0, `moved ${drift}px`);
+    check(`${deviceName} touch: and stays picked up the whole way`, (await page.locator('[data-picked="1"]').count()) === 1);
+    await touch("touchEnd", []);
+    await page.waitForTimeout(800);
+    const afterV = await slotOrder(page);
+    check(`${deviceName} touch: a vertical drag swaps them`, afterV[0] === orderV[1] && afterV[1] === orderV[0], `${orderV.join(" ")} -> ${afterV.join(" ")}`);
+    // And back, so the checks below start from the original order.
+    const w1 = await centre(Number(orderV[1].slice(1)));
+    const w2 = await at(Number(orderV[0].slice(1)));
+    await touch("touchStart", [w1]);
+    await page.waitForTimeout(550);
+    for (let i = 1; i <= 8; i += 1) {
+      await touch("touchMove", [{ x: w1.x, y: w1.y + ((w2.y - w1.y) * i) / 8 }]);
+      await page.waitForTimeout(40);
+    }
+    await touch("touchEnd", []);
+    await page.waitForTimeout(800);
+    check(`${deviceName} touch: and dragging back restores them`, (await slotOrder(page)).join() === orderV.join(), (await slotOrder(page)).join(" "));
 
     const before = await slotOrder(page);
     const boardBefore = await scoreboard(page);

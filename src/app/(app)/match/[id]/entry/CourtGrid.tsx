@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Position } from "@prisma/client";
 import { POSITION_GROUP, type PositionGroup } from "@/lib/positions";
 import { PositionBadge } from "@/components/ui/PositionBadge";
@@ -35,6 +35,10 @@ const GROUP_RING: Record<PositionGroup, string> = {
 // devices at all - and this is a phone-first page used courtside. A long
 // press rather than a plain drag so the gesture cannot be confused with a
 // tap (which records a stat) or with scrolling the page.
+//
+// The court scrolls like the rest of the page: a swipe that starts on a
+// player must still scroll. Only once a long press has picked a player up
+// does the page hold still, by cancelling touchmove (see the effect below).
 const LONG_PRESS_MS = 350;
 const SLOP_PX = 10;
 
@@ -59,6 +63,25 @@ function useDragToSwap({
   const [drag, setDrag] = useState<DragState | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const start = useRef<{ id: string; x: number; y: number } | null>(null);
+  // True from the moment a long press picks a player up until the drop. A
+  // ref, not the drag state, because the touchmove listener has to see it on
+  // the very next event, before React has re-rendered.
+  const lifted = useRef(false);
+  const courtRef = useRef<HTMLDivElement | null>(null);
+
+  // While a player is picked up, cancel touchmove so the browser never starts
+  // a scroll (which would also end the drag with pointercancel). Before the
+  // pick-up nothing is cancelled, so a swipe scrolls. A native listener:
+  // React's touch listeners are passive and cannot cancel.
+  useEffect(() => {
+    const el = courtRef.current;
+    if (!el || !enabled) return;
+    const onTouchMove = (e: TouchEvent) => {
+      if (lifted.current && e.cancelable) e.preventDefault();
+    };
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => el.removeEventListener("touchmove", onTouchMove);
+  }, [enabled]);
 
   const clearTimer = () => {
     if (timer.current) clearTimeout(timer.current);
@@ -87,6 +110,7 @@ function useDragToSwap({
     clearTimer();
     timer.current = setTimeout(() => {
       // Picked up. Capture so the drag survives the pointer leaving the card.
+      lifted.current = true;
       try { el.setPointerCapture(e.pointerId); } catch { /* not captureable */ }
       setDrag({ id, x: e.clientX, y: e.clientY, dx: 0, dy: 0, over: null });
     }, LONG_PRESS_MS);
@@ -112,6 +136,7 @@ function useDragToSwap({
 
   function onPointerUp(e: React.PointerEvent) {
     clearTimer();
+    lifted.current = false;
     if (!drag) { start.current = null; return; }
     const picked = drag.id;
     const { court, bench } = targetAt(e.clientX, e.clientY);
@@ -132,11 +157,12 @@ function useDragToSwap({
 
   function onPointerCancel() {
     clearTimer();
+    lifted.current = false;
     start.current = null;
     setDrag(null);
   }
 
-  return { drag, onPointerDown, onPointerMove, onPointerUp, onPointerCancel };
+  return { drag, courtRef, onPointerDown, onPointerMove, onPointerUp, onPointerCancel };
 }
 
 // Renders the six on-court players in real volleyball formation. Each card is
@@ -194,6 +220,7 @@ export function CourtFormation({
         <span className="h-0.5 flex-1 bg-slate-300" />
       </div>
       <div
+        ref={drag.courtRef}
         className={cn(
           "relative w-full rounded-lg border border-slate-200 bg-slate-50",
           compact ? "h-36" : "h-52 sm:h-60",
@@ -226,7 +253,6 @@ export function CourtFormation({
                     : "left 450ms cubic-bezier(0.4,0,0.2,1), top 450ms cubic-bezier(0.4,0,0.2,1)",
                 // Never hit-test against itself while in the air.
                 pointerEvents: dragging === id ? "none" : undefined,
-                touchAction: onSwap ? "none" : undefined,
               }}
             >
               <CourtCard
@@ -312,11 +338,14 @@ function CourtCard({
       // selection, the iOS callout, the Android context menu. Chrome fires
       // pointercancel when it claims the press, which killed the pick-up
       // before it started. Declining all three keeps the press ours.
+      // Panning stays allowed ("manipulation" only drops double-tap zoom), so
+      // a swipe that starts here scrolls; useDragToSwap holds the page still
+      // once a player is picked up.
       onContextMenu={onPointerDown ? (e) => e.preventDefault() : undefined}
       style={
         onPointerDown
           ? {
-              touchAction: "none",
+              touchAction: "manipulation",
               userSelect: "none",
               WebkitUserSelect: "none",
               WebkitTouchCallout: "none",
