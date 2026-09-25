@@ -49,6 +49,14 @@ export async function requireParent(): Promise<CoachSession> {
   return user;
 }
 
+// For API routes, which check the session themselves: parents have their own
+// area and must not create teams, buy a plan or join a club. Read from the
+// database, because the session token carries no role.
+export async function isParentAccount(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  return user?.role === "PARENT";
+}
+
 // Where a user lands after login, by role.
 export function homeFor(role: UserRole): string {
   return role === "PARENT" ? "/parent" : "/dashboard";

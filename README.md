@@ -143,6 +143,7 @@ BASE=http://127.0.0.1:3216 node --env-file=.env --import tsx scripts/verify-cour
 node --env-file=.env --import tsx scripts/verify-parent-playing-time.mts   # 38 checks (46 with BASE set): no parent surface exposes playing time, with the team setting both on and off
 node --import tsx scripts/verify-safeguards.mts       # 54 checks (62 with BASE set): share-link privacy, rating language, gender-neutral generated copy, and the courtside grace tournament
 node --env-file=.env --import tsx scripts/verify-billing.mts   # 73 checks: plan reconciliation without a webhook, past_due grace, dunning emails, and deferred downgrades
+BASE=http://127.0.0.1:3219 node --env-file=.env --import tsx scripts/verify-parent-role-gates.mts   # 17 checks: a parent account cannot create a team, start a checkout or join a club; a coach still can (needs a running server)
 BASE=http://127.0.0.1:3212 node --import tsx scripts/verify-install-detection.mts   # 18 browser checks: the install prompt never shows to someone who already installed the app (needs a running server)
 node scripts/verify-app-icons.mjs                    # 48 checks: measures the generated platform icons pixel by pixel
 node --import tsx scripts/verify-club-gating.mts      # 58 DB-backed checks: Club-plan gating and what happens when a club owner downgrades

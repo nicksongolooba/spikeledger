@@ -257,6 +257,17 @@ export async function createInvite(
 // user-facing message on any failure. Re-checks the coach cap at accept time
 // so parallel invites can't overshoot it.
 export async function acceptInvite(code: string, userId: string) {
+  // Clubs are for coaches. Checked first, so a parent account learns nothing
+  // about the invite itself.
+  const account = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (!account) throw new ClubError("Account not found.", 404);
+  if (account.role === "PARENT") {
+    throw new ClubError(
+      "Parent accounts can't join a club. Open this invite while signed in to a coach account.",
+      403,
+    );
+  }
+
   const invite = await prisma.clubInvite.findUnique({
     where: { code },
     include: { club: { select: { id: true, name: true } } },
