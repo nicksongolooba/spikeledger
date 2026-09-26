@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STAT_ACTION_LABELS } from "@/lib/stat-actions";
+import { actionButtonLabel } from "./ActionPanel";
 import type { UndoEntry } from "./types";
 
 export function UndoBar({
@@ -30,26 +30,36 @@ export function UndoBar({
             </div>
           ) : (
             <ul className="space-y-1">
-              {[...entries].reverse().map((e) => (
+              {/* Undo goes strictly backwards: only the newest action can be
+                  undone, because each undo restores the serve and rotation
+                  as they were just before that action. */}
+              {[...entries].reverse().map((e, i) => (
                 <li
                   key={e.id}
                   className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-slate-50"
                 >
                   <span className="truncate text-slate-600">
-                    <span className="font-semibold text-slate-900">
-                      {e.playerName}
-                    </span>{" "}
-                    +1 {STAT_ACTION_LABELS[e.action]}
+                    {actionButtonLabel(e.action)}
+                    {e.playerName && (
+                      <>
+                        ,{" "}
+                        <span className="font-semibold text-slate-900">{e.playerName}</span>
+                      </>
+                    )}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onUndo(e.id);
-                    }}
-                    className="rounded border border-red-200 px-2 py-0.5 text-xs font-semibold text-red-700 hover:bg-red-50"
-                  >
-                    Undo
-                  </button>
+                  {i === 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUndo(e.id);
+                      }}
+                      className="rounded border border-red-200 px-2 py-0.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                    >
+                      Undo
+                    </button>
+                  ) : (
+                    <span className="text-[11px] text-slate-400">undo newer first</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -65,12 +75,14 @@ export function UndoBar({
         >
           <Undo2 size={18} strokeWidth={2} className="shrink-0 text-slate-500" aria-hidden />
           {last ? (
-            <span className="truncate">
-              <span className="text-slate-500">Undo:</span>{" "}
-              <span className="font-semibold text-slate-900">
-                {last.playerName}
-              </span>{" "}
-              +1 {STAT_ACTION_LABELS[last.action]}
+            <span className="truncate" data-undo-last>
+              <span className="text-slate-500">Undo:</span> {actionButtonLabel(last.action)}
+              {last.playerName && (
+                <>
+                  ,{" "}
+                  <span className="font-semibold text-slate-900">{last.playerName}</span>
+                </>
+              )}
             </span>
           ) : (
             <span className="text-slate-500">Nothing to undo</span>

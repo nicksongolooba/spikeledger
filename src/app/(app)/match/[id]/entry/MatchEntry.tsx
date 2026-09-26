@@ -21,7 +21,7 @@ import { FORMAT_LABEL, MatchFormatChoice } from "@/components/match/MatchFormatC
 import { EndPrompt } from "./EndPrompt";
 import { Scoreboard } from "./Scoreboard";
 import { PlayerGrid } from "./PlayerGrid";
-import { ActionPanel } from "./ActionPanel";
+import { ActionPanel, actionButtonLabel } from "./ActionPanel";
 import { UndoBar } from "./UndoBar";
 import { LineupModal } from "./LineupModal";
 import { NoLineupState } from "./NoLineupState";
@@ -64,10 +64,12 @@ type PointLog = Record<number, [number, number][]>;
 const LS_PREFIX = "spikeledger:entry:";
 
 // Which stat actions auto-update the scoreboard. A kill/ace/block wins us the
-// rally; the four error types hand the point to the opponent. SR grades,
-// assists, and digs don't end a rally, so they never move the score.
+// rally. Every red error button means "this player's mistake lost the rally",
+// so all six hand the point to the opponent, through the same side-out logic
+// as Attack err. SR grades, assists, and digs don't end a rally, so they never
+// move the score.
 const SCORES_US = new Set<StatActionId>(["KILL", "ACE", "BLOCK"]);
-const SCORES_THEM = new Set<StatActionId>(["S_ERR", "A_ERR", "NET_ERR", "GEN_ERR"]);
+const SCORES_THEM = new Set<StatActionId>(["S_ERR", "A_ERR", "NET_ERR", "SET_ERR", "DIG_ERR", "GEN_ERR"]);
 
 interface PersistedState {
   onCourt: string[];
@@ -328,24 +330,57 @@ export function MatchEntry({
     setQueueSize(readWal(matchId).length);
   }, [matchId]);
 
-  const flushWal = useCallback(async () => {
-    const pending = readWal(matchId);
-    for (const entry of pending) {
+  // Every send to the server runs through one queue, in order, so an undo can
+  // never overtake the record it cancels.
+  const sendChain = useRef<Promise<void>>(Promise.resolve());
+  const enqueue = useCallback((job: () => Promise<void>) => {
+    const run = sendChain.current.then(job, job);
+    sendChain.current = run.catch(() => undefined);
+    return run;
+  }, []);
+
+  // Set scores changed off screen (an undo in another set). The live sync only
+  // follows the set on screen, so these are sent here, and resent until they land.
+  const pendingSetSync = useRef<Map<number, { us: number; them: number; history: [number, number][] }>>(new Map());
+  const flushSetSync = useCallback(async () => {
+    for (const [idx, body] of [...pendingSetSync.current]) {
       try {
-        await sendWalEntry(matchId, entry);
-        removeWal(matchId, entry.id);
+        const res = await fetch(`/api/matches/${matchId}/score`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ setNumber: idx + 1, ...body }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        if (pendingSetSync.current.get(idx) === body) pendingSetSync.current.delete(idx);
       } catch {
-        // Stop and retry on the next online event.
-        break;
+        break; // retried on the next online event, and before End match
       }
     }
-    refreshQueueSize();
-  }, [matchId, refreshQueueSize]);
+  }, [matchId]);
+
+  const flushWal = useCallback(
+    () =>
+      enqueue(async () => {
+        const pending = readWal(matchId);
+        for (const entry of pending) {
+          try {
+            await sendWalEntry(matchId, entry);
+            removeWal(matchId, entry.id);
+          } catch {
+            // Stop and retry on the next online event.
+            break;
+          }
+        }
+        refreshQueueSize();
+      }),
+    [enqueue, matchId, refreshQueueSize],
+  );
 
   useEffect(() => {
     function onlineHandler() {
       setOffline(false);
       void flushWal();
+      void flushSetSync();
     }
     function offlineHandler() {
       setOffline(true);
@@ -358,7 +393,7 @@ export function MatchEntry({
       window.removeEventListener("online", onlineHandler);
       window.removeEventListener("offline", offlineHandler);
     };
-  }, [flushWal]);
+  }, [flushWal, flushSetSync]);
 
   // ---- Derived ----
   const onCourtSet = useMemo(() => new Set(onCourt), [onCourt]);
@@ -437,6 +472,7 @@ export function MatchEntry({
       flashRotation();
       rotateCourt(1); // side-out: everyone slides one spot clockwise
     }
+    return outcome;
   }
   function handleSetChange(idx: number) {
     setSetIdx(idx);
@@ -649,14 +685,30 @@ export function MatchEntry({
   async function processWalEntry(entry: WalEntry) {
     appendWal(matchId, entry);
     refreshQueueSize();
-    try {
-      await sendWalEntry(matchId, entry);
-      removeWal(matchId, entry.id);
+    await enqueue(async () => {
+      // A replay that ran first has already sent it.
+      if (!readWal(matchId).some((e) => e.id === entry.id)) return;
+      try {
+        await sendWalEntry(matchId, entry);
+        removeWal(matchId, entry.id);
+        refreshQueueSize();
+      } catch {
+        // Leave in queue - flushed when online event fires.
+        setOffline(true);
+      }
+    });
+  }
+
+  // Take a stat back on the server. If the record never got there (still in
+  // the queue, e.g. offline), drop it instead: there is nothing to undo.
+  async function undoStat(recordId: string, undo: WalEntry) {
+    await sendChain.current;
+    if (readWal(matchId).some((e) => e.id === recordId)) {
+      removeWal(matchId, recordId);
       refreshQueueSize();
-    } catch {
-      // Leave in queue - flushed when online event fires.
-      setOffline(true);
+      return;
     }
+    await processWalEntry(undo);
   }
 
   async function handleAction(action: StatActionId) {
@@ -673,11 +725,6 @@ export function MatchEntry({
       ts: Date.now(),
     };
 
-    // Optimistic UI - push to undo stack immediately and clear selection.
-    setUndoStack((prev) => {
-      const next = [...prev, { id: walId, playerId, playerName, action, ts: walEntry.ts }];
-      return next.length > 50 ? next.slice(next.length - 50) : next;
-    });
     setSelectedId(null);
     pushToast(`${playerName} +1 ${STAT_ACTION_LABELS[action]}`, "success");
 
@@ -685,18 +732,28 @@ export function MatchEntry({
     // drive rotation so the coach doesn't have to tap twice. An ace or serve
     // error only happens on our serve, so assert we were serving - this fixes
     // a wrong toggle and keeps the side-out math honest.
-    const servingBefore = servingAssertionFor(action);
-    if (SCORES_US.has(action)) {
-      applyPoint("us", servingBefore);
-    } else if (SCORES_THEM.has(action)) {
-      applyPoint("them", servingBefore);
-    } else if (servingBefore && servingBefore !== serving) {
+    const servingAssert = servingAssertionFor(action);
+    const scorer = SCORES_US.has(action) ? "us" : SCORES_THEM.has(action) ? "them" : null;
+    const entry: UndoEntry = { id: walId, playerId, playerName, action, ts: walEntry.ts, setIdx, inPlay: sets.length - 1, point: null };
+    if (scorer) {
+      // Remember what this action did, so undo can reverse exactly that.
+      const outcome = applyPoint(scorer, servingAssert);
+      entry.point = scorer;
+      entry.servingBefore = serving;
+      entry.servingAfter = outcome.serving;
+      entry.rotated = outcome.rotated;
+    } else if (servingAssert && servingAssert !== serving) {
       // Proof of who served that did not end the rally: a serve receive. It
       // scores nothing and rotates nobody, but it does settle who was serving,
       // so the next rally-ending action gets the side-out math right.
-      setServing(servingBefore);
+      setServing(servingAssert);
       flashServing();
     }
+    // Optimistic UI - the undo list updates at once.
+    setUndoStack((prev) => {
+      const next = [...prev, entry];
+      return next.length > 50 ? next.slice(next.length - 50) : next;
+    });
 
     await processWalEntry(walEntry);
   }
@@ -707,7 +764,17 @@ export function MatchEntry({
     setOpponentErrors(next);
     // A point for us off the opponent's mistake. If they were serving this is a
     // side-out (rotate + take serve); if we were serving we just hold serve.
-    applyPoint("us");
+    const outcome = applyPoint("us");
+    // On the undo list like any other action, so undo stays strictly in order.
+    const entry: UndoEntry = {
+      id: newWalId(), playerId: "", playerName: "", action: "OPP_ERR", ts: Date.now(),
+      setIdx, inPlay: sets.length - 1, point: "us",
+      servingBefore: serving, servingAfter: outcome.serving, rotated: outcome.rotated,
+    };
+    setUndoStack((prev) => {
+      const next = [...prev, entry];
+      return next.length > 50 ? next.slice(next.length - 50) : next;
+    });
     pushToast("Opponent error - point for us", "success");
     // Persist the running count on the match. Idempotent (absolute value), so
     // it's safe to fire-and-forget; if offline it'll be resent at End match.
@@ -718,23 +785,77 @@ export function MatchEntry({
     }).catch(() => undefined);
   }
 
-  async function handleUndo(entryId: string) {
-    const entry = undoStack.find((e) => e.id === entryId);
-    if (!entry) return;
-    setUndoStack((prev) => prev.filter((e) => e.id !== entryId));
-    pushToast(
-      `Undone: ${entry.playerName} +1 ${STAT_ACTION_LABELS[entry.action]}`,
-      "info",
-    );
-    const walEntry: WalEntry = {
+  // ---- Undo: reverse everything one action did, newest first ----
+  // The stat, the point it gave (to either team), the serve and the rotation.
+  // Only that action's point comes off, so plus/minus changes the coach made
+  // by hand since then stay. It asks first when the action's set has ended,
+  // or the whole match has.
+  const [confirmUndo, setConfirmUndo] = useState<UndoEntry | null>(null);
+  // Serve and rotation belong to the set being played; put them back only if
+  // that set is still the one in play.
+  const restoresServe = (e: UndoEntry) => (e.inPlay ?? e.setIdx) === sets.length - 1;
+  function handleUndo(entryId: string) {
+    const entry = undoStack[undoStack.length - 1];
+    if (!entry || entry.id !== entryId) return; // strictly in order
+    const setEnded = entry.setIdx !== undefined && entry.setIdx < sets.length - 1;
+    if (entryState === "ended" || setEnded) {
+      setConfirmUndo(entry);
+      return;
+    }
+    void performUndo(entry);
+  }
+
+  async function performUndo(entry: UndoEntry) {
+    setConfirmUndo(null);
+    setUndoStack((prev) => prev.filter((e) => e.id !== entry.id));
+    const matchEnded = entryState === "ended";
+    const who = entry.playerName ? `, ${entry.playerName}` : "";
+    let scoreLine = "";
+    if (matchEnded) {
+      // A finished match keeps its recorded score; only the stat comes off.
+      scoreLine = " The final score stays as recorded.";
+    } else if (entry.point && entry.setIdx !== undefined && sets[entry.setIdx]) {
+      const idx = entry.setIdx;
+      const was = sets[idx];
+      const now = { ...was, [entry.point]: Math.max(0, was[entry.point] - 1) };
+      setSets((prev) => prev.map((s, i) => (i === idx ? now : s)));
+      scoreLine = ` Score ${now.us}-${now.them}.`;
+      if (restoresServe(entry)) {
+        // A serve the coach has changed by hand since then is theirs, and stays.
+        if (entry.rotated) handleRotation(-1);
+        if (entry.servingBefore && entry.servingAfter && serving === entry.servingAfter && entry.servingBefore !== serving) {
+          setServing(entry.servingBefore);
+          flashServing();
+        }
+      }
+      if (idx !== setIdx && canRecord(entryState)) {
+        // Not the set on screen: the live sync won't see it, so send it here.
+        const history = [...(pointLog[idx] ?? []), [now.us, now.them] as [number, number]].slice(-150);
+        setPointLog((prev) => ({ ...prev, [idx]: history }));
+        pendingSetSync.current.set(idx, { us: now.us, them: now.them, history });
+        void flushSetSync();
+      }
+    }
+    pushToast(`Undone: ${actionButtonLabel(entry.action)}${who}.${scoreLine}`, "info");
+
+    if (entry.action === "OPP_ERR") {
+      const next = Math.max(0, opponentErrors - 1);
+      setOpponentErrors(next);
+      void fetch(`/api/matches/${matchId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ opponentErrors: next }),
+      }).catch(() => undefined);
+      return;
+    }
+    await undoStat(entry.id, {
       id: newWalId(),
       kind: "undo",
       playerId: entry.playerId,
       action: entry.action,
       value: 1,
       ts: Date.now(),
-    };
-    await processWalEntry(walEntry);
+    });
   }
 
   // ---- Ending a set and the match ----
@@ -830,6 +951,7 @@ export function MatchEntry({
     try {
       // Make sure the WAL is fully drained first so the review page sees everything.
       await flushWal();
+      await flushSetSync();
       await fetch(`/api/matches/${matchId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -1074,6 +1196,38 @@ export function MatchEntry({
           </button>
           <button type="button" onClick={() => void endMatch()} className="btn-primary">
             End match anyway
+          </button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={confirmUndo !== null}
+        onClose={() => setConfirmUndo(null)}
+        title={entryState === "ended" ? "Undo a stat in a finished match?" : "Undo a stat from an ended set?"}
+      >
+        {confirmUndo && (
+          <p className="text-sm text-slate-700" data-confirm-undo>
+            {actionButtonLabel(confirmUndo.action)}
+            {confirmUndo.playerName ? ` by ${confirmUndo.playerName}` : ""}
+            {entryState === "ended"
+              ? ` is from a match that has ended. Undoing it removes ${confirmUndo.action === "OPP_ERR" ? "it from the opponent error count" : "the stat"} only; the final score stays as recorded.`
+              : ` was in set ${(confirmUndo.setIdx ?? 0) + 1}, which has ended. Undoing it removes ${confirmUndo.action === "OPP_ERR" ? "it from the opponent error count" : "the stat"}${
+                  confirmUndo.point
+                    ? ` and takes 1 point off ${confirmUndo.point === "us" ? team.name : match.opponent} in set ${(confirmUndo.setIdx ?? 0) + 1}`
+                    : ""
+                }. ${
+                  confirmUndo.point && restoresServe(confirmUndo)
+                    ? "The serve and rotation it changed go back too."
+                    : "The serve and rotation of the set you are playing stay as they are."
+                }`}
+          </p>
+        )}
+        <div className="mt-4 flex justify-end gap-2">
+          <button type="button" onClick={() => setConfirmUndo(null)} className="btn-secondary">
+            Keep it
+          </button>
+          <button type="button" onClick={() => confirmUndo && void performUndo(confirmUndo)} className="btn-primary">
+            Undo it
           </button>
         </div>
       </Modal>
