@@ -35,16 +35,23 @@ const NEGATIVE: ActionButton[] = [
   { id: "S_ERR", label: "Serve err" },
   { id: "NET_ERR", label: "Net err" },
   { id: "A_ERR", label: "Attack err" },
-  // The setter's own mistake: a double, a lift, or a set the attacker cannot
-  // swing on. Recorded but never scored until now.
-  { id: "SET_ERR", label: "Set err", hint: "A double, a lift, or a set the attacker could not swing on" },
-  // A ball touched in defence and not kept alive. Pairs with Dig.
-  { id: "DIG_ERR", label: "Dig err", hint: "A ball touched in defence and not kept alive" },
+  // Every red button means "this player's mistake lost the rally", so these
+  // two now give the other team the point, exactly as Attack err does.
+  { id: "SET_ERR", label: "Set err", hint: "A set that loses the rally (called double or lift, or a set nobody can play)" },
+  { id: "DIG_ERR", label: "Dig err", hint: "A dig that loses the rally" },
   // Renamed from "Gen. err". It was a catch-all by omission: no label, no
   // definition, and nothing downstream could tell its contents apart. Now that
   // setting and digging have their own buttons, this is what is left.
   { id: "GEN_ERR", label: "Other err", hint: "Anything without its own button: rotation faults, foot faults, illegal contact" },
 ];
+
+// The name on each button, for messages such as "Undone: Attack err, Jordan".
+export function actionButtonLabel(id: StatActionId | "OPP_ERR"): string {
+  if (id === "OPP_ERR") return "Opp error";
+  const button = [...POSITIVE, ...NEUTRAL, ...NEGATIVE].find((a) => a.id === id);
+  if (button) return button.label;
+  return id.startsWith("SR_") ? `Serve receive ${id.slice(3)}` : id;
+}
 
 // Serve-receive quality 0 (shank) to 3 (perfect). Solid fills so the four
 // grades read at a glance from arm's length in a bright gym.
@@ -191,6 +198,7 @@ export function ActionPanel({
             restrict={restrict}
             available={available}
           />
+          <ErrorRule />
 
           <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-2.5">
             <div className="mb-2 flex items-center justify-between">
@@ -321,6 +329,32 @@ function ActionRow({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// The one rule for the red buttons, where every stat keeper can see it, with
+// the two definitions people disagree about one tap away.
+function ErrorRule() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div data-error-rule className="mt-1.5 text-xs text-slate-600">
+      <span>Red error buttons: this player&apos;s mistake lost the rally, so the other team gets the point. </span>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="font-semibold text-cyan-700 underline underline-offset-2"
+      >
+        {open ? "Hide" : "What counts?"}
+      </button>
+      {open && (
+        <ul data-error-definitions className="mt-1.5 space-y-0.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2">
+          <li><span className="font-semibold text-slate-800">Set err:</span> a set that loses the rally (called double or lift, or a set nobody can play).</li>
+          <li><span className="font-semibold text-slate-800">Dig err:</span> a dig that loses the rally.</li>
+          <li>A bad set or dig that a teammate saves is not an error.</li>
+        </ul>
+      )}
     </div>
   );
 }
